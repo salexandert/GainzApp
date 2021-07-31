@@ -1,0 +1,64 @@
+from . import blueprint
+from flask import render_template, request, jsonify, current_app
+from flask_login import login_required, current_user
+from utils import *
+from transactions import Transactions
+
+
+@blueprint.route('/',  methods=['GET'])
+@login_required
+def index():
+    
+    transactions = current_app.config['transactions']
+    stats_table_data = get_stats_table_data(transactions)
+
+    transactions.views = transactions.load_views()
+
+    # if transactions.views:
+    #     transactions.views.reverse()
+    
+    return render_template('history.html', stats_table_data=stats_table_data, history=transactions.views)
+
+
+
+@blueprint.route('/load',  methods=['POST'])
+@login_required
+def load():
+    
+    transactions = current_app.config['transactions']
+
+    filename = request.json['data'][0]
+
+    transactions.load(filename)
+
+    return jsonify("Yess")
+
+
+@blueprint.route('/revert',  methods=['POST'])
+@login_required
+def revert():
+    
+    transactions = current_app.config['transactions']
+
+    
+    filename = request.json['data'][0]
+    transactions.load(filename)
+    transactions.save(f"Reverted to {filename}")
+
+    return jsonify("Yess")
+
+
+@blueprint.route('/delete',  methods=['POST'])
+@login_required
+def delete():
+    
+    transactions = current_app.config['transactions']
+
+    filename = request.json['data'][0]
+    transactions.delete(filename)
+
+    transactions = Transactions()
+
+    current_app.config['transactions'] = transactions
+
+    return jsonify("Yess")

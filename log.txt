@@ -1,0 +1,799 @@
+Quantity of link on create 0.13106
+   buy quantity 0.5 unlinked 0.5
+   sell quantity 0.13106 unlinked 0.13106
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.36894
+   buy quantity 0.5 unlinked 0.36894
+   sell quantity 0.36894 unlinked 0.36894
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.5
+   buy quantity 0.5 unlinked 0.5
+   sell quantity 0.5 unlinked 0.5
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.218517
+   buy quantity 0.218517 unlinked 0.218517
+   sell quantity 0.218517 unlinked 0.218517
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.4
+   buy quantity 0.5 unlinked 0.5
+   sell quantity 0.4 unlinked 0.4
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.09999999999999998
+   buy quantity 0.5 unlinked 0.09999999999999998
+   sell quantity 0.4 unlinked 0.4
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.3
+   buy quantity 0.3 unlinked 0.3
+   sell quantity 0.4 unlinked 0.30000000000000004
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.7
+   buy quantity 0.7 unlinked 0.7
+   sell quantity 0.7 unlinked 0.7
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.3
+   buy quantity 0.3 unlinked 0.3
+   sell quantity 0.85 unlinked 0.85
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.55
+   buy quantity 0.85 unlinked 0.85
+   sell quantity 0.85 unlinked 0.55
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.29999999999999993
+   buy quantity 0.85 unlinked 0.29999999999999993
+   sell quantity 0.3 unlinked 0.3
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.42065098
+   buy quantity 0.42065098 unlinked 0.42065098
+   sell quantity 1.44324 unlinked 1.44324
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.27751355
+   buy quantity 0.27751355 unlinked 0.27751355
+   sell quantity 1.44324 unlinked 1.02258902
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.7450754700000001
+   buy quantity 0.75446135 unlinked 0.75446135
+   sell quantity 1.44324 unlinked 0.7450754700000001
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.009385879999999958
+   buy quantity 0.75446135 unlinked 0.009385879999999958
+   sell quantity 0.06159 unlinked 0.06159
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.05220412000000004
+   buy quantity 0.06087429 unlinked 0.06087429
+   sell quantity 0.06159 unlinked 0.05220412000000004
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.008670169999999956
+   buy quantity 0.06087429 unlinked 0.008670169999999956
+   sell quantity 0.5 unlinked 0.5
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.49132983
+   buy quantity 0.5 unlinked 0.5
+   sell quantity 0.5 unlinked 0.49132983
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.008670169999999977
+   buy quantity 0.5 unlinked 0.008670169999999977
+   sell quantity 0.218 unlinked 0.218
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.20932983000000002
+   buy quantity 0.21 unlinked 0.21
+   sell quantity 0.218 unlinked 0.20932983000000002
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.00067016999999997
+   buy quantity 0.21 unlinked 0.00067016999999997
+   sell quantity 1.084 unlinked 1.084
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 1.08332983
+   buy quantity 1.08350492 unlinked 1.08350492
+   sell quantity 1.084 unlinked 1.08332983
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.00017508999999993335
+   buy quantity 1.08350492 unlinked 0.00017508999999993335
+   sell quantity 1.0306 unlinked 1.0306
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 1.30149097
+   buy quantity 1.30149097 unlinked 1.30149097
+   sell quantity 2.225 unlinked 2.225
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.9235090300000002
+   buy quantity 0.9235796 unlinked 0.9235796
+   sell quantity 2.225 unlinked 0.9235090300000002
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 7.056999999976998e-05
+   buy quantity 0.9235796 unlinked 7.056999999976998e-05
+   sell quantity 0.0846 unlinked 0.0846
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.04227486
+   buy quantity 0.04227486 unlinked 0.04227486
+   sell quantity 0.0846 unlinked 0.08452943000000022
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.04225457000000023
+   buy quantity 0.04230578 unlinked 0.04230578
+   sell quantity 0.0846 unlinked 0.04225457000000023
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 5.1209999999773936e-05
+   buy quantity 0.04230578 unlinked 5.1209999999773936e-05
+   sell quantity 0.4409 unlinked 0.4409
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.4408487900000002
+   buy quantity 0.44091362 unlinked 0.44091362
+   sell quantity 0.4409 unlinked 0.4408487900000002
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 6.482999999979366e-05
+   buy quantity 0.44091362 unlinked 6.482999999979366e-05
+   sell quantity 0.76761778 unlinked 0.76761778
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.76753535
+   buy quantity 0.76753535 unlinked 0.76753535
+   sell quantity 0.76761778 unlinked 0.7675529500000002
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 1.40124238
+   buy quantity 1.40124238 unlinked 1.40124238
+   sell quantity 1.40124238 unlinked 1.40124238
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.32282109
+   buy quantity 0.32282109 unlinked 0.32282109
+   sell quantity 0.32282109 unlinked 0.32282109
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.5672
+   buy quantity 0.56726943 unlinked 0.56726943
+   sell quantity 0.5672 unlinked 0.5672
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 6.942999999992594e-05
+   buy quantity 0.56726943 unlinked 6.942999999992594e-05
+   sell quantity 0.4061 unlinked 0.4061
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.4060305700000001
+   buy quantity 0.40611965 unlinked 0.40611965
+   sell quantity 0.4061 unlinked 0.4060305700000001
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 8.907999999990812e-05
+   buy quantity 0.40611965 unlinked 8.907999999990812e-05
+   sell quantity 0.45653837 unlinked 0.45653837
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.23348243
+   buy quantity 0.23348243 unlinked 0.23348243
+   sell quantity 0.45653837 unlinked 0.4564492900000001
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.03577661
+   buy quantity 0.03577661 unlinked 0.03577661
+   sell quantity 0.45653837 unlinked 0.22296686000000013
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 1.67607896
+   buy quantity 1.67607896 unlinked 1.67607896
+   sell quantity 1.70931401 unlinked 1.70931401
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.03323505
+   buy quantity 0.03323505 unlinked 0.03323505
+   sell quantity 1.70931401 unlinked 0.033235050000000044
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 1.07765443
+   buy quantity 1.07765443 unlinked 1.07765443
+   sell quantity 1.07765443 unlinked 1.07765443
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.1594
+   buy quantity 0.15951831 unlinked 0.15951831
+   sell quantity 0.1594 unlinked 0.1594
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.00011831000000001035
+   buy quantity 0.15951831 unlinked 0.00011831000000001035
+   sell quantity 1.34350608 unlinked 1.34350608
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 1.34338777
+   buy quantity 1.34338777 unlinked 1.34338777
+   sell quantity 1.34350608 unlinked 1.34338777
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.97202939
+   buy quantity 0.97202939 unlinked 0.97202939
+   sell quantity 0.97202939 unlinked 0.97202939
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 1.9486
+   buy quantity 1.94872094 unlinked 1.94872094
+   sell quantity 1.9486 unlinked 1.9486
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.0001209399999999583
+   buy quantity 1.94872094 unlinked 0.0001209399999999583
+   sell quantity 0.16738274 unlinked 0.16738274
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.1672618
+   buy quantity 0.1672618 unlinked 0.1672618
+   sell quantity 0.16738274 unlinked 0.16726180000000004
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.51398098
+   buy quantity 0.51398098 unlinked 0.51398098
+   sell quantity 0.51398098 unlinked 0.51398098
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.74314088
+   buy quantity 0.74314088 unlinked 0.74314088
+   sell quantity 0.74314088 unlinked 0.74314088
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.21073778
+   buy quantity 0.34002512 unlinked 0.34002512
+   sell quantity 0.21073778 unlinked 0.21073778
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.037933
+   buy quantity 0.34002512 unlinked 0.12928734
+   sell quantity 0.037933 unlinked 0.037933
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.01293841
+   buy quantity 0.34002512 unlinked 0.09135434
+   sell quantity 0.01293841 unlinked 0.01293841
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.07841593000000001
+   buy quantity 0.34002512 unlinked 0.07841593000000001
+   sell quantity 0.51 unlinked 0.51
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.21073778
+   buy quantity 0.21073778 unlinked 0.21073778
+   sell quantity 0.51 unlinked 0.43158407
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.22084628999999997
+   buy quantity 0.23392972 unlinked 0.23392972
+   sell quantity 0.51 unlinked 0.22084628999999997
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.00943968
+   buy quantity 0.23392972 unlinked 0.013083430000000035
+   sell quantity 0.00943968 unlinked 0.00943968
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.003643750000000034
+   buy quantity 0.23392972 unlinked 0.003643750000000034
+   sell quantity 0.0235588 unlinked 0.0235588
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.01991504999999997
+   buy quantity 0.27618435 unlinked 0.27618435
+   sell quantity 0.0235588 unlinked 0.01991504999999997
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.25626930000000003
+   buy quantity 0.27618435 unlinked 0.25626930000000003
+   sell quantity 1.4764412 unlinked 1.4764412
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.03793265
+   buy quantity 0.03793265 unlinked 0.03793265
+   sell quantity 1.4764412 unlinked 1.2201719
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.01293841
+   buy quantity 0.01293841 unlinked 0.01293841
+   sell quantity 1.4764412 unlinked 1.18223925
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.09761174
+   buy quantity 0.09761174 unlinked 0.09761174
+   sell quantity 1.4764412 unlinked 1.16930084
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.21313461
+   buy quantity 0.21313461 unlinked 0.21313461
+   sell quantity 1.4764412 unlinked 1.0716891
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.21306743
+   buy quantity 0.21306743 unlinked 0.21306743
+   sell quantity 1.4764412 unlinked 0.85855449
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.06739143
+   buy quantity 0.06739143 unlinked 0.06739143
+   sell quantity 1.4764412 unlinked 0.64548706
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.04373313
+   buy quantity 0.04373313 unlinked 0.04373313
+   sell quantity 1.4764412 unlinked 0.57809563
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.10052956
+   buy quantity 0.10052956 unlinked 0.10052956
+   sell quantity 1.4764412 unlinked 0.5343625
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.05181812
+   buy quantity 0.05181812 unlinked 0.05181812
+   sell quantity 1.4764412 unlinked 0.43383293999999994
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.13156375
+   buy quantity 0.13156375 unlinked 0.13156375
+   sell quantity 1.4764412 unlinked 0.3820148199999999
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.015
+   buy quantity 0.015 unlinked 0.015
+   sell quantity 1.4764412 unlinked 0.2504510699999999
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.1
+   buy quantity 0.1 unlinked 0.1
+   sell quantity 1.4764412 unlinked 0.23545106999999987
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.1
+   buy quantity 0.1 unlinked 0.1
+   sell quantity 1.4764412 unlinked 0.13545106999999987
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.03545106999999986
+   buy quantity 0.2 unlinked 0.2
+   sell quantity 1.4764412 unlinked 0.03545106999999986
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.15
+   buy quantity 0.2 unlinked 0.16454893000000015
+   sell quantity 0.15 unlinked 0.15
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.014548930000000154
+   buy quantity 0.2 unlinked 0.014548930000000154
+   sell quantity 0.03893194 unlinked 0.03893194
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.00279344
+   buy quantity 0.00279344 unlinked 0.00279344
+   sell quantity 0.03893194 unlinked 0.024383009999999844
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.021589569999999843
+   buy quantity 0.55817488 unlinked 0.55817488
+   sell quantity 0.03893194 unlinked 0.021589569999999843
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.14
+   buy quantity 0.55817488 unlinked 0.5365853100000002
+   sell quantity 0.14 unlinked 0.14
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.03128968
+   buy quantity 0.55817488 unlinked 0.3965853100000002
+   sell quantity 0.03128968 unlinked 0.03128968
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.001
+   buy quantity 0.55817488 unlinked 0.3652956300000002
+   sell quantity 0.001 unlinked 0.001
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.20312817
+   buy quantity 0.55817488 unlinked 0.3642956300000002
+   sell quantity 0.20312817 unlinked 0.20312817
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.05315615
+   buy quantity 0.55817488 unlinked 0.1611674600000002
+   sell quantity 0.05315615 unlinked 0.05315615
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.00314521
+   buy quantity 0.55817488 unlinked 0.10801131000000021
+   sell quantity 0.00314521 unlinked 0.00314521
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.03189606
+   buy quantity 0.55817488 unlinked 0.10486610000000021
+   sell quantity 0.03189606 unlinked 0.03189606
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.02951411
+   buy quantity 0.55817488 unlinked 0.07297004000000021
+   sell quantity 0.02951411 unlinked 0.02951411
+Link Quantity in link_transaction given to function None
+
+Quantity of link on create 0.0017156
+   buy quantity 0.55817488 unlinked 0.04345593000000021
+   sell quantity 0.0017156 unlinked 0.0017156
+
+Quantity of link on Save 0.23348243
+   buy quantity 0.23348243 unlinked 0.0
+   sell quantity 0.45653837 unlinked 0.1871902500000001
+
+Quantity of link on Save 0.01991504999999997
+   buy quantity 0.27618435 unlinked 0.0
+   sell quantity 0.0235588 unlinked 0.0
+
+Quantity of link on Save 0.5
+   buy quantity 0.5 unlinked 0.0
+   sell quantity 0.5 unlinked 0.0
+
+Quantity of link on Save 0.74314088
+   buy quantity 0.74314088 unlinked 0.0
+   sell quantity 0.74314088 unlinked 0.0
+
+Quantity of link on Save 0.07841593000000001
+   buy quantity 0.34002512 unlinked 0.0
+   sell quantity 0.51 unlinked 0.0
+
+Quantity of link on Save 0.03323505
+   buy quantity 0.03323505 unlinked 0.0
+   sell quantity 1.70931401 unlinked 4.163336342344337e-17
+
+Quantity of link on Save 0.36894
+   buy quantity 0.5 unlinked 0.0
+   sell quantity 0.36894 unlinked 0.0
+
+Quantity of link on Save 0.00067016999999997
+   buy quantity 0.21 unlinked 0.0
+   sell quantity 1.084 unlinked 0.0
+
+Quantity of link on Save 1.08332983
+   buy quantity 1.08350492 unlinked 0.0
+   sell quantity 1.084 unlinked 0.0
+
+Quantity of link on Save 0.20312817
+   buy quantity 0.55817488 unlinked 0.041740330000000214
+   sell quantity 0.20312817 unlinked 0.0
+
+Quantity of link on Save 0.20932983000000002
+   buy quantity 0.21 unlinked 0.0
+   sell quantity 0.218 unlinked 0.0
+
+Quantity of link on Save 0.1594
+   buy quantity 0.15951831 unlinked 0.0
+   sell quantity 0.1594 unlinked 0.0
+
+Quantity of link on Save 0.00943968
+   buy quantity 0.23392972 unlinked 0.0
+   sell quantity 0.00943968 unlinked 0.0
+
+Quantity of link on Save 0.21313461
+   buy quantity 0.21313461 unlinked 0.0
+   sell quantity 1.4764412 unlinked 0.0
+
+Quantity of link on Save 0.009385879999999958
+   buy quantity 0.75446135 unlinked 0.0
+   sell quantity 0.06159 unlinked 0.0
+
+Quantity of link on Save 0.03545106999999986
+   buy quantity 0.2 unlinked 0.0
+   sell quantity 1.4764412 unlinked 0.0
+
+Quantity of link on Save 0.03128968
+   buy quantity 0.55817488 unlinked 0.041740330000000214
+   sell quantity 0.03128968 unlinked 0.0
+
+Quantity of link on Save 0.21306743
+   buy quantity 0.21306743 unlinked 0.0
+   sell quantity 1.4764412 unlinked 0.0
+
+Quantity of link on Save 1.40124238
+   buy quantity 1.40124238 unlinked 0.0
+   sell quantity 1.40124238 unlinked 0.0
+
+Quantity of link on Save 0.021589569999999843
+   buy quantity 0.55817488 unlinked 0.041740330000000214
+   sell quantity 0.03893194 unlinked 0.0
+
+Quantity of link on Save 0.0001209399999999583
+   buy quantity 1.94872094 unlinked 0.0
+   sell quantity 0.16738274 unlinked 5.551115123125783e-17
+
+Quantity of link on Save 0.037933
+   buy quantity 0.34002512 unlinked 0.0
+   sell quantity 0.037933 unlinked 0.0
+
+Quantity of link on Save 6.942999999992594e-05
+   buy quantity 0.56726943 unlinked 0.0
+   sell quantity 0.4061 unlinked 0.0
+
+Quantity of link on Save 0.05220412000000004
+   buy quantity 0.06087429 unlinked 0.0
+   sell quantity 0.06159 unlinked 0.0
+
+Quantity of link on Save 0.7450754700000001
+   buy quantity 0.75446135 unlinked 0.0
+   sell quantity 1.44324 unlinked 0.0
+
+Quantity of link on Save 0.09761174
+   buy quantity 0.09761174 unlinked 0.0
+   sell quantity 1.4764412 unlinked 0.0
+
+Quantity of link on Save 0.10052956
+   buy quantity 0.10052956 unlinked 0.0
+   sell quantity 1.4764412 unlinked 0.0
+
+Quantity of link on Save 0.014548930000000154
+   buy quantity 0.2 unlinked 0.0
+   sell quantity 0.03893194 unlinked 0.0
+
+Quantity of link on Save 0.02951411
+   buy quantity 0.55817488 unlinked 0.041740330000000214
+   sell quantity 0.02951411 unlinked 0.0
+
+Quantity of link on Save 0.1
+   buy quantity 0.1 unlinked 0.0
+   sell quantity 1.4764412 unlinked 0.0
+
+Quantity of link on Save 0.05315615
+   buy quantity 0.55817488 unlinked 0.041740330000000214
+   sell quantity 0.05315615 unlinked 0.0
+
+Quantity of link on Save 0.4
+   buy quantity 0.5 unlinked 0.0
+   sell quantity 0.4 unlinked 0.0
+
+Quantity of link on Save 0.42065098
+   buy quantity 0.42065098 unlinked 0.0
+   sell quantity 1.44324 unlinked 0.0
+
+Quantity of link on Save 0.04227486
+   buy quantity 0.04227486 unlinked 0.0
+   sell quantity 0.0846 unlinked 0.0
+
+Quantity of link on Save 0.015
+   buy quantity 0.015 unlinked 0.0
+   sell quantity 1.4764412 unlinked 0.0
+
+Quantity of link on Save 0.5672
+   buy quantity 0.56726943 unlinked 0.0
+   sell quantity 0.5672 unlinked 0.0
+
+Quantity of link on Save 1.34338777
+   buy quantity 1.34338777 unlinked 0.0
+   sell quantity 1.34350608 unlinked 0.0
+
+Quantity of link on Save 0.3
+   buy quantity 0.3 unlinked 0.0
+   sell quantity 0.4 unlinked 5.551115123125783e-17
+
+Quantity of link on Save 0.1672618
+   buy quantity 0.1672618 unlinked 0.0
+   sell quantity 0.16738274 unlinked 5.551115123125783e-17
+
+Quantity of link on Save 0.21073778
+   buy quantity 0.21073778 unlinked 0.0
+   sell quantity 0.51 unlinked 0.0
+
+Quantity of link on Save 0.49132983
+   buy quantity 0.5 unlinked 0.0
+   sell quantity 0.5 unlinked 0.0
+
+Quantity of link on Save 0.03189606
+   buy quantity 0.55817488 unlinked 0.041740330000000214
+   sell quantity 0.03189606 unlinked 0.0
+
+Quantity of link on Save 8.907999999990812e-05
+   buy quantity 0.40611965 unlinked 0.0
+   sell quantity 0.45653837 unlinked 0.1871902500000001
+
+Quantity of link on Save 0.00017508999999993335
+   buy quantity 1.08350492 unlinked 0.0
+   sell quantity 1.0306 unlinked 1.03042491
+
+Quantity of link on Save 0.14
+   buy quantity 0.55817488 unlinked 0.041740330000000214
+   sell quantity 0.14 unlinked 0.0
+
+Quantity of link on Save 0.9235090300000002
+   buy quantity 0.9235796 unlinked 0.0
+   sell quantity 2.225 unlinked 0.0
+
+Quantity of link on Save 0.22084628999999997
+   buy quantity 0.23392972 unlinked 0.0
+   sell quantity 0.51 unlinked 0.0
+
+Quantity of link on Save 0.97202939
+   buy quantity 0.97202939 unlinked 0.0
+   sell quantity 0.97202939 unlinked 0.0
+
+Quantity of link on Save 0.03577661
+   buy quantity 0.03577661 unlinked 0.0
+   sell quantity 0.45653837 unlinked 0.1871902500000001
+
+Quantity of link on Save 0.01293841
+   buy quantity 0.01293841 unlinked 0.0
+   sell quantity 1.4764412 unlinked 0.0
+
+Quantity of link on Save 0.29999999999999993
+   buy quantity 0.85 unlinked 0.0
+   sell quantity 0.3 unlinked 5.551115123125783e-17
+
+Quantity of link on Save 0.01293841
+   buy quantity 0.34002512 unlinked 0.0
+   sell quantity 0.01293841 unlinked 0.0
+
+Quantity of link on Save 7.056999999976998e-05
+   buy quantity 0.9235796 unlinked 0.0
+   sell quantity 0.0846 unlinked 0.0
+
+Quantity of link on Save 0.76753535
+   buy quantity 0.76753535 unlinked 0.0
+   sell quantity 0.76761778 unlinked 1.7600000000284055e-05
+
+Quantity of link on Save 0.21073778
+   buy quantity 0.34002512 unlinked 0.0
+   sell quantity 0.21073778 unlinked 0.0
+
+Quantity of link on Save 0.001
+   buy quantity 0.55817488 unlinked 0.041740330000000214
+   sell quantity 0.001 unlinked 0.0
+
+Quantity of link on Save 0.0017156
+   buy quantity 0.55817488 unlinked 0.041740330000000214
+   sell quantity 0.0017156 unlinked 0.0
+
+Quantity of link on Save 0.13106
+   buy quantity 0.5 unlinked 0.0
+   sell quantity 0.13106 unlinked 0.0
+
+Quantity of link on Save 1.9486
+   buy quantity 1.94872094 unlinked 0.0
+   sell quantity 1.9486 unlinked 0.0
+
+Quantity of link on Save 0.05181812
+   buy quantity 0.05181812 unlinked 0.0
+   sell quantity 1.4764412 unlinked 0.0
+
+Quantity of link on Save 0.32282109
+   buy quantity 0.32282109 unlinked 0.0
+   sell quantity 0.32282109 unlinked 0.0
+
+Quantity of link on Save 0.4408487900000002
+   buy quantity 0.44091362 unlinked 0.0
+   sell quantity 0.4409 unlinked 0.0
+
+Quantity of link on Save 5.1209999999773936e-05
+   buy quantity 0.04230578 unlinked 0.0
+   sell quantity 0.4409 unlinked 0.0
+
+Quantity of link on Save 0.51398098
+   buy quantity 0.51398098 unlinked 0.0
+   sell quantity 0.51398098 unlinked 0.0
+
+Quantity of link on Save 0.1
+   buy quantity 0.1 unlinked 0.0
+   sell quantity 1.4764412 unlinked 0.0
+
+Quantity of link on Save 1.67607896
+   buy quantity 1.67607896 unlinked 0.0
+   sell quantity 1.70931401 unlinked 4.163336342344337e-17
+
+Quantity of link on Save 0.09999999999999998
+   buy quantity 0.5 unlinked 0.0
+   sell quantity 0.4 unlinked 5.551115123125783e-17
+
+Quantity of link on Save 0.7
+   buy quantity 0.7 unlinked 0.0
+   sell quantity 0.7 unlinked 0.0
+
+Quantity of link on Save 1.07765443
+   buy quantity 1.07765443 unlinked 0.0
+   sell quantity 1.07765443 unlinked 0.0
+
+Quantity of link on Save 0.03793265
+   buy quantity 0.03793265 unlinked 0.0
+   sell quantity 1.4764412 unlinked 0.0
+
+Quantity of link on Save 0.00314521
+   buy quantity 0.55817488 unlinked 0.041740330000000214
+   sell quantity 0.00314521 unlinked 0.0
+
+Quantity of link on Save 0.218517
+   buy quantity 0.218517 unlinked 0.0
+   sell quantity 0.218517 unlinked 0.0
+
+Quantity of link on Save 0.25626930000000003
+   buy quantity 0.27618435 unlinked 0.0
+   sell quantity 1.4764412 unlinked 0.0
+
+Quantity of link on Save 0.15
+   buy quantity 0.2 unlinked 0.0
+   sell quantity 0.15 unlinked 0.0
+
+Quantity of link on Save 1.30149097
+   buy quantity 1.30149097 unlinked 0.0
+   sell quantity 2.225 unlinked 0.0
+
+Quantity of link on Save 0.27751355
+   buy quantity 0.27751355 unlinked 0.0
+   sell quantity 1.44324 unlinked 0.0
+
+Quantity of link on Save 0.13156375
+   buy quantity 0.13156375 unlinked 0.0
+   sell quantity 1.4764412 unlinked 0.0
+
+Quantity of link on Save 0.008670169999999977
+   buy quantity 0.5 unlinked 0.0
+   sell quantity 0.218 unlinked 0.0
+
+Quantity of link on Save 0.04373313
+   buy quantity 0.04373313 unlinked 0.0
+   sell quantity 1.4764412 unlinked 0.0
+
+Quantity of link on Save 6.482999999979366e-05
+   buy quantity 0.44091362 unlinked 0.0
+   sell quantity 0.76761778 unlinked 1.7600000000284055e-05
+
+Quantity of link on Save 0.4060305700000001
+   buy quantity 0.40611965 unlinked 0.0
+   sell quantity 0.4061 unlinked 0.0
+
+Quantity of link on Save 0.55
+   buy quantity 0.85 unlinked 0.0
+   sell quantity 0.85 unlinked 0.0
+
+Quantity of link on Save 0.008670169999999956
+   buy quantity 0.06087429 unlinked 0.0
+   sell quantity 0.5 unlinked 0.0
+
+Quantity of link on Save 0.00011831000000001035
+   buy quantity 0.15951831 unlinked 0.0
+   sell quantity 1.34350608 unlinked 0.0
+
+Quantity of link on Save 0.04225457000000023
+   buy quantity 0.04230578 unlinked 0.0
+   sell quantity 0.0846 unlinked 0.0
+
+Quantity of link on Save 0.003643750000000034
+   buy quantity 0.23392972 unlinked 0.0
+   sell quantity 0.0235588 unlinked 0.0
+
+Quantity of link on Save 0.00279344
+   buy quantity 0.00279344 unlinked 0.0
+   sell quantity 0.03893194 unlinked 0.0
+
+Quantity of link on Save 0.06739143
+   buy quantity 0.06739143 unlinked 0.0
+   sell quantity 1.4764412 unlinked 0.0
+
+Quantity of link on Save 0.3
+   buy quantity 0.3 unlinked 0.0
+   sell quantity 0.85 unlinked 0.0
