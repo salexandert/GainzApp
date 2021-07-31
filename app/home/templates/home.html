@@ -1,0 +1,49 @@
+{% extends "base_site.html" %}
+
+{% block title %} Dashboard 1 {% endblock title %}
+
+{% block stylesheets %}
+  {{ super() }}
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="content">
+  <div class="row">
+    <div class="col-md-12">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title">Welcome to Gainz App</h5>
+          <p class="card-category">Created for hodler's who need some clarity</p>
+        </div>
+        <div class="card-body">
+          <div>
+            
+            <h6>Gainz Mission Statement: Help people solve the "IDKWTF I've done with my crypto" problem :-) </h6>
+
+            <p>
+              <br>
+              After an nightmare attempt in excel, and finding nothing readily available I started working on Gainz. <br>
+              Maybe this is you too, in anycase I want to say thank you for your interest and support. <br>
+              Gainz is made to be used fully offline and disconnected from the internet to maintain privacy. <br>
+              <br>
+              Gainz will import exchange transactions CSV(s) then guide you though some common scenarios to provide a clearer <br>
+              understanding of your crypto holdings and associated gains or losses.
+              <br> 
+              <br> Reports can be exported in excel format for your reference and shareability. <br>
+              <br>
+              <bold>Gainz or its affiliates, Does not provide Legal, Financial, Investment, or Tax Advice, of any kind.</bold>
+
+
+            </p>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}
+
+{% block javascripts %}
+  {{ super()}}
+{% endblock javascripts %}

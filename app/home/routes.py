@@ -13,4 +13,4 @@ def index():
     
     print(sys.executable)
 
-    return render_template('index.html', transactions=current_app.config['transactions'])
+    return render_template('home.html', transactions=current_app.config['transactions'])

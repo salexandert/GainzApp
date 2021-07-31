@@ -8,305 +8,231 @@
 
 {% block content %}
   
-        <!-- page content -->
-        <div class="right_col" role="main">
-          <div class="">
-            <div class="clearfix"></div>
+<!-- Page Description and Instructions -->
+<div class="row">
+  <div class="col-md-12">
+    <div class="card">
+      <div class="card-body">      
+        <div id="accordion" role="tablist" aria-multiselectable="true" class="card-collapse">
+          <h4 class="card-title">Add and Manage Links</h4>
+          <div class="card card-plain">
+            <div class="card-header" role="tab" id="headingOne">
+              <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                How to use this page
+                <i class="nc-icon nc-minimal-down"></i>
+              </a>
+            </div>
+            <div id="collapseOne" class="collapse show" role="tabpanel" aria-labelledby="headingOne">
+              <div class="card-body">
+                Use this page to manually add links between buys and sells.
+                <br>
+                <br>For example the BTC that you already paid taxes on should to be linked to the appropriate buy that matches reported profit/loss.
+                <br> Choose a sell from the Sells table to view it's current and potential links.
+                <br> If you don't have this information or it's a monster to figure out you can still continue, but will potentially link sells to buys that you initally did not use or report in previous tax years. 
+                <br>
+                <br> NOT TAX OR FINANCIAL ADVICE!
+                <br>
+                <br> Choose an asset from the All Asset Stats Table to show sells that need to be linked.
+                <br> Buys that are currently linked will be shown in the linked table and Buys that can be linked will be shown in the linkable table. 
+                <br> Choose a single buy or a batch of buys that fully satisify the previously selected sell and click Link to link!
+                
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- /Page Description and Instructions -->
             
-            <!-- Add Links Description  -->
-            <div class="row">
-              <div class="col-md-12 col-sm-12 ">
-                <div class="x_panel">
-                  <div class="x_title">
-                    <h2> Add Links </h2>
-                    <ul class="nav navbar-right panel_toolbox">
-                      <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
-                      </li>
-                      <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-wrench"></i></a>
-                        <ul class="dropdown-menu" role="menu">
-                          <li><a href="#">Settings 1</a>
-                          </li>
-                          <li><a href="#">Settings 2</a>
-                          </li>
-                        </ul>
-                      </li>
-                      <li><a class="close-link"><i class="fa fa-close"></i></a>
-                      </li>
-                    </ul>
-                    <div class="clearfix"></div>
-                  </div>
-                  <div class="x_content">
-                    <div id="step-1">
-                      <h2 class="StepTitle"> </h2>
-                      <div class="x_content">
-                        <p>Use this page to manually add links between buys and sells.
-                          <br>For example the BTC that you already paid taxes on should to be linked to the appropriate buy that matches reported profit/loss.
-                          <br> Choose a sell from the Sells table to view it's current and potential links.
-                          <br> If you don't have this information or it's a monster to figure out you can still continue potentially linking sells to buys that you initally did not use for tax calculation. 
-                          <br> NOT TAX OR FINANCIAL ADVICE!
-                        </p>
+
+<!-- All Asset Stats Table -->
+<div class="row">
+  <div class="col-md-12">
+    <div class="card">
+      <div class="card-body">
+        <div id="accordion" role="tablist" aria-multiselectable="true" class="card-collapse">
+          <h4 class="card-title">All Asset Stats</h4>
+          <div class="card card-plain">
+            <div class="card-header" role="tab" id="headingOne">
+              <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                <i class="nc-icon nc-minimal-down"></i>
+              </a>
+            </div>
+            <div id="collapseOne" class="collapse show" role="tabpanel" aria-labelledby="headingOne">
+              
+              <!-- Card Body -->
+              <div class="card-body ">
+                        
+                <table id="addlinks_stats_datatable" class="table table-striped table-bordered" style="width:100%">
+                  <thead>
+                      <tr>
+                        <th>Asset</th>
+                        <th>Quantity Purchased</th>
+                        <th>Quantity Sold</th>
+                        <th>Quantity Sold Unlinked</th>
+                        <th>Quantity Purchased Unlinked</th>
+                        <th>Purchased in USD</th>
+                        <th>Sold in USD</th>
+                        <th>Profit</th>
+                      </tr>
+                    </thead>
+
+                  <tbody>
+                    {% for row in stats_table_data %}
+
+                    <tr>
+                      <td>{{ row['symbol'] }}</td>
+                      <td>{{ row['total_purchased_quantity'] }}</td>
+                      <td>{{ row['total_sold_quantity'] }}</td>
+                      <td>{{ row['total_sold_unlinked_quantity'] }}</td>
+                      <td>{{ row['total_purchased_unlinked_quantity'] }}</td>
+                      <td>{{ row['total_purchased_usd'] }}</td>
+                      <td>{{ row['total_sold_usd']  }}</td>
+                      <td>{{ row['total_profit_loss']  }}</td>
+                    </tr>
+                
+                    {% endfor %}
+              
+                  </tbody>
+                </table>
+              
+              </div>
+              <!-- /Card Body -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- All Asset Stats Table End -->
+
+
+<!-- Sells -->
+<div class="row">
+  <div class="col-md-12">
+    <div class="card">
+      <div class="card-body">
+        <div id="accordion" role="tablist" aria-multiselectable="true" class="card-collapse">
+          <h4 class="card-title">Sells</h4>
+          <div class="card card-plain">
+            <div class="card-header" role="tab" id="headingOne">
+              <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                <i class="nc-icon nc-minimal-down"></i>
+              </a>
+            </div>
+            <div id="collapseOne" class="collapse show" role="tabpanel" aria-labelledby="headingOne">
+              
+              <!-- Card Body -->
+              <div class="card-body ">
+
+                <div class="checkbox">
+                  <label>
+                    <input id="checkbox_unlinked" type="checkbox" class="flat" checked='checked'> Unlinked Remaining Only
+                  </label>
+                </div>
+                <table id="addlinks_sells_datatable" class="table" style="width:100%">
+                  <thead>
+                    <tr>
+                      <th>Source</th>
+                      <th>Asset</th>
+                      <th>Time Stamp</th>
+                      <th>Quantity</th>
+                      <th>Quantity Unlinked</th>
+                      <th>USD Spot</th>
+                      <th>Quantity in USD</th>
+                    </tr>
+                  </thead>
+                
+                </table>
+                  
+              </div>
+              <!-- /Card Body -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- /Sells -->
+
+<!-- Linked Transactions -->
+<div class="row">
+  <div class="col-md-12">
+    <div class="card">
+      <div class="card-body">
+        <div id="accordion" role="tablist" aria-multiselectable="true" class="card-collapse">
+          <h4 class="card-title">Linked Transactions</h4>
+          <div class="card card-plain">
+            <div class="card-header" role="tab" id="headingOne">
+              <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                <i class="nc-icon nc-minimal-down"></i>
+              </a>
+            </div>
+            <div id="collapseOne" class="collapse show" role="tabpanel" aria-labelledby="headingOne">
+              
+              <!-- Card Body -->
+              <div class="card-body ">
+                <table id="linked_datatable" class="table table-striped table-bordered" style="width:100%">
+                  <thead>
+                    <tr>
+                      <th>Time Stamp</th>
+                      <th>Source</th>
+                      <th>Quantity</th>
+                      <th>Quantity Unlinked</th>
+                      <th>USD Spot</th>
+                      <th>Link Quantity</th>
+                      <th>Link Profitability</th>
+                    </tr>
+                  </thead>
+                
+                </table>
+              </div>
+              <!-- /Card Body -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Linked Transactions End -->
+
+<!-- Linkable Batches  -->
+<div class="row">
+  <div class="col-md-12">
+    <div class="card">
+      <div class="card-body">
+        <div id="accordion" role="tablist" aria-multiselectable="true" class="card-collapse">
+          <h4 class="card-title">Linkable Batches WIP</h4>
+          <div class="card card-plain">
+            <div class="card-header" role="tab" id="headingOne">
+              <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                <i class="nc-icon nc-minimal-down"></i>
+              </a>
+            </div>
+            <div id="collapseOne" class="collapse show" role="tabpanel" aria-labelledby="headingOne">
+              
+              <!-- Card Body -->
+              <div class="card-body ">
+
+                <div class="row">
+                  <div class="col-sm-12">
+                    <div class="form-group row left align">
+                      <label class="control-label col-md-3 col-sm-3 ">Select an available batch</label>
+                      <div class="col-md-9 col-sm-9 ">
+                        <select class="form-control">
+                          <option>Choose option</option>
+                          <option>Option one</option>
+                          <option>Option two</option>
+                          <option>Option three</option>
+                          <option>Option four</option>
+                        </select>
                       </div>
                     </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Add Links Description End -->
-
-
-            <!-- All Asset Stats Table -->
-            <div class="row">
-              <div class="col-md-12 col-sm-12 ">
-                <div class="x_panel">
-                  <div class="x_title">
-                    <h2 id="stats_table_title">All Asset Stats </h2>
-                    <ul class="nav navbar-right panel_toolbox">
-                      <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
-                      </li>
-                      <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-wrench"></i></a>
-                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                            <a class="dropdown-item" href="#">Settings 1</a>
-                            <a class="dropdown-item" href="#">Settings 2</a>
-                          </div>
-                      </li>
-                      <li><a class="close-link"><i class="fa fa-close"></i></a>
-                      </li>
-                    </ul>
-                    <div class="clearfix"></div>
-                  </div>
-                  <div class="x_content">
-                      <div class="row">
-                          <div class="col-sm-12">
-                            <div class="card-box table-responsive">
-                        <table id="addlinks_stats_datatable" class="table table-striped table-bordered" style="width:100%">
-                          <thead>
-                              <tr>
-                                <th>Asset</th>
-                                <th>Quantity Purchased</th>
-                                <th>Quantity Sold</th>
-                                <th>Quantity Sold Unlinked</th>
-                                <th>Quantity Purchased Unlinked</th>
-                                <th>Purchased in USD</th>
-                                <th>Sold in USD</th>
-                                <th>Profit</th>
-                              </tr>
-                            </thead>
-
-                          <tbody>
-                            {% for row in stats_table_data %}
-    
-                            <tr>
-                              <td>{{ row['symbol'] }}</td>
-                              <td>{{ row['total_purchased_quantity'] }}</td>
-                              <td>{{ row['total_sold_quantity'] }}</td>
-                              <td>{{ row['total_sold_unlinked_quantity'] }}</td>
-                              <td>{{ row['total_purchased_unlinked_quantity'] }}</td>
-                              <td>{{ row['total_purchased_usd'] }}</td>
-                              <td>{{ row['total_sold_usd']  }}</td>
-                              <td>{{ row['total_profit_loss']  }}</td>
-                            </tr>
-                        
-                            {% endfor %}
-                      
-                          </tbody>
-                    
-                    </table>
-                  </div>
-                </div>
-              </div>
-              </div>
-            </div>
-            <!-- All Asset Stats Table End -->
-
-
-            <!-- Sells -->
-            <div class="row">
-              <div class="col-md-12 col-sm-12 ">
-                <div class="x_panel">
-                  <div class="x_title">
-                    <h2>Sells </h2>
-                    <ul class="nav navbar-right panel_toolbox">
-                      <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
-                      </li>
-                      <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-wrench"></i></a>
-                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                            <a class="dropdown-item" href="#">Settings 1</a>
-                            <a class="dropdown-item" href="#">Settings 2</a>
-                          </div>
-                      </li>
-                      <li><a class="close-link"><i class="fa fa-close"></i></a>
-                      </li>
-                    </ul>
-                    <div class="clearfix"></div>
-                  </div>
-                  <div class="x_content">
-                      <div class="row">
-                          <div class="col-sm-12">
-                            <div class="card-box table-responsive">
-
-                    <div class="checkbox">
-                      <label>
-                        <input id="checkbox_unlinked" type="checkbox" class="flat" checked='checked'> Unlinked Remaining Only
-                      </label>
-                    </div>
-                    <table id="addlinks_sells_datatable" class="table" style="width:100%">
-                      <thead>
-                        <tr>
-                          <th>Source</th>
-                          <th>Asset</th>
-                          <th>Time Stamp</th>
-                          <th>Quantity</th>
-                          <th>Quantity Unlinked</th>
-                          <th>USD Spot</th>
-                          <th>Quantity in USD</th>
-                        </tr>
-                      </thead>
-                   
-                    </table>
-                  </div>
-                </div>
-              </div>
-             </div>
-            </div>
-
-            <!-- Linked Transactions -->
-            <div class="row">
-              <div class="col-md-12 col-sm-12 ">
-                <div class="x_panel">
-                  <div class="x_title">
-                    <h2>Linked Transactions </h2>
-                    <ul class="nav navbar-right panel_toolbox">
-                      <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
-                      </li>
-                      <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-wrench"></i></a>
-                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                            <a class="dropdown-item" href="#">Settings 1</a>
-                            <a class="dropdown-item" href="#">Settings 2</a>
-                          </div>
-                      </li>
-                      <li><a class="close-link"><i class="fa fa-close"></i></a>
-                      </li>
-                    </ul>
-                    <div class="clearfix"></div>
-                  </div>
-                  <div class="x_content">
-                      <div class="row">
-                          <div class="col-sm-12">
-                            <div class="card-box table-responsive">
-                    <p class="text-muted font-13 m-b-30">
-                      Linked Transactions</code>
-                    </p>
-                    <table id="linked_datatable" class="table table-striped table-bordered" style="width:100%">
-                      <thead>
-                        <tr>
-                          <th>Time Stamp</th>
-                          <th>Source</th>
-                          <th>Quantity</th>
-                          <th>Quantity Unlinked</th>
-                          <th>USD Spot</th>
-                          <th>Link Quantity</th>
-                          <th>Link Profitability</th>
-                        </tr>
-                      </thead>
-                    
-                    </table>
-                  </div>
-                </div>
-              </div>
-             </div>
-            </div>
-            <!-- Linked Transactions End -->
-
-            <!-- Linkable Transactions  -->
-            <div class="row">
-              <div class="col-md-12 col-sm-12 ">
-                <div class="x_panel">
-                  <div class="x_title">
-                    <h2>Linkable Batches that fully satisfy sell</h2>
-                    <ul class="nav navbar-right panel_toolbox">
-                      <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
-                      </li>
-                      <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-wrench"></i></a>
-                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                            <a class="dropdown-item" href="#">Settings 1</a>
-                            <a class="dropdown-item" href="#">Settings 2</a>
-                          </div>
-                      </li>
-                      <li><a class="close-link"><i class="fa fa-close"></i></a>
-                      </li>
-                    </ul>
-                    <div class="clearfix"></div>
-                  </div>
-                  <div class="x_content">
-                    <div class="row">
-                      <div class="col-sm-12">
-                        
-
-                          <div class="form-group row left align">
-                            <label class="control-label col-md-3 col-sm-3 ">Select an available batch</label>
-                            <div class="col-md-9 col-sm-9 ">
-                              <select class="form-control">
-                                <option>Choose option</option>
-                                <option>Option one</option>
-                                <option>Option two</option>
-                                <option>Option three</option>
-                                <option>Option four</option>
-                              </select>
-                            </div>
-                          </div>
-
-                          <table id="linkable_datatable" class="table table-striped table-bordered" style="width:100%">
-                            <thead>
-                              <tr>
-                                <th>Time Stamp</th>
-                                <th>Source</th>
-                                <th>Quantity</th>
-                                <th>Quantity Unlinked</th>
-                                <th>USD Spot</th>
-                                <th>Link Quantity</th>
-                                <th>Link Profitability</th>
-                              </tr>
-                            </thead>
-                          </table>
-                          <button type="button" id="add_links_batch_button" class="btn btn-success">Link Batch to Sell</button>
-                        
-                      </div>
-                </div>
-              </div>
-            </div>
-            <!-- Linkable Transactions end  -->
-
-            <!-- Linkable Transactions  -->
-            <div class="row">
-              <div class="col-md-12 col-sm-12 ">
-                <div class="x_panel">
-                  <div class="x_title">
-                    <h2>Linkable Transactions </h2>
-                    <ul class="nav navbar-right panel_toolbox">
-                      <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
-                      </li>
-                      <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-wrench"></i></a>
-                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                            <a class="dropdown-item" href="#">Settings 1</a>
-                            <a class="dropdown-item" href="#">Settings 2</a>
-                          </div>
-                      </li>
-                      <li><a class="close-link"><i class="fa fa-close"></i></a>
-                      </li>
-                    </ul>
-                    <div class="clearfix"></div>
-                  </div>
-                  <div class="x_content">
-                      <div class="row">
-                          <div class="col-sm-12">
-                            <div class="card-box table-responsive">
 
                     <table id="linkable_datatable" class="table table-striped table-bordered" style="width:100%">
                       <thead>
@@ -320,108 +246,108 @@
                           <th>Link Profitability</th>
                         </tr>
                       </thead>
-                    
                     </table>
-                  </div>
-                </div>
-              </div>
-             </div>
-            </div>
-            <!-- Linkable Transactions end  -->
-
-            <!-- Unlinkable Transactions  -->
-            <div class="row">
-              <div class="col-md-12 col-sm-12 ">
-                <div class="x_panel">
-                  <div class="x_title">
-                    <h2>Unlinkable Transactions</h2>
-                    <ul class="nav navbar-right panel_toolbox">
-                      <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
-                      </li>
-                      <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-wrench"></i></a>
-                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                            <a class="dropdown-item" href="#">Settings 1</a>
-                            <a class="dropdown-item" href="#">Settings 2</a>
-                          </div>
-                      </li>
-                      <li><a class="close-link"><i class="fa fa-close"></i></a>
-                      </li>
-                    </ul>
-                    <div class="clearfix"></div>
-                  </div>
-                  <div class="x_content">
-                      <div class="row">
-                          <div class="col-sm-12">
-                            <div class="card-box table-responsive">
-
-                    <table id="unlinkable_datatable" class="table table-striped table-bordered" style="width:100%">
-                      <thead>
-                        <tr>
-                          <th>Name</th>
-                          <th>Type</th>
-                          <th>Asset</th>
-                          <th>Time Stamp</th>
-                          <th>Quantity</th>
-                          <th>Quantity Unlinked</th>
-                          <th>USD Spot</th>
-                          <th>Quantity in USD</th>
-                          <th>Profitability</th>
-                          <th>Unlinkable Reason</th> 
-                        </tr>
-                      </thead>
+                    <button type="button" id="add_links_batch_button" class="btn btn-success">Link Batch to Sell</button>
                     
-                    </table>
-                  </div>
-                </div>
               </div>
-             </div>
+              <!-- /Card Body -->
             </div>
-            <!-- Unlinkable Transactions end  -->
-
-
-            <!-- Link Button  -->
-            <div class="row">
-              <div class="col-md-12 col-sm-12 ">
-                <div class="x_panel">
-                  <div class="x_title">
-                    <h2> Click to Link </h2>
-                    <ul class="nav navbar-right panel_toolbox">
-                      <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
-                      </li>
-                      <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-wrench"></i></a>
-                        <ul class="dropdown-menu" role="menu">
-                          <li><a href="#">Settings 1</a>
-                          </li>
-                          <li><a href="#">Settings 2</a>
-                          </li>
-                        </ul>
-                      </li>
-                      <li><a class="close-link"><i class="fa fa-close"></i></a>
-                      </li>
-                    </ul>
-                    <div class="clearfix"></div>
-                  </div>
-                  <div class="x_content">
-                    <div id="step-1">
-                      <h2 class="StepTitle"> </h2>
-                      <div class="x_content">
-                        <p id="link_button_text"></p>
-                        <button type="button" id="link_button" class="btn btn-success">Link</button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Link Button End -->
-            
-
           </div>
         </div>
-        <!-- /page content -->
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Linkable Batches end  -->
+
+
+<!-- Linkable Transactions -->
+<div class="row">
+  <div class="col-md-12">
+    <div class="card">
+      <div class="card-body">
+        <div id="accordion" role="tablist" aria-multiselectable="true" class="card-collapse">
+          <h4 class="card-title">Linkable Transactions</h4>
+          <div class="card card-plain">
+            <div class="card-header" role="tab" id="headingOne">
+              <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                <i class="nc-icon nc-minimal-down"></i>
+              </a>
+            </div>
+            <div id="collapseOne" class="collapse show" role="tabpanel" aria-labelledby="headingOne">
+              
+              <!-- Card Body -->
+              <div class="card-body ">
+                <table id="linkable_datatable" class="table table-striped table-bordered" style="width:100%">
+                  <thead>
+                    <tr>
+                      <th>Time Stamp</th>
+                      <th>Source</th>
+                      <th>Quantity</th>
+                      <th>Quantity Unlinked</th>
+                      <th>USD Spot</th>
+                      <th>Link Quantity</th>
+                      <th>Link Profitability</th>
+                    </tr>
+                  </thead>
+                </table>
+
+                <p id="link_button_text"></p>
+                <button type="button" id="link_button" class="btn btn-success">Link</button>
+
+              </div>
+              <!-- /Card Body -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Linkable Transactions End -->
+
+<!-- Unlinkable Transactions -->
+<div class="row">
+  <div class="col-md-12">
+    <div class="card">
+      <div class="card-body">
+        <div id="accordion" role="tablist" aria-multiselectable="true" class="card-collapse">
+          <h4 class="card-title">Unlinkable Transactions</h4>
+          <div class="card card-plain">
+            <div class="card-header" role="tab" id="headingOne">
+              <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                <i class="nc-icon nc-minimal-down"></i>
+              </a>
+            </div>
+            <div id="collapseOne" class="collapse show" role="tabpanel" aria-labelledby="headingOne">
+              
+              <!-- Card Body -->
+              <div class="card-body ">
+                <table id="unlinkable_datatable" class="table table-striped table-bordered" style="width:100%">
+                  <thead>
+                    <tr>
+                      <th>Time Stamp</th>
+                      <th>Source</th>
+                      <th>Quantity</th>
+                      <th>Quantity Unlinked</th>
+                      <th>USD Spot</th>
+                      <th>Link Quantity</th>
+                      <th>Link Profitability</th>
+                    </tr>
+                  </thead>
+                
+                </table>
+
+              </div>
+              <!-- /Card Body -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Linkable Transactions End -->
 
 
 {% endblock content %}
