@@ -649,6 +649,7 @@ class Transactions:
         sheet.cell(row=1, column=1, value=description)
 
         workbook.save(save_as_filename)
+        workbook.close()
 
         print(f"{description} Saving to {save_as_filename}")
 
@@ -1134,6 +1135,10 @@ class Transactions:
         links_df = pd.DataFrame([vars(s) for s in self.links])
 
         # Write Objects to excel file
+
+        if os.path.isfile(save_as_filename):
+            save_as_filename = f"{save_as_filename[:-5]}-1.xlsx"
+        
         with pd.ExcelWriter(save_as_filename) as writer:
             trans_df.to_excel(writer, sheet_name="All Transactions")
             conversion_df.to_excel(writer, sheet_name="Conversions")

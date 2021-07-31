@@ -12,12 +12,10 @@ def index():
     transactions = current_app.config['transactions']
     stats_table_data = get_stats_table_data(transactions)
 
-    transactions.saves = transactions.load_saves()
+    saves = transactions.load_saves()
 
-    # if transactions.views:
-    #     transactions.views.reverse()
     
-    return render_template('history.html', stats_table_data=stats_table_data, history=transactions.saves)
+    return render_template('history.html', stats_table_data=stats_table_data, history=saves)
 
 
 
