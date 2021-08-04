@@ -288,6 +288,15 @@ $(document).ready(function() {
         },
     });
 
+    var formatter = new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+      
+        // These options are needed to round to whole numbers if that's what you want.
+        //minimumFractionDigits: 0, // (this suffices for whole numbers, but will print 2500.10 as $2,500.1)
+        //maximumFractionDigits: 0, // (causes 2500.99 to be printed as $2,501)
+      });
+
     $('#statspage_stats_datatable tbody').on( 'click', 'tr', function () {
         console.log( table.row( this ).data() );
         
@@ -317,15 +326,6 @@ $(document).ready(function() {
 
                 $('#statspage_buys_datatable').DataTable().clear();
                 $('#statspage_buys_datatable').DataTable().rows.add(return_data['buys']).draw();
-
-                var formatter = new Intl.NumberFormat('en-US', {
-                    style: 'currency',
-                    currency: 'USD',
-                  
-                    // These options are needed to round to whole numbers if that's what you want.
-                    //minimumFractionDigits: 0, // (this suffices for whole numbers, but will print 2500.10 as $2,500.1)
-                    //maximumFractionDigits: 0, // (causes 2500.99 to be printed as $2,501)
-                  });
 
                 chartColor = "#FFFFFF";
 

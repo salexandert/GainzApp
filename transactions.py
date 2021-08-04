@@ -638,6 +638,113 @@ class Transactions:
         l_sheet = workbook['Gains']
         a_sheet = workbook['All Transactions']
         s_sheet = workbook['Stats']
+        t8949_sheet = workbook['8949']
+
+
+
+        # 8949 Short
+        years = set()
+        for link in self.links:
+
+            years.add(link.sell.time_stamp.year)
+
+        for year in years:
+            
+            sheetname = f'{year} 8949 Short'
+            ws = workbook.copy_worksheet(t8949_sheet)
+            ws.title = sheetname
+            
+            row = 2
+            for link in self.links:
+
+                if link.sell.time_stamp.year != year:
+                    continue
+
+                if abs(link.profit_loss) <= 1:
+                    continue
+                
+                if link.hodl_duration.days > 365:
+                    continue
+
+                ws[f"A{row}"] = f"Crypto {link.symbol}"
+                ws[f"B{row}"] = link.buy.time_stamp
+                ws[f"C{row}"] = link.sell.time_stamp
+                ws[f"D{row}"] = link.link_sell_price
+                ws[f"D{row}"].number_format = '"$"#,##0.00_-'
+                ws[f"E{row}"] = link.link_buy_price
+                ws[f"E{row}"].number_format = '"$"#,##0.00_-'
+                ws[f"H{row}"] = link.profit_loss
+                ws[f"H{row}"].number_format = '"$"#,##0.00_-'
+
+                row += 1
+
+            if row == 2:
+                workbook.remove(ws)
+
+            else:
+                row += 2
+
+                ws[f"C{row}"] = "Totals"
+
+                ws[f"D{row}"] = f"=SUM(D2:D{row -2})"
+                ws[f"D{row}"].number_format = '"$"#,##0.00_-'
+                ws[f"E{row}"] = f"=SUM(E2:E{row -2})"
+                ws[f"E{row}"].number_format = '"$"#,##0.00_-'
+                ws[f"H{row}"] = f"=SUM(H2:H{row -2})"
+                ws[f"H{row}"].number_format = '"$"#,##0.00_-'
+
+
+        # 8949 Long
+        years = set()
+        for link in self.links:
+
+            years.add(link.sell.time_stamp.year)
+
+        for year in years:
+            
+            sheetname = f'{year} 8949 Long'
+            ws = workbook.copy_worksheet(t8949_sheet)
+            ws.title = sheetname
+            
+            row = 2
+            for link in self.links:
+
+                if link.sell.time_stamp.year != year:
+                    continue
+
+                if abs(link.profit_loss) <= 1:
+                    continue
+                
+                if link.hodl_duration.days <= 365:
+                    continue
+
+                ws[f"A{row}"] = f"Crypto {link.symbol}"
+                ws[f"B{row}"] = link.buy.time_stamp
+                ws[f"C{row}"] = link.sell.time_stamp
+                ws[f"D{row}"] = link.link_sell_price
+                ws[f"D{row}"].number_format = '"$"#,##0.00_-'
+                ws[f"E{row}"] = link.link_buy_price
+                ws[f"E{row}"].number_format = '"$"#,##0.00_-'
+                ws[f"H{row}"] = link.profit_loss
+                ws[f"H{row}"].number_format = '"$"#,##0.00_-'
+
+                row += 1
+
+            if row == 2:
+                workbook.remove(ws)
+
+            else:
+                row += 2
+
+                ws[f"C{row}"] = "Totals"
+
+                ws[f"D{row}"] = f"=SUM(D2:D{row -2})"
+                ws[f"D{row}"].number_format = '"$"#,##0.00_-'
+                ws[f"E{row}"] = f"=SUM(E2:E{row -2})"
+                ws[f"E{row}"].number_format = '"$"#,##0.00_-'
+                ws[f"H{row}"] = f"=SUM(H2:H{row -2})"
+                ws[f"H{row}"].number_format = '"$"#,##0.00_-'
+
 
         for asset in self.assets:
             
@@ -723,7 +830,7 @@ class Transactions:
 
             for year in years:
                 
-                sheetname = f'{asset} Gains {year}'
+                sheetname = f'{year} {asset} Gains'
                 links_sheet = workbook.copy_worksheet(l_sheet)
                 links_sheet.title = sheetname
                         
@@ -933,7 +1040,9 @@ class Transactions:
             row = 2
             for i in detailed_stats:
                 asset_stats_sheet.cell(row=row, column=1, value=i[0])
+                asset_stats_sheet.cell(row=row, column=1).number_format = '"$"#,##0.00_-'
                 asset_stats_sheet.cell(row=row, column=2, value=i[1])
+                asset_stats_sheet.cell(row=row, column=2).number_format = '"$"#,##0.00_-'
                 
                 row += 1
 
@@ -942,6 +1051,7 @@ class Transactions:
         workbook.remove(c_sheet)
         workbook.remove(l_sheet)
         workbook.remove(s_sheet)
+        workbook.remove(t8949_sheet)
             
             
         workbook.save(save_as_filename)
@@ -1180,6 +1290,5 @@ if __name__ == "__main__":
 
     transactions = Transactions()
 
-    transactions.save()
 
 
