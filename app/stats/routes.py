@@ -85,13 +85,67 @@ def selected_asset():
     # Get Buys Table Data
     buys_table_data = get_buys_trans_table_data_range(transactions, asset, date_range)
 
+    # Chart Data
+    start_date = date_range['start_date']
+    end_date = date_range['end_date']
+  
+                                                                                                                      
+    # Filter Transactions to date range
+    filtered_transactions = []
+    for trans in transactions:
+        if trans.symbol != asset:
+            continue
 
+        if start_date and not end_date:
+            if trans.time_stamp >= start_date:
+                filtered_transactions.append(trans)
+
+        elif not start_date and end_date:
+            if trans.time_stamp <= end_date:
+                filtered_transactions.append(trans)
+
+        elif start_date and end_date:
+            if trans.time_stamp >= start_date and trans.time_stamp <= end_date:              
+                filtered_transactions.append(trans)
+
+
+    chart_data = []
+
+    to_date_quantity = 0.0
+    to_date_usd_total = 0.0
+    filtered_transactions.sort(key=lambda x: x.time_stamp)
+    for trans in filtered_transactions:
+
+        if trans.trans_type == 'buy':
+        
+            to_date_quantity += trans.quantity
+
+            to_date_profit = (to_date_quantity * trans.usd_spot)
+
+
+
+            chart_data.append({'x': datetime.datetime.strftime(trans.time_stamp, "%Y-%m-%d %H:%M:%S"), 'y': to_date_profit})
+
+        elif trans.trans_type == 'sell':
+
+            to_date_quantity -= trans.quantity
+
+            
+            to_date_profit = (to_date_quantity * trans.usd_spot)
+
+
+
+            chart_data.append({'x': datetime.datetime.strftime(trans.time_stamp, "%Y-%m-%d %H:%M:%S"), 'y': to_date_profit})
+
+    
     data_dict = {}
     data_dict['detailed_stats'] = detailed_stats
     data_dict['linked'] = linked_table_data
     data_dict['sells'] = sells_table_data
     data_dict['buys'] = buys_table_data
-    
+
+    data_dict['chart_data'] = chart_data
+
     
     return jsonify(data_dict)
 

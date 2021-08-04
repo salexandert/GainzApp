@@ -28,7 +28,7 @@
                 <br>
                 <br>For example the BTC that you already paid taxes on should to be linked to the appropriate buy that matches reported profit/loss.
                 <br> Choose a sell from the Sells table to view it's current and potential links.
-                <br> If you don't have this information or it's a monster to figure out you can still continue, but will potentially link sells to buys that you initally did not use or report in previous tax years. 
+                <br> If you don't have this information or it's a you can still continue, but will potentially link sells to buys that you initally did not use or report in previous tax years. 
                 <br>
                 <br> NOT TAX OR FINANCIAL ADVICE!
                 <br>
@@ -207,10 +207,11 @@
     <div class="card">
       <div class="card-body">
         <div id="accordion" role="tablist" aria-multiselectable="true" class="card-collapse">
-          <h4 class="card-title">Linkable Batches WIP</h4>
+          <h4 class="card-title">Linkable Batches that fully satisify selected sell (WIP)</h4>
           <div class="card card-plain">
             <div class="card-header" role="tab" id="headingOne">
               <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                If the sell can be fully satisfied some pre-made link options are listed. Alternatively Scroll down to the next section to choose links individually.  
                 <i class="nc-icon nc-minimal-down"></i>
               </a>
             </div>
@@ -220,21 +221,19 @@
               <div class="card-body ">
 
                 <div class="row">
+                  
                   <div class="col-sm-12">
+                    
                     <div class="form-group row left align">
                       <label class="control-label col-md-3 col-sm-3 ">Select an available batch</label>
                       <div class="col-md-9 col-sm-9 ">
-                        <select class="form-control">
-                          <option>Choose option</option>
-                          <option>Option one</option>
-                          <option>Option two</option>
-                          <option>Option three</option>
-                          <option>Option four</option>
+                        <select id='batch_options' class="form-control">
+   
                         </select>
                       </div>
                     </div>
 
-                    <table id="linkable_datatable" class="table table-striped table-bordered" style="width:100%">
+                    <table id="linkable_batches_datatable" class="table table-striped table-bordered" style="width:100%">
                       <thead>
                         <tr>
                           <th>Time Stamp</th>
@@ -247,12 +246,16 @@
                         </tr>
                       </thead>
                     </table>
+
+                    <p id="batch_text"> </p>
+
                     <button type="button" id="add_links_batch_button" class="btn btn-success">Link Batch to Sell</button>
                     
               </div>
-              <!-- /Card Body -->
             </div>
           </div>
+          <!-- /Card Body -->
+        
         </div>
       </div>
     </div>

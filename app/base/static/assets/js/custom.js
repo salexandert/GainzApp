@@ -302,28 +302,133 @@ $(document).ready(function() {
                 }),  
 
             contentType: 'application/json',
-            success: function (data) {
+            success: function (return_data) {
 
-                console.log(data)
+                console.log(return_data)
                 
                 $('#statspage_detailed_datatable').DataTable().clear();
-                $('#statspage_detailed_datatable').DataTable().rows.add(data['detailed_stats']).draw();
+                $('#statspage_detailed_datatable').DataTable().rows.add(return_data['detailed_stats']).draw();
                 
                 $('#statspage_links_datatable').DataTable().clear();
-                $('#statspage_links_datatable').DataTable().rows.add(data['linked']).draw();
+                $('#statspage_links_datatable').DataTable().rows.add(return_data['linked']).draw();
 
                 $('#statspage_sells_datatable').DataTable().clear();
-                $('#statspage_sells_datatable').DataTable().rows.add(data['sells']).draw();
+                $('#statspage_sells_datatable').DataTable().rows.add(return_data['sells']).draw();
 
                 $('#statspage_buys_datatable').DataTable().clear();
-                $('#statspage_buys_datatable').DataTable().rows.add(data['buys']).draw();
+                $('#statspage_buys_datatable').DataTable().rows.add(return_data['buys']).draw();
+
+                var formatter = new Intl.NumberFormat('en-US', {
+                    style: 'currency',
+                    currency: 'USD',
+                  
+                    // These options are needed to round to whole numbers if that's what you want.
+                    //minimumFractionDigits: 0, // (this suffices for whole numbers, but will print 2500.10 as $2,500.1)
+                    //maximumFractionDigits: 0, // (causes 2500.99 to be printed as $2,501)
+                  });
+
+                chartColor = "#FFFFFF";
+
+                ctx = document.getElementById('gainzChart').getContext("2d");
+            
+                gradientStroke = ctx.createLinearGradient(500, 0, 100, 0);
+                gradientStroke.addColorStop(0, '#80b6f4');
+                gradientStroke.addColorStop(1, chartColor);
+            
+                gradientFill = ctx.createLinearGradient(0, 170, 0, 50);
+                gradientFill.addColorStop(0, "rgba(128, 182, 244, 0)");
+                gradientFill.addColorStop(1, "rgba(249, 99, 59, 0.40)");
+            
+                myChart = new Chart(ctx, {
+                  type: 'line',
+                  data: {
+                    datasets: [
+                        {
+                            label: "Unrealized Profit",
+                            borderColor: "#6bd098",
+                            fill: false,
+                            borderWidth: 3,
+                            data: return_data['chart_data']
+                        },
+                    ]
+                },
+                  options: {
+                    tooltips: {
+                        callbacks: {
+                            label: function(tooltipItem, data) {
+                                var label = data.datasets[tooltipItem.datasetIndex].label || '';
+           
+                                if (label) {
+                                    label += ': ';
+                                }
+
+                                label += formatter.format(tooltipItem.yLabel)
+                                
+                                return label;
+                            }
+                        }
+                      },
+
+
+                    responsive: true,
+                    title:      {
+                        display: true,
+                        text:    "Chart.js Time Scale"
+                    },
+                    scales: {
+                        
+                        xAxes: [{
+                            type: "time",
+                            time: {
+                                unit: 'month',
+                                tooltipFormat: 'll'
+                            },
+                            scaleLabel: {
+                                display:     true,
+                                labelString: 'Date'
+                            },
+                            
+                        }],
+                        
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true,
+                                callback: function(value, index, values) {
+                                  if(parseInt(value) >= 1000){
+                                    return '$' + value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                                  } else {
+                                    return '$' + value;
+                                  }
+                                }
+                            },
+
+                            scaleLabel: {
+                                display:     true,
+                                labelString: 'Unrealized Profit in USD*'
+                            },
+
+                              gridLines: {
+                                drawBorder: false,
+                                zeroLineColor: "transparent",
+                                color: 'rgba(255,255,255,0.05)'
+                              }
+                        }]
+                    }
+                }
+                });
+
                     
             },   
         });
     } );
 
 
+
+
+
 } );
+
+
 
 
 // history page code
@@ -536,6 +641,7 @@ $(document).ready(function() {
 
     });
 
+    var batch_data = {}
 
     $('#addlinks_sells_datatable tbody').on( 'click', 'tr', function () {
         console.log( $('#addlinks_sells_datatable').DataTable().row( this ).data() );
@@ -550,6 +656,8 @@ $(document).ready(function() {
             contentType: 'application/json',
             success: function (data) {
                 console.log(data)
+
+                batch_data = data
                 
                 $('#linked_datatable').DataTable().clear();
                 $('#linked_datatable').DataTable().rows.add(data['linked']).draw();
@@ -559,10 +667,45 @@ $(document).ready(function() {
 
                 $('#unlinkable_datatable').DataTable().clear();
                 $('#unlinkable_datatable').DataTable().rows.add(data['unlinkable']).draw();
-                   
+                
+                $('#batch_options').children().remove()
+
+                if (data['min_links'].length > 0) {$('#batch_options').append('<option>Minimum Number of links to satisfy sell</option>')}
+                if (data['min_profit'].length > 0) {$('#batch_options').append('<option>Minimum Profit</option>')}
+                if (data['max_profit'].length > 0) {$('#batch_options').append('<option>Max Profit</option>')}
+
+                $('#batch_options').val('')
+     
             },   
         });
     } );
+
+
+
+
+    $('#batch_options').on('change', function() {
+        // alert( $(this).find(":selected").val() );
+        
+        if ($(this).find(":selected").val() == 'Max Profit') {
+
+            $('#linkable_batches_datatable').DataTable().clear();
+            $('#linkable_batches_datatable').DataTable().rows.add(batch_data['max_profit']).draw();
+            $('#batch_text').html(batch_data['max_profit_text']);
+        
+        } else if ($(this).find(":selected").val() == 'Minimum Profit') {
+
+            $('#linkable_batches_datatable').DataTable().clear();
+            $('#linkable_batches_datatable').DataTable().rows.add(batch_data['min_profit']).draw();
+            $('#batch_text').html(batch_data['min_profit_text']);
+        
+        } else if ($(this).find(":selected").val() == 'Minimum Number of links to satisfy sell') {
+            
+            $('#linkable_batches_datatable').DataTable().clear();
+            $('#linkable_batches_datatable').DataTable().rows.add(batch_data['min_links']).draw();
+            $('#batch_text').html(batch_data['min_links_text']);
+        }
+
+     });
 
     $("#link_button").click(function(){
         // alert($('#linkable_datatable').DataTable().row( {selected:true} ).data());
@@ -581,6 +724,26 @@ $(document).ready(function() {
                 alert("Posting a new link!")
                 $('#sells_datatable').DataTable().clear();
                 $('#sells_datatable').DataTable().rows.add(data).draw();
+                location.reload()
+            },   
+        });
+    });
+
+    $("#add_links_batch_button").click(function(){
+        // alert($('#linkable_datatable').DataTable().row( {selected:true} ).data());
+        // alert($('#sells_datatable').DataTable().row( {selected:true} ).data());
+        $.ajax({
+            type: "POST",
+            url: "/wizards/link_batch",
+            data: JSON.stringify({
+                'sell_data': $('#addlinks_sells_datatable').DataTable().row( {selected:true} ).data(),
+                'buy_data': $('#linkable_batches_datatable').DataTable().rows().data(),
+                
+              }),  
+            dataType: "json",
+            contentType: 'application/json',
+            success: function (data) {
+                alert("Posting a new link!")
                 location.reload()
             },   
         });

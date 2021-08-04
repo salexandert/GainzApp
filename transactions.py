@@ -223,20 +223,16 @@ class Transactions:
         
 
     
-    def convert_buys_to_lost(self, asset, current_hodl):
+    def convert_buys_to_lost(self, asset, amount):
         # method used to deal with crypto not sold on exchange but no longer in possession
 
         if asset in self.assets:
             
-            # list of sends that were converted to sells
-            sends = []
-            sells = []
-            sends_to_delete = []
+            # list of buys that were converted to lost
+            buys_to_delete = []
             
             # what we want to calc
             bought = 0.0
-            sold = 0.0
-            sent = 0.0
             quantity_of_buys_converted_to_lost = 0.0
 
             for trans in self.transactions:
@@ -246,22 +242,14 @@ class Transactions:
                 if trans.trans_type == 'buy':
                     bought += trans.quantity
 
-                elif trans.trans_type == 'sell':
-                    sold += trans.quantity
-                
-                elif trans.trans_type == 'send':
-                    sent += trans.quantity
 
-            remaining_on_paper = bought - sold
 
-            unaccounted_for = remaining_on_paper - current_hodl
-            unaccounted_for_before = unaccounted_for
             
             for trans in self.transactions:
                 if trans.symbol != asset:
                     continue
                 
-                if unaccounted_for > 0 and trans.quantity <= unaccounted_for and trans.trans_type == 'buy':
+                if amount > 0 and trans.quantity <= amount and trans.trans_type == 'buy':
                     # Convert buy to lost
                   
                     conversion = Conversion(input_trans_type='buy', 
@@ -275,11 +263,9 @@ class Transactions:
                     
                     self.conversions.append(conversion)
                 
-                    sends_to_delete.append(trans)
+                    buys_to_delete.append(trans)
 
                     quantity_of_buys_converted_to_lost += trans.quantity
-                    
-                    unaccounted_for -= trans.quantity
 
 
         for trans in self.transactions:
@@ -287,22 +273,18 @@ class Transactions:
             trans.set_multi_link()
 
         
-        print(f" Num of transactions to delete {len(sends_to_delete)} ")
+        print(f" Num of transactions to delete {len(buys_to_delete)} ")
         print(f" Num of transactions before delete {len(self.transactions)} ")
         
 
-        for trans in sends_to_delete:
+        for trans in buys_to_delete:
             self.transactions.remove(trans)
 
-        del sends 
-        del sells
-
+    
         print(f" Num of transactions after delete {len(self.transactions)} ")
         
         # what we want to calc a second time
         bought_after = 0.0
-        sold_after = 0.0
-        sent_after = 0.0
 
         for trans in self.transactions:
             if trans.symbol != asset:
@@ -311,30 +293,10 @@ class Transactions:
             if trans.trans_type == 'buy':
                 bought_after += trans.quantity
 
-            elif trans.trans_type == 'sell':
-                sold_after += trans.quantity
-            
-            elif trans.trans_type == 'send':
-                sent_after += trans.quantity
-        
-        
-        remaining_on_paper_after = bought_after - sold_after
-        unaccounted_for_after = remaining_on_paper_after - current_hodl
+    
+        print(f"AFTER CONVERSION bought {bought_after} {asset}")
 
-        print(f"\n\nYou Purchased {bought} {asset}")
-        print(f"Your current HODL is {current_hodl}")
-        
-        print(f"Sold {sold} {asset}")
-        print(f"Sent {sent} {asset}")
-        
-        print(f"Unaccounted for {unaccounted_for_before} {asset}")
 
-        print(f"Converting Sends to Sells!")
-
-        print(f"AFTER CONVERSION Sold {sold_after} {asset}")
-        print(f"AFTER CONVERSION Sent {sent_after} {asset}")
-
-        print(f"AFTER CONVERSION Unaccounted for {unaccounted_for_after} {asset}")
     
 
     def convert_sends_to_sells(self, asset, amount_to_convert):
