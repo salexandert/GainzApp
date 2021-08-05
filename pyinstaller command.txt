@@ -1,0 +1,8 @@
+pyinstaller -w --add-data "app;app" --onefile --hidden-import flask_wtf --hidden-import wtforms.fields.html5 run.py 
+
+pyinstaller --add-data "app;app" --onefile --hidden-import flask_wtf --hidden-import bcrypt --hidden-import wtforms.fields.html5 --hidden-import utils run.py
+
+pyinstaller --add-data "app;app" --onefile --hidden-import flask_wtf --hidden-import bcrypt --hidden-import wtforms.fields.html5 --hidden-import utils --hidden-import cffi  run.py
+
+
+Need to find how to add folders to exe location
