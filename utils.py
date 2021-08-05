@@ -471,7 +471,7 @@ def get_transactions_date_range(transactions, date_range):
         date_range['start_date'] = first_time_stamp
 
     else:
-        date_range['start_date'] = datetime.datetime.strptime(date_range['start_date'], "%Y-%m-%d %H:%M")
+        date_range['start_date'] = datetime.datetime.strptime(date_range['start_date'], "%m/%d/%Y %H:%M %p")
         
 
     if date_range['end_date'] == '':
@@ -489,7 +489,7 @@ def get_transactions_date_range(transactions, date_range):
         date_range['end_date'] = last_time_stamp
     
     else:
-        date_range['end_date'] = datetime.datetime.strptime(date_range['end_date'], "%Y-%m-%d %H:%M")
+        date_range['end_date'] = datetime.datetime.strptime(date_range['end_date'], "%m/%d/%Y %H:%M %p")
 
     return date_range
 

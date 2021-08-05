@@ -299,21 +299,8 @@ $(document).ready(function() {
         //maximumFractionDigits: 0, // (causes 2500.99 to be printed as $2,501)
       });
 
-
-      
-    var myChart=null;
-
-    var ctx = document.getElementById("gainzChart").getContext("2d");
-
-    chartColor = "#FFFFFF";
-    gradientStroke = ctx.createLinearGradient(500, 0, 100, 0);
-    gradientStroke.addColorStop(0, '#80b6f4');
-    gradientStroke.addColorStop(1, chartColor);
-
-    gradientFill = ctx.createLinearGradient(0, 170, 0, 50);
-    gradientFill.addColorStop(0, "rgba(128, 182, 244, 0)");
-    gradientFill.addColorStop(1, "rgba(249, 99, 59, 0.40)");
-
+    
+    ctx = document.getElementById('gainzChart').getContext("2d");
 
     $('#statspage_stats_datatable tbody').on( 'click', 'tr', function () {
         console.log( table.row( this ).data() );
@@ -345,9 +332,18 @@ $(document).ready(function() {
                 $('#statspage_buys_datatable').DataTable().clear();
                 $('#statspage_buys_datatable').DataTable().rows.add(return_data['buys']).draw();
 
-                
-                if(myChart!=null) {myChart.destroy();}
+                chartColor = "#FFFFFF";
 
+                
+            
+                gradientStroke = ctx.createLinearGradient(500, 0, 100, 0);
+                gradientStroke.addColorStop(0, '#80b6f4');
+                gradientStroke.addColorStop(1, chartColor);
+            
+                gradientFill = ctx.createLinearGradient(0, 170, 0, 50);
+                gradientFill.addColorStop(0, "rgba(128, 182, 244, 0)");
+                gradientFill.addColorStop(1, "rgba(249, 99, 59, 0.40)");
+            
                 myChart = new Chart(ctx, {
                   type: 'line',
                   data: {
@@ -401,7 +397,7 @@ $(document).ready(function() {
                         
                         yAxes: [{
                             ticks: {
-                                beginAtZero: false,
+                                beginAtZero: true,
                                 callback: function(value, index, values) {
                                   if(parseInt(value) >= 1000){
                                     return '$' + value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
