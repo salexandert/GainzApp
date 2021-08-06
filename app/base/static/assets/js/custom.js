@@ -303,16 +303,7 @@ $(document).ready(function() {
       
     var myChart=null;
 
-    var ctx = document.getElementById("gainzChart").getContext("2d");
 
-    chartColor = "#FFFFFF";
-    gradientStroke = ctx.createLinearGradient(500, 0, 100, 0);
-    gradientStroke.addColorStop(0, '#80b6f4');
-    gradientStroke.addColorStop(1, chartColor);
-
-    gradientFill = ctx.createLinearGradient(0, 170, 0, 50);
-    gradientFill.addColorStop(0, "rgba(128, 182, 244, 0)");
-    gradientFill.addColorStop(1, "rgba(249, 99, 59, 0.40)");
 
 
     $('#statspage_stats_datatable tbody').on( 'click', 'tr', function () {
@@ -347,6 +338,17 @@ $(document).ready(function() {
 
                 
                 if(myChart!=null) {myChart.destroy();}
+
+                var ctx = document.getElementById("gainzChart").getContext("2d");
+
+                chartColor = "#FFFFFF";
+                gradientStroke = ctx.createLinearGradient(500, 0, 100, 0);
+                gradientStroke.addColorStop(0, '#80b6f4');
+                gradientStroke.addColorStop(1, chartColor);
+            
+                gradientFill = ctx.createLinearGradient(0, 170, 0, 50);
+                gradientFill.addColorStop(0, "rgba(128, 182, 244, 0)");
+                gradientFill.addColorStop(1, "rgba(249, 99, 59, 0.40)");
 
                 myChart = new Chart(ctx, {
                   type: 'line',
@@ -505,41 +507,6 @@ $(document).ready(function() {
 // export page code
 $(document).ready(function() {
 
-    $('#export_datepicker').daterangepicker({
-        timePicker: true,
-        showDropdowns: true,
-        startDate: moment().subtract(10, 'years'),
-        endDate: moment().startOf('hour'),
-        locale: {
-          format: 'M/DD hh:mm A'
-        }
-      });
-
-    $('#export_datepicker').on('apply.daterangepicker', function(ev, picker) {
-        // console.log(picker.startDate.format('YYYY-MM-DD'));
-        // console.log(picker.endDate.format('YYYY-MM-DD'));
-        
-        $.ajax({
-            type: "POST",
-            url: "/stats/date_range",
-            data: JSON.stringify({
-                'start_date': picker.startDate,
-                'end_date': picker.endDate
-                }),  
-
-            contentType: 'application/json',
-            success: function (data) {
-                // console.log(data)
-                
-                $('#exportpage_stats_datatable').DataTable().clear();
-                $('#exportpage_stats_datatable').DataTable().rows.add(data['stats_table_rows']).draw();
-
-                $('#stats_table_title').text('All Asset Stats for ' + data['date_range']['start_date'] + ' - ' + data['date_range']['end_date'])
-
-            },   
-        });
-    });
-
 
     $('#exportpage_stats_datatable').DataTable({
         select: {
@@ -687,8 +654,6 @@ $(document).ready(function() {
     } );
 
 
-
-
     $('#batch_options').on('change', function() {
         // alert( $(this).find(":selected").val() );
         
@@ -712,6 +677,11 @@ $(document).ready(function() {
         }
 
      });
+
+
+
+
+
 
     $("#link_button").click(function(){
         // alert($('#linkable_datatable').DataTable().row( {selected:true} ).data());
@@ -769,6 +739,8 @@ $(document).ready(function() {
             style: 'single'
         },
     });
+
+
 
 } );
 
@@ -860,5 +832,80 @@ $(document).ready(function() {
             },   
         });
     });
+
+} );
+
+
+
+
+// Model Page
+$(document).ready(function() {
+
+    var table = $('#model_stats_datatable').DataTable({
+        select: {
+            style: 'single'
+        },
+    });
+
+    var batch_data = {}
+
+    $('#model_submit').on('click', function () {
+
+        $.ajax({
+            type: "POST",
+            url: "/model/selected_asset",
+            data: JSON.stringify({
+                'row_data': $('#model_stats_datatable').DataTable().row( {selected:true} ).data(),
+                'unlinked_remaining': $('#model_checkbox_unlinked').is(':checked'),
+                'long_term': $('#model_checkbox_long_term_hodl').is(':checked'),
+                'usd_spot': $('#model_usd_spot').val(),
+                'quantity': $('#model_quantity').val()
+                }),  
+
+            contentType: 'application/json',
+            success: function (data) {
+
+                console.log(data)
+
+                batch_data = data
+
+                $('#model_batch_options').children().remove()
+
+                if (data['min_links'].length > 0) {$('#model_batch_options').append('<option>Minimum Number of links to satisfy sell</option>')}
+                if (data['min_profit'].length > 0) {$('#model_batch_options').append('<option>Minimum Profit</option>')}
+                if (data['max_profit'].length > 0) {$('#model_batch_options').append('<option>Max Profit</option>')}
+
+                $('#model_batch_options').val('')
+                
+            },   
+        });
+    } );
+
+
+    $('#model_batch_options').on('change', function() {
+        // alert( $(this).find(":selected").val() );
+        
+        if ($(this).find(":selected").val() == 'Max Profit') {
+
+            $('#model_batches_datatable').DataTable().clear();
+            $('#model_batches_datatable').DataTable().rows.add(batch_data['max_profit']).draw();
+            $('#batch_text').html(batch_data['max_profit_text']);
+        
+        } else if ($(this).find(":selected").val() == 'Minimum Profit') {
+
+            $('#model_batches_datatable').DataTable().clear();
+            $('#model_batches_datatable').DataTable().rows.add(batch_data['min_profit']).draw();
+            $('#batch_text').html(batch_data['min_profit_text']);
+        
+        } else if ($(this).find(":selected").val() == 'Minimum Number of links to satisfy sell') {
+            
+            $('#model_batches_datatable').DataTable().clear();
+            $('#model_batches_datatable').DataTable().rows.add(batch_data['min_links']).draw();
+            $('#batch_text').html(batch_data['min_links_text']);
+        }
+
+     });
+
+
 
 } );

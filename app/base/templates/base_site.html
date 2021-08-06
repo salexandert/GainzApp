@@ -21,13 +21,14 @@
         <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700,200" rel="stylesheet" />
         <link href="https://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css" rel="stylesheet">
 
-        <!-- CSS Files -->
+        <!-- Bootstrap -->
         <link href="{{ url_for('static', filename='assets/css/bootstrap.min.css') }}" rel="stylesheet" />
+
+        <!-- paper dashboard -->
         <link href="{{ url_for('static', filename='assets/css/paper-dashboard.css') }}" rel="stylesheet" />
       
-
         <!-- datatables -->
-        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='assets/css/select.dataTables.min.css') }}"/>
+        <link  type="text/css" href="{{ url_for('static', filename='assets/css/select.dataTables.min.css') }}" rel="stylesheet"/>
 
         <!-- Custom CSS -->
         <link href="{{ url_for('static', filename='assets/css/custom.css') }}" rel="stylesheet">
@@ -108,7 +109,7 @@
         <script src="{{ url_for('static', filename='assets/js/plugins/nouislider.min.js') }}"></script>
 
         <!-- Chart JS -->
-        <script src="{{ url_for('static', filename='assets/js/plugins/chartjs.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='assets/js/plugins/chartjs_2_9.min.js') }}"></script>
         <!--  Notifications Plugin    -->
         <script src="{{ url_for('static', filename='assets/js/plugins/bootstrap-notify.js') }}"></script>
         <!-- Control Center for Now Ui Dashboard: parallax effects, scripts for the example pages etc -->
@@ -122,14 +123,11 @@
         <!-- Bootstrap -->
         <script src="{{ url_for('static', filename='assets/js/core/bootstrap.min.js') }}"></script>
     
-        <!-- FastClick -->
-        <script src="{{ url_for('static', filename='assets/js/plugins/fastclick.js') }}"></script>
 
         <!-- Dropzone.js -->
         <script src="{{ url_for('static', filename='assets/js/plugins/dropzone.js') }}"></script> 
     
         <!-- datepicker -->
-        <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
         <script src="{{ url_for('static', filename='assets/js/plugins/bootstrap-datetimepicker.js') }}"></script>
 
         <!-- customer JS -->

@@ -30,7 +30,6 @@
                 <br> Choose a sell from the Sells table to view it's current and potential links.
                 <br> If you don't have this information or it's a you can still continue, but will potentially link sells to buys that you initally did not use or report in previous tax years. 
                 <br>
-                <br> NOT TAX OR FINANCIAL ADVICE!
                 <br>
                 <br> Choose an asset from the All Asset Stats Table to show sells that need to be linked.
                 <br> Buys that are currently linked will be shown in the linked table and Buys that can be linked will be shown in the linkable table. 
@@ -58,6 +57,7 @@
             <div class="card-header" role="tab" id="headingOne">
               <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
                 <i class="nc-icon nc-minimal-down"></i>
+
               </a>
             </div>
             <div id="collapseOne" class="collapse show" role="tabpanel" aria-labelledby="headingOne">
@@ -120,14 +120,14 @@
           <div class="card card-plain">
             <div class="card-header" role="tab" id="headingOne">
               <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                <i class="nc-icon nc-minimal-down"></i>
+                <i class="nc-icon nc-minimal-down"></i>  
               </a>
+              <p>Choose a sell to view link options or enter a sell quantity and USD Spot to model a potential sell cost basis.</p>
             </div>
             <div id="collapseOne" class="collapse show" role="tabpanel" aria-labelledby="headingOne">
               
               <!-- Card Body -->
               <div class="card-body ">
-
                 <div class="checkbox">
                   <label>
                     <input id="checkbox_unlinked" type="checkbox" class="flat" checked='checked'> Unlinked Remaining Only
@@ -227,9 +227,7 @@
                     <div class="form-group row left align">
                       <label class="control-label col-md-3 col-sm-3 ">Select an available batch</label>
                       <div class="col-md-9 col-sm-9 ">
-                        <select id='batch_options' class="form-control">
-   
-                        </select>
+                        <select id='batch_options' class="form-control"></select>
                       </div>
                     </div>
 

@@ -544,9 +544,9 @@ class Transactions:
                 if buy_obj and sell_obj:
                     # print("Buy and Sell Found Breaking\n")
                     break
-            
-            # print(f" quantity of link on load {quantity}")
-            sell_obj.link_transaction(buy_obj, link_quantity=quantity)
+            if sell_obj and buy_obj:
+                # print(f" quantity of link on load {quantity}")
+                sell_obj.link_transaction(buy_obj, link_quantity=quantity)
 
 
         return list(transactions)
@@ -1207,9 +1207,6 @@ class Transactions:
         links_df = pd.DataFrame([vars(s) for s in self.links])
 
         # Write Objects to excel file
-
-        if os.path.isfile(save_as_filename):
-            save_as_filename = f"{save_as_filename[:-5]}-1.xlsx"
         
         with pd.ExcelWriter(save_as_filename) as writer:
             trans_df.to_excel(writer, sheet_name="All Transactions")
@@ -1218,7 +1215,7 @@ class Transactions:
             links_df.to_excel(writer, sheet_name="Links")
 
 
-        print(f"Imported Transactions Saving to {save_as_filename}")
+        print(f"\nImported Transactions Saving to {save_as_filename}\n")
 
         return save_as_filename
 
@@ -1290,5 +1287,4 @@ if __name__ == "__main__":
 
     transactions = Transactions()
 
-
-
+  

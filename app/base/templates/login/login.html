@@ -9,12 +9,19 @@
 {% block body_class %}login{% endblock body_class %}
 
 {% block body %}
-  <div class="right_col" role="main">
-    <div class="row">
-      <div class="col-md-12 col-sm-12 col-xs-12">
-        <div class="dashboard_graph">
-          <div style="width: 100%; min-height:400px;" >
-            <div class="login_wrapper">
+
+<!-- Gainz Chart  -->
+<div class="row">
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-body">
+          <div class="card card-plain">
+            <div class="card-header">
+              <h5 class="card-title">Welcome to Gainz!</h5>
+              <p class="card-category"></p>
+            </div>
+            <div class="card-body">
+              <div class="login_wrapper">
                 <div class="animate form login_form">
                   <section class="login_content">
                     <form data-parsley-validate method="post">
@@ -33,10 +40,12 @@
                   </section>
                 </div>
             </div>
+            </div>
           </div>
-          <div class="clearfix"></div>
-        </div>
       </div>
     </div>
   </div>
+</div>
+<!-- /Gainz Chart  -->
+
 {% endblock body %}

@@ -119,8 +119,8 @@ def selected_asset():
         if trans.trans_type == 'buy':
         
             to_date_quantity += trans.quantity
-
-            to_date_profit = (to_date_quantity * trans.usd_spot)
+            to_date_usd_total += trans.usd_total
+            to_date_profit = (to_date_quantity * trans.usd_spot) - to_date_usd_total
 
 
 
@@ -129,9 +129,10 @@ def selected_asset():
         elif trans.trans_type == 'sell':
 
             to_date_quantity -= trans.quantity
-
             
-            to_date_profit = (to_date_quantity * trans.usd_spot)
+            to_date_usd_total -= trans.usd_total
+            
+            to_date_profit = (to_date_quantity * trans.usd_spot) - to_date_usd_total
 
 
 
