@@ -363,7 +363,7 @@ def linkable_data():
         if target_quantity <= buy_unlinked_quantity:
             quantity = target_quantity
         
-        elif sell_obj.unlinked_quantity >= buy_unlinked_quantity:
+        elif target_quantity >= buy_unlinked_quantity:
             quantity = buy_unlinked_quantity
 
         target_quantity -= quantity

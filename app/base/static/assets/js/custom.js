@@ -647,7 +647,10 @@ $(document).ready(function() {
                 if (data['min_profit'].length > 0) {$('#batch_options').append('<option>Minimum Profit</option>')}
                 if (data['max_profit'].length > 0) {$('#batch_options').append('<option>Max Profit</option>')}
 
-                $('#batch_options').val('')
+                if (data['min_profit'].length > 0) { $('#batch_options').val('Minimum Profit').change() }
+                else if (data['max_profit'].length > 0) { $('#batch_options').val('Max Profit').change() }
+                else if (data['min_links'].length > 0) {  $('#batch_options').val('Minimum Number of links to satisfy sell').change()  }
+                else { $('#batch_options').val('') }
      
             },   
         });
@@ -874,8 +877,16 @@ $(document).ready(function() {
                 if (data['min_links'].length > 0) {$('#model_batch_options').append('<option>Minimum Number of links to satisfy sell</option>')}
                 if (data['min_profit'].length > 0) {$('#model_batch_options').append('<option>Minimum Profit</option>')}
                 if (data['max_profit'].length > 0) {$('#model_batch_options').append('<option>Max Profit</option>')}
+                
+                if (data['min_profit'].length > 0) { $('#model_batch_options').val('Minimum Profit').change() }
+                else if (data['max_profit'].length > 0) { $('#model_batch_options').val('Max Profit').change() }
+                else if (data['min_links'].length > 0) {  $('#model_batch_options').val('Minimum Number of links to satisfy sell').change()  }
+                else { $('#model_batch_options').val('') }
 
-                $('#model_batch_options').val('')
+
+                $('#all_linkable_buys_datatable').DataTable().clear();
+                $('#all_linkable_buys_datatable').DataTable().rows.add(batch_data['all_linkable_buys_datatable']).draw();
+                
                 
             },   
         });
@@ -905,6 +916,9 @@ $(document).ready(function() {
         }
 
      });
+
+
+    
 
 
 

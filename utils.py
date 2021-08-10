@@ -627,3 +627,4 @@ def get_sends_trans_table_data_range(transactions, asset, date_range):
         
 
     return table_data
+

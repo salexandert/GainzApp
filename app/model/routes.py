@@ -42,10 +42,10 @@ def selected_asset():
     row_data = request.json['row_data']
     unlinked_remaining = request.json['unlinked_remaining']
     long_term =  request.json['long_term']
-    usd_spot = float(request.json['usd_spot'].replace(',', ''))
-    quantity = float(request.json['quantity'].replace(',', ''))
+    potential_sale_usd_spot = float(request.json['usd_spot'].replace(',', ''))
+    potential_sale_quantity = float(request.json['quantity'].replace(',', ''))
 
-    buy_list = [
+    linkable_buys = [
     trans for trans in transactions
         if trans.trans_type == "buy"
         and trans.symbol == asset
@@ -53,8 +53,9 @@ def selected_asset():
         and trans.unlinked_quantity > .0000001
     ]
 
+
     linkable_table_data = []
-    for trans in buy_list:
+    for trans in linkable_buys:
         linkable_table_data.append([
             trans.source,
             trans.symbol,
@@ -63,13 +64,12 @@ def selected_asset():
             trans.unlinked_quantity,
             "${:,.2f}".format(trans.usd_spot),
             "${:,.2f}".format(trans.usd_total),
-            "${:,.2f}".format(trans.unlinked_quantity * usd_spot)
+            "${:,.2f}".format(trans.unlinked_quantity * potential_sale_usd_spot)
             ])
 
+
     # Get Batches that can satify sell
-    linkable_table_data.sort(key=lambda x: x[5], reverse=True)
-    
-    target_quantity = quantity
+    target_quantity = potential_sale_quantity
     
     sell_fully_linked = False
     sell_fully_linked_max_profit = False
@@ -86,32 +86,49 @@ def selected_asset():
     min_links_quantity = 0.0
     min_profit_quantity = 0.0
     max_profit_quantity = 0.0
-    
-    for trans in linkable_table_data:
 
-        buy_unlinked_quantity = trans[3]
+
+    
+    
+    # Sort by quantity unlinked
+    linkable_buys.sort(key=lambda trans: trans.unlinked_quantity, reverse=True)
+
+    print(f" Linkable_buys unlinked_quantity of first {linkable_buys[0].unlinked_quantity}")
+    print(f" Linkable_buys unlinked_quantity of last {linkable_buys[-1].unlinked_quantity}")
+    
+    # Min Links Batch
+    for trans in linkable_buys:
+
+        buy_unlinked_quantity = trans.unlinked_quantity
         
         # Determine max link quantity
         if target_quantity <= buy_unlinked_quantity:
             quantity = target_quantity
         
-        elif quantity >= buy_unlinked_quantity:
+        elif target_quantity >= buy_unlinked_quantity:
             quantity = buy_unlinked_quantity
 
         target_quantity -= quantity
 
-        trans[5] = quantity
-
-        buy_price = quantity * float(trans[4])
-        sell_price = quantity * usd_spot
+        buy_price = quantity * float(trans.usd_spot)
+        sell_price = quantity * potential_sale_usd_spot
         profit = sell_price - buy_price
-
-        trans[6] = "${:,.2f}".format(profit)
-
-        min_links_batch.append(trans)
 
         min_links_profit += profit
         min_links_quantity += quantity
+
+
+        min_links_batch.append([
+            trans.source,
+            trans.symbol,
+            datetime.datetime.strftime(trans.time_stamp, "%Y-%m-%d %H:%M:%S"),
+            trans.quantity,
+            trans.unlinked_quantity,
+            quantity,
+            "${:,.2f}".format(trans.usd_spot),
+            "${:,.2f}".format(trans.usd_total),
+            "${:,.2f}".format(profit)
+            ])
 
         if target_quantity <= 0:
             sell_fully_linked = True
@@ -119,14 +136,14 @@ def selected_asset():
    
     if sell_fully_linked:
 
-        # Minimum Profit Batch
-        target_quantity = quantity
+        # Min Profit Batch
+        target_quantity = potential_sale_quantity
 
         # Sort by profit
-        linkable_table_data.sort(key=lambda x: x[6])
+        linkable_buys.sort(key=lambda trans: trans.usd_spot, reverse=True)
         
-        for trans in linkable_table_data:
-            buy_unlinked_quantity = trans[3]
+        for trans in linkable_buys:
+            buy_unlinked_quantity = trans.unlinked_quantity
             
             # Determine max link quantity
             if target_quantity <= buy_unlinked_quantity:
@@ -137,33 +154,38 @@ def selected_asset():
 
             target_quantity -= quantity
 
-            # Setting Link Quantity
-            trans[5] = quantity
-
             # Set Link profit
-            buy_price = quantity * float(trans[4])
-            sell_price = quantity * usd_spot
+            buy_price = quantity * float(trans.usd_spot)
+            sell_price = quantity * potential_sale_usd_spot
             profit = sell_price - buy_price
-            trans[6] = "${:,.2f}".format(profit)
-
-
-            min_profit_batch.append(trans)
 
             min_profit_profit += profit
             min_profit_quantity += quantity
+
+            min_profit_batch.append([
+                trans.source,
+                trans.symbol,
+                datetime.datetime.strftime(trans.time_stamp, "%Y-%m-%d %H:%M:%S"),
+                trans.quantity,
+                trans.unlinked_quantity,
+                quantity,
+                "${:,.2f}".format(trans.usd_spot),
+                "${:,.2f}".format(trans.usd_total),
+                "${:,.2f}".format(profit)
+                ])
             
             if target_quantity <= 0:
                 sell_fully_linked_min_profit = True
                 break
 
         # Maximum Profit Batch
-        target_quantity = quantity
+        target_quantity = potential_sale_quantity
         
         # Sort by profit reversed
-        linkable_table_data.sort(key=lambda x: x[6], reverse=True)
+        linkable_buys.sort(key=lambda trans: trans.usd_spot)
         
-        for trans in linkable_table_data:
-            buy_unlinked_quantity = trans[3]
+        for trans in linkable_buys:
+            buy_unlinked_quantity = trans.unlinked_quantity
             
             # Determine max link quantity
             if target_quantity <= buy_unlinked_quantity:
@@ -173,15 +195,21 @@ def selected_asset():
                 quantity = buy_unlinked_quantity
 
             target_quantity -= quantity
-            buy_price = quantity * float(trans[4])
-            sell_price = quantity * usd_spot
+            buy_price = quantity * float(trans.usd_spot)
+            sell_price = quantity * potential_sale_usd_spot
             profit = sell_price - buy_price
-            trans[6] = "${:,.2f}".format(profit)
 
-            # Setting Link Quantity
-            trans[5] = quantity
-
-            max_profit_batch.append(trans)
+            max_profit_batch.append([
+                trans.source,
+                trans.symbol,
+                datetime.datetime.strftime(trans.time_stamp, "%Y-%m-%d %H:%M:%S"),
+                trans.quantity,
+                trans.unlinked_quantity,
+                quantity,
+                "${:,.2f}".format(trans.usd_spot),
+                "${:,.2f}".format(trans.usd_total),
+                "${:,.2f}".format(profit)
+                ])
 
             max_profit_profit += profit
             max_profit_quantity += quantity
@@ -192,8 +220,6 @@ def selected_asset():
 
 
 
-
-
     data_dict = {}
     data_dict['min_links'] = min_links_batch
     data_dict['min_links_text'] = f"Total Quantity: {min_links_quantity} <br> Total Profit: {'${:,.2f}'.format(min_links_profit)}"
@@ -201,6 +227,9 @@ def selected_asset():
     data_dict['min_profit_text'] = f"Total Quantity: {min_profit_quantity} <br> Total Profit: {'${:,.2f}'.format(min_profit_profit)}"
     data_dict['max_profit'] = max_profit_batch
     data_dict['max_profit_text'] = f"Total Quantity: {max_profit_quantity} <br> Total Profit: {'${:,.2f}'.format(max_profit_profit)}"
+    data_dict['all_linkable_buys_datatable'] = linkable_table_data
+
+
     
     return jsonify(data_dict)
 
