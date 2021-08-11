@@ -43,7 +43,23 @@ def selected_asset():
     unlinked_remaining = request.json['unlinked_remaining']
     long_term =  request.json['long_term']
     potential_sale_usd_spot = float(request.json['usd_spot'].replace(',', ''))
-    potential_sale_quantity = float(request.json['quantity'].replace(',', ''))
+    print(request.json['quantity'])
+    print(type(request.json['quantity']))
+
+    
+    
+    # calculate quantity 
+    if request.json['quantity'] == '':
+        total_in_usd = float(request.json['total_in_usd'].replace(',', ''))
+        potential_sale_quantity = 1 * (total_in_usd / potential_sale_usd_spot)
+
+    else:
+        potential_sale_quantity = float(request.json['quantity'].replace(',', ''))
+        total_in_usd = (potential_sale_usd_spot * potential_sale_quantity)
+
+
+    print(f" Potential Sale Quantity: [{potential_sale_quantity}]")
+    print(f" Total in USD: [ ${total_in_usd} ]")
 
     linkable_buys = [
     trans for trans in transactions

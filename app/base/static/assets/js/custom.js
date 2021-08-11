@@ -862,7 +862,9 @@ $(document).ready(function() {
                 'unlinked_remaining': $('#model_checkbox_unlinked').is(':checked'),
                 'long_term': $('#model_checkbox_long_term_hodl').is(':checked'),
                 'usd_spot': $('#model_usd_spot').val(),
-                'quantity': $('#model_quantity').val()
+                'quantity': $('#model_quantity').val(),
+                'total_in_usd': $('#total_in_usd').val()
+
                 }),  
 
             contentType: 'application/json',
