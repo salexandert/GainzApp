@@ -323,6 +323,9 @@ def linkable_data():
         sell_price = quantity * sell_obj.usd_spot
         profit = sell_price - buy_price
 
+        if profit < 0.01:
+            continue
+
 
         linkable_table_data.append([
             datetime.datetime.strftime(trans.time_stamp, "%Y-%m-%d %H:%M:%S"), 
@@ -777,15 +780,17 @@ def auto_link_pre_check():
 @blueprint.route('/buys_to_lost', methods=['POST'])
 @login_required
 def buys_to_lost():
+
+    print('Buys to Lost is BROKEN! fix later 8/17/21')
     
     transactions = current_app.config['transactions']
 
     print(request.json)
 
     asset = request.json['asset'][0]
-    hodl = float(request.json['quantity'])
+    amount = float(request.json['quantity'])
 
-    transactions.convert_buys_to_lost(asset=asset, current_hodl=hodl)
+    transactions.convert_buys_to_lost(asset=asset, amount=amount)
 
     transactions.save(description="Converted Buys to Lost")
 

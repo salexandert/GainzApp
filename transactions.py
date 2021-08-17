@@ -138,8 +138,15 @@ class Transactions:
                         
                         # if sell.unlinked_quantity <= min_link:
                         #     print(f"    [{sell.unlinked_quantity}] <=  [{min_link}] MIN LINK SURPASSED BEFORE LINK  {link_quantity}  !!!!!")
+
+                        # Determine link profitability
+                        buy_price = link_quantity * buy.usd_spot
+                        sell_price = link_quantity * sell.usd_spot
+                        profit = sell_price - buy_price
+
+                        if profit < 0.01:
+                            continue
                         
-                    
                         sell.link_transaction(buy, link_quantity)
                         
                     
@@ -216,6 +223,13 @@ class Transactions:
                         elif sell.unlinked_quantity <= buy.unlinked_quantity: 
                             link_quantity = sell.unlinked_quantity
                         
+                        # Determine link profitability
+                        buy_price = link_quantity * buy.usd_spot
+                        sell_price = link_quantity * sell.usd_spot
+                        profit = sell_price - buy_price
+
+                        if profit < 0.01:
+                            continue
                         
                         # Link 
                         sell.link_transaction(buy, link_quantity)
