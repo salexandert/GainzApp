@@ -644,11 +644,11 @@ $(document).ready(function() {
                 $('#batch_options').children().remove()
 
                 if (data['min_links'].length > 0) {$('#batch_options').append('<option>Minimum Number of links to satisfy sell</option>')}
-                if (data['min_profit'].length > 0) {$('#batch_options').append('<option>Minimum Profit</option>')}
-                if (data['max_profit'].length > 0) {$('#batch_options').append('<option>Max Profit</option>')}
+                if (data['min_profit'].length > 0) {$('#batch_options').append('<option>Minimum Profit Long</option>')}
+                if (data['max_profit_long'].length > 0) {$('#batch_options').append('<option>Max Profit Long</option>')}
 
                 if (data['min_profit'].length > 0) { $('#batch_options').val('Minimum Profit').change() }
-                else if (data['max_profit'].length > 0) { $('#batch_options').val('Max Profit').change() }
+                else if (data['max_profit_long'].length > 0) { $('#batch_options').val('Max Profit Long').change() }
                 else if (data['min_links'].length > 0) {  $('#batch_options').val('Minimum Number of links to satisfy sell').change()  }
                 else { $('#batch_options').val('') }
      
@@ -658,19 +658,20 @@ $(document).ready(function() {
 
 
     $('#batch_options').on('change', function() {
-        // alert( $(this).find(":selected").val() );
+        console.log( $(this).find(":selected").val() );
         
-        if ($(this).find(":selected").val() == 'Max Profit') {
+        if ($(this).find(":selected").val() == 'Max Profit Long') {
 
             $('#linkable_batches_datatable').DataTable().clear();
-            $('#linkable_batches_datatable').DataTable().rows.add(batch_data['max_profit']).draw();
-            $('#batch_text').html(batch_data['max_profit_text']);
+            $('#linkable_batches_datatable').DataTable().rows.add(batch_data['max_profit_long']).draw();
+           
+            $('#batch_text').html(batch_data['max_profit_long_text']);
         
-        } else if ($(this).find(":selected").val() == 'Minimum Profit') {
+        } else if ($(this).find(":selected").val() == 'Minimum Profit Long') {
 
             $('#linkable_batches_datatable').DataTable().clear();
-            $('#linkable_batches_datatable').DataTable().rows.add(batch_data['min_profit']).draw();
-            $('#batch_text').html(batch_data['min_profit_text']);
+            $('#linkable_batches_datatable').DataTable().rows.add(batch_data['min_profit_long']).draw();
+            $('#batch_text').html(batch_data['min_profit_long_text']);
         
         } else if ($(this).find(":selected").val() == 'Minimum Number of links to satisfy sell') {
             
@@ -859,12 +860,9 @@ $(document).ready(function() {
             url: "/model/selected_asset",
             data: JSON.stringify({
                 'row_data': $('#model_stats_datatable').DataTable().row( {selected:true} ).data(),
-                'unlinked_remaining': $('#model_checkbox_unlinked').is(':checked'),
-                'long_term': $('#model_checkbox_long_term_hodl').is(':checked'),
                 'usd_spot': $('#model_usd_spot').val(),
                 'quantity': $('#model_quantity').val(),
                 'total_in_usd': $('#total_in_usd').val()
-
                 }),  
 
             contentType: 'application/json',
@@ -876,18 +874,27 @@ $(document).ready(function() {
 
                 $('#model_batch_options').children().remove()
 
-                if (data['min_links'].length > 0) {$('#model_batch_options').append('<option>Minimum Number of links to satisfy sell</option>')}
-                if (data['min_profit'].length > 0) {$('#model_batch_options').append('<option>Minimum Profit</option>')}
-                if (data['max_profit'].length > 0) {$('#model_batch_options').append('<option>Max Profit</option>')}
-                
-                if (data['min_profit'].length > 0) { $('#model_batch_options').val('Minimum Profit').change() }
-                else if (data['max_profit'].length > 0) { $('#model_batch_options').val('Max Profit').change() }
-                else if (data['min_links'].length > 0) {  $('#model_batch_options').val('Minimum Number of links to satisfy sell').change()  }
+                if (data['min_links_batch'].length > 0) {$('#model_batch_options').append('<option>Min links</option>')}
+                if (data['min_gain_batch'].length > 0) {$('#model_batch_options').append('<option>Min Gain</option>')}
+                if (data['min_gain_long_batch'].length > 0) {$('#model_batch_options').append('<option>Min Gain Long</option>')}
+                if (data['min_gain_short_batch'].length > 0) {$('#model_batch_options').append('<option>Min Gain Short</option>')}
+
+                if (data['max_gain_batch'].length > 0) {$('#model_batch_options').append('<option>Max Gain</option>')}
+                if (data['max_gain_long_batch'].length > 0) {$('#model_batch_options').append('<option>Max Gain Long</option>')}
+                if (data['max_gain_short_batch'].length > 0) {$('#model_batch_options').append('<option>Max Gain Short</option>')}
+
+                if (data['min_gain_batch'].length > 0) { $('#model_batch_options').val('Min Gain').change() }
+                else if (data['max_gain_batch'].length > 0) { $('#model_batch_options').val('Max Gain').change() }
+                else if (data['min_links_batch'].length > 0) {  $('#model_batch_options').val('Min links').change()  }
                 else { $('#model_batch_options').val('') }
 
 
                 $('#all_linkable_buys_datatable').DataTable().clear();
                 $('#all_linkable_buys_datatable').DataTable().rows.add(batch_data['all_linkable_buys_datatable']).draw();
+
+                $('#model_quantity').val(data['potential_sale_quantity']) 
+
+                $('#total_in_usd').val(data['total_in_usd'])
                 
                 
             },   
@@ -898,24 +905,50 @@ $(document).ready(function() {
     $('#model_batch_options').on('change', function() {
         // alert( $(this).find(":selected").val() );
         
-        if ($(this).find(":selected").val() == 'Max Profit') {
+        if ($(this).find(":selected").val() == 'Min Links') {
 
             $('#model_batches_datatable').DataTable().clear();
-            $('#model_batches_datatable').DataTable().rows.add(batch_data['max_profit']).draw();
-            $('#batch_text').html(batch_data['max_profit_text']);
+            $('#model_batches_datatable').DataTable().rows.add(batch_data['min_links_batch']).draw();
+            $('#batch_text').html(batch_data['min_links_batch_text']);
         
-        } else if ($(this).find(":selected").val() == 'Minimum Profit') {
+        } else if ($(this).find(":selected").val() == 'Min Gain') {
 
             $('#model_batches_datatable').DataTable().clear();
-            $('#model_batches_datatable').DataTable().rows.add(batch_data['min_profit']).draw();
-            $('#batch_text').html(batch_data['min_profit_text']);
+            $('#model_batches_datatable').DataTable().rows.add(batch_data['min_gain_batch']).draw();
+            $('#batch_text').html(batch_data['min_gain_batch_text']);
+
+        } else if ($(this).find(":selected").val() == 'Min Gain Long') {
+
+            $('#model_batches_datatable').DataTable().clear();
+            $('#model_batches_datatable').DataTable().rows.add(batch_data['min_gain_long_batch']).draw();
+            $('#batch_text').html(batch_data['min_gain_long_batch_text']);
+
+        } else if ($(this).find(":selected").val() == 'Min Gain Short') {
+
+            $('#model_batches_datatable').DataTable().clear();
+            $('#model_batches_datatable').DataTable().rows.add(batch_data['min_gain_short_batch']).draw();
+            $('#batch_text').html(batch_data['min_gain_short_batch_text']);
         
-        } else if ($(this).find(":selected").val() == 'Minimum Number of links to satisfy sell') {
+        } else if ($(this).find(":selected").val() == 'Max Gain') {
             
             $('#model_batches_datatable').DataTable().clear();
-            $('#model_batches_datatable').DataTable().rows.add(batch_data['min_links']).draw();
-            $('#batch_text').html(batch_data['min_links_text']);
+            $('#model_batches_datatable').DataTable().rows.add(batch_data['max_gain_batch']).draw();
+            $('#batch_text').html(batch_data['max_gain_batch_text']);
+    
+        } else if ($(this).find(":selected").val() == 'Max Gain Long') {
+                
+            $('#model_batches_datatable').DataTable().clear();
+            $('#model_batches_datatable').DataTable().rows.add(batch_data['max_gain_long_batch']).draw();
+            $('#batch_text').html(batch_data['max_gain_long_batch_text']);
+
+        } else if ($(this).find(":selected").val() == 'Max Gain Short') {
+                    
+            $('#model_batches_datatable').DataTable().clear();
+            $('#model_batches_datatable').DataTable().rows.add(batch_data['max_gain_short_batch']).draw();
+            $('#batch_text').html(batch_data['max_gain_short_batch_text']);
         }
+
+
 
      });
 

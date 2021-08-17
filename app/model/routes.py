@@ -40,13 +40,10 @@ def selected_asset():
 
     # Selected Asset
     row_data = request.json['row_data']
-    unlinked_remaining = request.json['unlinked_remaining']
-    long_term =  request.json['long_term']
     potential_sale_usd_spot = float(request.json['usd_spot'].replace(',', ''))
     print(request.json['quantity'])
     print(type(request.json['quantity']))
 
-    
     
     # calculate quantity 
     if request.json['quantity'] == '':
@@ -61,14 +58,14 @@ def selected_asset():
     print(f" Potential Sale Quantity: [{potential_sale_quantity}]")
     print(f" Total in USD: [ ${total_in_usd} ]")
 
+    # All Linkable Buys 
     linkable_buys = [
     trans for trans in transactions
         if trans.trans_type == "buy"
         and trans.symbol == asset
-        and (datetime.datetime.now() - trans.time_stamp).days > 365
+        and (datetime.datetime.now() >= trans.time_stamp)
         and trans.unlinked_quantity > .0000001
     ]
-
 
     linkable_table_data = []
     for trans in linkable_buys:
@@ -83,30 +80,86 @@ def selected_asset():
             "${:,.2f}".format(trans.unlinked_quantity * potential_sale_usd_spot)
             ])
 
+    # Linkable Buys Long
+    linkable_buys_long = [
+    trans for trans in transactions
+        if trans.trans_type == "buy"
+        and trans.symbol == asset
+        and (datetime.datetime.now() - trans.time_stamp).days > 365
+        and trans.unlinked_quantity > .0000001
+    ]
 
-    # Get Batches that can satify sell
+    linkable_long_table_data = []
+    for trans in linkable_buys_long:
+        linkable_long_table_data.append([
+            trans.source,
+            trans.symbol,
+            datetime.datetime.strftime(trans.time_stamp, "%Y-%m-%d %H:%M:%S"),
+            trans.quantity,
+            trans.unlinked_quantity,
+            "${:,.2f}".format(trans.usd_spot),
+            "${:,.2f}".format(trans.usd_total),
+            "${:,.2f}".format(trans.unlinked_quantity * potential_sale_usd_spot)
+            ])
+
+    # Linkable Buys Short
+    linkable_buys_short = [
+    trans for trans in transactions
+        if trans.trans_type == "buy"
+        and trans.symbol == asset
+        and (datetime.datetime.now() - trans.time_stamp).days <= 365
+        and trans.unlinked_quantity > .0000001
+    ]
+
+    linkable_short_table_data = []
+    for trans in linkable_buys_short:
+        linkable_short_table_data.append([
+            trans.source,
+            trans.symbol,
+            datetime.datetime.strftime(trans.time_stamp, "%Y-%m-%d %H:%M:%S"),
+            trans.quantity,
+            trans.unlinked_quantity,
+            "${:,.2f}".format(trans.usd_spot),
+            "${:,.2f}".format(trans.usd_total),
+            "${:,.2f}".format(trans.unlinked_quantity * potential_sale_usd_spot)
+            ])
+
+
+    # Start Batches
     target_quantity = potential_sale_quantity
     
     sell_fully_linked = False
-    sell_fully_linked_max_profit = False
-    sell_fully_linked_min_profit = False
-    
+
+    # Batch Types    
     min_links_batch = []
-    min_profit_batch = []
-    max_profit_batch = []
+    min_links_batch_gain = 0.0
+    min_links_batch_quantity = 0.0
+    
+    min_gain_batch = []
+    min_gain_batch_gain = 0.0
+    min_gain_batch_quantity = 0.0
 
-    min_links_profit = 0.0
-    min_profit_profit = 0.0
-    max_profit_profit = 0.0
+    min_gain_long_batch = []
+    min_gain_long_batch_gain = 0.0
+    min_gain_long_batch_quantity = 0.0
+    
+    min_gain_short_batch = []
+    min_gain_short_batch_gain = 0.0
+    min_gain_short_batch_quantity = 0.0
 
-    min_links_quantity = 0.0
-    min_profit_quantity = 0.0
-    max_profit_quantity = 0.0
-
+    max_gain_batch = []
+    max_gain_batch_gain = 0.0
+    max_gain_batch_quantity = 0.0
+    
+    max_gain_long_batch = []
+    max_gain_long_batch_gain = 0.0
+    max_gain_long_batch_quantity = 0.0
+    
+    max_gain_short_batch = []
+    max_gain_short_batch_gain = 0.0
+    max_gain_short_batch_quantity = 0.0
 
     
-    
-    # Sort by quantity unlinked
     linkable_buys.sort(key=lambda trans: trans.unlinked_quantity, reverse=True)
 
     print(f" Linkable_buys unlinked_quantity of first {linkable_buys[0].unlinked_quantity}")
@@ -119,20 +172,19 @@ def selected_asset():
         
         # Determine max link quantity
         if target_quantity <= buy_unlinked_quantity:
-            quantity = target_quantity
+            link_quantity = target_quantity
         
         elif target_quantity >= buy_unlinked_quantity:
-            quantity = buy_unlinked_quantity
+            link_quantity = buy_unlinked_quantity
 
-        target_quantity -= quantity
+        target_quantity -= link_quantity
 
-        buy_price = quantity * float(trans.usd_spot)
-        sell_price = quantity * potential_sale_usd_spot
-        profit = sell_price - buy_price
+        cost_basis = link_quantity * float(trans.usd_spot)
+        proceeds = link_quantity * potential_sale_usd_spot
+        gain_or_loss = proceeds - cost_basis
 
-        min_links_profit += profit
-        min_links_quantity += quantity
-
+        min_links_batch_gain += gain_or_loss
+        min_links_batch_quantity += link_quantity
 
         min_links_batch.append([
             trans.source,
@@ -140,22 +192,25 @@ def selected_asset():
             datetime.datetime.strftime(trans.time_stamp, "%Y-%m-%d %H:%M:%S"),
             trans.quantity,
             trans.unlinked_quantity,
-            quantity,
+            link_quantity,
             "${:,.2f}".format(trans.usd_spot),
-            "${:,.2f}".format(trans.usd_total),
-            "${:,.2f}".format(profit)
+            "${:,.2f}".format(proceeds),
+            "${:,.2f}".format(cost_basis),
+            "${:,.2f}".format(gain_or_loss)
             ])
 
         if target_quantity <= 0:
             sell_fully_linked = True
             break
    
-    if sell_fully_linked:
 
-        # Min Profit Batch
+    if sell_fully_linked:
+        
+        ## Batches without long/short requirement
+
+        # Min Gain Batch
         target_quantity = potential_sale_quantity
 
-        # Sort by profit
         linkable_buys.sort(key=lambda trans: trans.usd_spot, reverse=True)
         
         for trans in linkable_buys:
@@ -163,41 +218,41 @@ def selected_asset():
             
             # Determine max link quantity
             if target_quantity <= buy_unlinked_quantity:
-                quantity = target_quantity
+                link_quantity = target_quantity
             
             elif target_quantity >= buy_unlinked_quantity:
-                quantity = buy_unlinked_quantity
+                link_quantity = buy_unlinked_quantity
 
-            target_quantity -= quantity
+            target_quantity -= link_quantity
 
-            # Set Link profit
-            buy_price = quantity * float(trans.usd_spot)
-            sell_price = quantity * potential_sale_usd_spot
-            profit = sell_price - buy_price
+            cost_basis = link_quantity * float(trans.usd_spot)
+            proceeds = link_quantity * potential_sale_usd_spot
+            gain_or_loss = proceeds - cost_basis
 
-            min_profit_profit += profit
-            min_profit_quantity += quantity
+            min_gain_batch_gain += gain_or_loss
+            min_gain_batch_quantity += link_quantity
 
-            min_profit_batch.append([
+            min_gain_batch.append([
                 trans.source,
                 trans.symbol,
                 datetime.datetime.strftime(trans.time_stamp, "%Y-%m-%d %H:%M:%S"),
                 trans.quantity,
                 trans.unlinked_quantity,
-                quantity,
+                link_quantity,
                 "${:,.2f}".format(trans.usd_spot),
-                "${:,.2f}".format(trans.usd_total),
-                "${:,.2f}".format(profit)
+                "${:,.2f}".format(proceeds),
+                "${:,.2f}".format(cost_basis),
+                "${:,.2f}".format(gain_or_loss)
                 ])
             
             if target_quantity <= 0:
                 sell_fully_linked_min_profit = True
                 break
 
-        # Maximum Profit Batch
+        # Max Gain Batch
         target_quantity = potential_sale_quantity
         
-        # Sort by profit reversed
+        # Sort by profit
         linkable_buys.sort(key=lambda trans: trans.usd_spot)
         
         for trans in linkable_buys:
@@ -205,30 +260,202 @@ def selected_asset():
             
             # Determine max link quantity
             if target_quantity <= buy_unlinked_quantity:
-                quantity = target_quantity
+                link_quantity = target_quantity
             
             elif target_quantity >= buy_unlinked_quantity:
-                quantity = buy_unlinked_quantity
+                link_quantity = buy_unlinked_quantity
 
-            target_quantity -= quantity
-            buy_price = quantity * float(trans.usd_spot)
-            sell_price = quantity * potential_sale_usd_spot
-            profit = sell_price - buy_price
+            target_quantity -= link_quantity
+            
+            cost_basis = link_quantity * float(trans.usd_spot)
+            proceeds = link_quantity * potential_sale_usd_spot
+            gain_or_loss = proceeds - cost_basis
 
-            max_profit_batch.append([
+            max_gain_batch.append([
                 trans.source,
                 trans.symbol,
                 datetime.datetime.strftime(trans.time_stamp, "%Y-%m-%d %H:%M:%S"),
                 trans.quantity,
                 trans.unlinked_quantity,
-                quantity,
+                link_quantity,
                 "${:,.2f}".format(trans.usd_spot),
-                "${:,.2f}".format(trans.usd_total),
-                "${:,.2f}".format(profit)
+                "${:,.2f}".format(proceeds),
+                "${:,.2f}".format(cost_basis),
+                "${:,.2f}".format(gain_or_loss)
                 ])
 
-            max_profit_profit += profit
-            max_profit_quantity += quantity
+            max_gain_batch_gain += gain_or_loss
+            max_gain_batch_quantity += link_quantity
+            
+            if target_quantity <= 0:
+                sell_fully_linked_max_profit = True
+                break
+
+
+        ## Batches with long requirement
+        target_quantity = potential_sale_quantity
+
+        # Min Gain Long Batch
+        linkable_buys_long.sort(key=lambda trans: trans.usd_spot, reverse=True)
+        
+        for trans in linkable_buys_long:
+            buy_unlinked_quantity = trans.unlinked_quantity
+            
+            # Determine max link quantity
+            if target_quantity <= buy_unlinked_quantity:
+                link_quantity = target_quantity
+            
+            elif target_quantity >= buy_unlinked_quantity:
+                link_quantity = buy_unlinked_quantity
+
+            target_quantity -= link_quantity
+
+            cost_basis = link_quantity * float(trans.usd_spot)
+            proceeds = link_quantity * potential_sale_usd_spot
+            gain_or_loss = proceeds - cost_basis
+
+            min_gain_long_batch_gain += gain_or_loss
+            min_gain_long_batch_quantity += link_quantity
+
+            min_gain_long_batch.append([
+                trans.source,
+                trans.symbol,
+                datetime.datetime.strftime(trans.time_stamp, "%Y-%m-%d %H:%M:%S"),
+                trans.quantity,
+                trans.unlinked_quantity,
+                link_quantity,
+                "${:,.2f}".format(trans.usd_spot),
+                "${:,.2f}".format(proceeds),
+                "${:,.2f}".format(cost_basis),
+                "${:,.2f}".format(gain_or_loss)
+                ])
+            
+            if target_quantity <= 0:
+                sell_fully_linked_min_profit = True
+                break
+
+        # Max Gain Long Batch
+        target_quantity = potential_sale_quantity
+        
+        # Sort by profit reversed
+        linkable_buys_long.sort(key=lambda trans: trans.usd_spot)
+        
+        for trans in linkable_buys_long:
+            buy_unlinked_quantity = trans.unlinked_quantity
+            
+            # Determine max link quantity
+            if target_quantity <= buy_unlinked_quantity:
+                link_quantity = target_quantity
+            
+            elif target_quantity >= buy_unlinked_quantity:
+                link_quantity = buy_unlinked_quantity
+
+            target_quantity -= link_quantity
+            
+            cost_basis = link_quantity * float(trans.usd_spot)
+            proceeds = link_quantity * potential_sale_usd_spot
+            gain_or_loss = proceeds - cost_basis
+
+            max_gain_long_batch.append([
+                trans.source,
+                trans.symbol,
+                datetime.datetime.strftime(trans.time_stamp, "%Y-%m-%d %H:%M:%S"),
+                trans.quantity,
+                trans.unlinked_quantity,
+                link_quantity,
+                "${:,.2f}".format(trans.usd_spot),
+                "${:,.2f}".format(proceeds),
+                "${:,.2f}".format(cost_basis),
+                "${:,.2f}".format(gain_or_loss)
+                ])
+
+            max_gain_long_batch_gain += gain_or_loss
+            max_gain_long_batch_quantity += link_quantity
+            
+            if target_quantity <= 0:
+                sell_fully_linked_max_profit = True
+                break
+
+
+        ## Batches with Short Requirement
+        target_quantity = potential_sale_quantity
+
+        # Min Gain short Batch
+        linkable_buys_short.sort(key=lambda trans: trans.usd_spot, reverse=True)
+        
+        for trans in linkable_buys_short:
+            buy_unlinked_quantity = trans.unlinked_quantity
+            
+            # Determine max link quantity
+            if target_quantity <= buy_unlinked_quantity:
+                link_quantity = target_quantity
+            
+            elif target_quantity >= buy_unlinked_quantity:
+                link_quantity = buy_unlinked_quantity
+
+            target_quantity -= link_quantity
+
+            cost_basis = link_quantity * float(trans.usd_spot)
+            proceeds = link_quantity * potential_sale_usd_spot
+            gain_or_loss = proceeds - cost_basis
+
+            min_gain_short_batch_gain += gain_or_loss
+            min_gain_short_batch_quantity += link_quantity
+
+            min_gain_short_batch.append([
+                trans.source,
+                trans.symbol,
+                datetime.datetime.strftime(trans.time_stamp, "%Y-%m-%d %H:%M:%S"),
+                trans.quantity,
+                trans.unlinked_quantity,
+                link_quantity,
+                "${:,.2f}".format(trans.usd_spot),
+                "${:,.2f}".format(proceeds),
+                "${:,.2f}".format(cost_basis),
+                "${:,.2f}".format(gain_or_loss)
+                ])
+            
+            if target_quantity <= 0:
+                sell_fully_linked_min_profit = True
+                break
+
+        # Max Gain short Batch
+        target_quantity = potential_sale_quantity
+        
+        # Sort by profit reversed
+        linkable_buys_short.sort(key=lambda trans: trans.usd_spot)
+        
+        for trans in linkable_buys_short:
+            buy_unlinked_quantity = trans.unlinked_quantity
+            
+            # Determine max link quantity
+            if target_quantity <= buy_unlinked_quantity:
+                link_quantity = target_quantity
+            
+            elif target_quantity >= buy_unlinked_quantity:
+                link_quantity = buy_unlinked_quantity
+
+            target_quantity -= link_quantity
+            
+            cost_basis = link_quantity * float(trans.usd_spot)
+            proceeds = link_quantity * potential_sale_usd_spot
+            gain_or_loss = proceeds - cost_basis
+
+            max_gain_short_batch.append([
+                trans.source,
+                trans.symbol,
+                datetime.datetime.strftime(trans.time_stamp, "%Y-%m-%d %H:%M:%S"),
+                trans.quantity,
+                trans.unlinked_quantity,
+                link_quantity,
+                "${:,.2f}".format(trans.usd_spot),
+                "${:,.2f}".format(proceeds),
+                "${:,.2f}".format(cost_basis),
+                "${:,.2f}".format(gain_or_loss)
+                ])
+
+            max_gain_short_batch_gain += gain_or_loss
+            max_gain_short_batch_quantity += link_quantity
             
             if target_quantity <= 0:
                 sell_fully_linked_max_profit = True
@@ -236,14 +463,34 @@ def selected_asset():
 
 
 
+
+
     data_dict = {}
-    data_dict['min_links'] = min_links_batch
-    data_dict['min_links_text'] = f"Total Quantity: {min_links_quantity} <br> Total Profit: {'${:,.2f}'.format(min_links_profit)}"
-    data_dict['min_profit'] = min_profit_batch
-    data_dict['min_profit_text'] = f"Total Quantity: {min_profit_quantity} <br> Total Profit: {'${:,.2f}'.format(min_profit_profit)}"
-    data_dict['max_profit'] = max_profit_batch
-    data_dict['max_profit_text'] = f"Total Quantity: {max_profit_quantity} <br> Total Profit: {'${:,.2f}'.format(max_profit_profit)}"
+    data_dict['min_links_batch'] = min_links_batch
+    data_dict['min_links_batch_text'] = f"Total Quantity: {min_links_batch_quantity} <br> Total Proceeds: {'${:,.2f}'.format(total_in_usd)} <br> Total Gain or (Loss): {'${:,.2f}'.format(min_links_batch_gain)} "
+
+    data_dict['min_gain_batch'] = min_gain_batch
+    data_dict['min_gain_batch_text'] = f"Total Quantity: {min_gain_batch_quantity} <br> Total Proceeds: {'${:,.2f}'.format(total_in_usd)} <br> Total Gain or (Loss): {'${:,.2f}'.format(min_gain_batch_gain)}"
+    
+    data_dict['min_gain_long_batch'] = min_gain_long_batch
+    data_dict['min_gain_long_batch_text'] = f"Total Quantity: {min_gain_long_batch_quantity} <br> Total Proceeds: {'${:,.2f}'.format(total_in_usd)} <br> Total Gain or (Loss): {'${:,.2f}'.format(min_gain_long_batch_gain)}"
+
+    data_dict['min_gain_short_batch'] = min_gain_short_batch
+    data_dict['min_gain_short_batch_text'] = f"Total Quantity: {min_gain_short_batch_quantity} <br> Total Proceeds: {'${:,.2f}'.format(total_in_usd)} <br> Total Gain or (Loss): {'${:,.2f}'.format(min_gain_short_batch_gain)}"
+
+
+    data_dict['max_gain_batch'] = max_gain_batch
+    data_dict['max_gain_batch_text'] = f"Total Quantity: {max_gain_batch_quantity} <br> Total Proceeds: {'${:,.2f}'.format(total_in_usd)} <br> Total Gain or (Loss): {'${:,.2f}'.format(max_gain_batch_gain)}"
+
+    data_dict['max_gain_long_batch'] = max_gain_long_batch
+    data_dict['max_gain_long_batch_text'] = f"Total Quantity: {max_gain_long_batch_quantity} <br> Total Proceeds: {'${:,.2f}'.format(total_in_usd)} <br> Total Gain or (Loss): {'${:,.2f}'.format(max_gain_long_batch_gain)}"
+
+    data_dict['max_gain_short_batch'] = max_gain_short_batch
+    data_dict['max_gain_short_batch_text'] = f"Total Quantity: {max_gain_long_batch_quantity} <br> Total Proceeds: {'${:,.2f}'.format(total_in_usd)} <br> Total Gain or (Loss): {'${:,.2f}'.format(max_gain_short_batch_gain)}"
+
     data_dict['all_linkable_buys_datatable'] = linkable_table_data
+    data_dict['potential_sale_quantity'] = potential_sale_quantity
+    data_dict['total_in_usd'] = '${:,.2f}'.format(total_in_usd)
 
 
     
