@@ -17,12 +17,12 @@
           <h4 class="card-title">Model and Insights</h4>
           <div class="card card-plain">
             <div class="card-header" role="tab" id="headingOne">
-              <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+              <a data-toggle="collapse" data-parent="#accordion" href="#collapse_1" aria-expanded="true" aria-controls="collapseOne">
                 How to use this page
                 <i class="nc-icon nc-minimal-down"></i>
               </a>
             </div>
-            <div id="collapseOne" class="collapse show" role="tabpanel" aria-labelledby="headingOne">
+            <div id="collapse_1" class="collapse show" role="tabpanel" aria-labelledby="headingOne">
               <div class="card-body">
                 This page is used to give you insights into how much you paid for your crypto that you are currently hodling.
                 <br>
@@ -48,12 +48,12 @@
           <h4 class="card-title">Select an asset</h4>
           <div class="card card-plain">
             <div class="card-header" role="tab" id="headingOne">
-              <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+              <a data-toggle="collapse" data-parent="#accordion" href="#collapse_2" aria-expanded="true" aria-controls="collapseOne">
                 
                 <i class="nc-icon nc-minimal-down"></i>
               </a>
             </div>
-            <div id="collapseOne" class="collapse show" role="tabpanel" aria-labelledby="headingOne">
+            <div id="collapse_2" class="collapse show" role="tabpanel" aria-labelledby="headingOne">
               
               <!-- Card Body -->
               <div class="card-body ">
@@ -68,7 +68,7 @@
                       <th>Quantity Purchased Unlinked</th>
                       <th>Purchased in USD</th>
                       <th>Sold in USD</th>
-                      <th>Profit</th>
+                      <th>Gain or Loss</th>
                     </tr>
                   </thead>
 
@@ -111,7 +111,13 @@
         <div id="accordion" role="tablist" aria-multiselectable="true" class="card-collapse">
           <h4 class="card-title">Enter potential sell to see available options</h4>
           <div class="card card-plain">
-            <div id="collapseOne" class="collapse show" role="tabpanel" aria-labelledby="headingOne">
+            <div class="card-header" role="tab" id="headingOne">
+              <a data-toggle="collapse" data-parent="#accordion" href="#collapse_3" aria-expanded="true" aria-controls="collapseOne">
+                
+                <i class="nc-icon nc-minimal-down"></i>
+              </a>
+            </div>
+            <div id="collapse_3" class="collapse show" role="tabpanel" aria-labelledby="headingOne">
               
               <!-- Card Body -->
               <div class="card-body ">
@@ -171,7 +177,7 @@
                 
                 
 
-                <button id='model_submit' class="btn btn-success">Submit</button>
+                <button id='model_submit' class="btn btn-success" disabled>Submit</button>
                 <br>
                 <br>
 
@@ -194,14 +200,14 @@
                       <th>Buy USD Spot</th>
                       <th>Proceeds</th>
                       <th>Cost Basis</th>
-                      <th>Gain or (loss)</th>
+                      <th>Gain or Loss</th>
 
                     </tr>
                   </thead>
                 
                 </table>
 
-                <p id="batch_text"> </p>
+                <p id="model_batch_text"> </p>
                   
               </div>
               <!-- /Card Body -->
@@ -223,12 +229,12 @@
           <h4 class="card-title">All linkable buys</h4>
           <div class="card card-plain">
             <div class="card-header" role="tab" id="headingOne">
-              <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+              <a data-toggle="collapse" data-parent="#accordion" href="#collapse_4" aria-expanded="true" aria-controls="collapseOne">
                 
                 <i class="nc-icon nc-minimal-down"></i>
               </a>
             </div>
-            <div id="collapseOne" class="collapse show" role="tabpanel" aria-labelledby="headingOne">
+            <div id="collapse_4" class="collapse show" role="tabpanel" aria-labelledby="headingOne">
                           
               <!-- Card Body -->
               <div class="card-body ">      
@@ -238,11 +244,14 @@
                     <tr>
                       <th>Source</th>
                       <th>Asset</th>
-                      <th>Time Stamp</th>
-                      <th>Quantity</th>
-                      <th>Quantity Unlinked</th>
-                      <th>USD Spot</th>
-                      <th>Quantity in USD</th>
+                      <th>Date Acquired</th>
+                      <th>Buy Quantity</th>
+                      <th>Buy Unlinked</th>
+                      <th>Potential Link Quantity</th>
+                      <th>Buy USD Spot</th>
+                      <th>Proceeds</th>
+                      <th>Cost Basis</th>
+                      <th>Gain or Loss</th>
                     </tr>
                   </thead>  
                 </table>

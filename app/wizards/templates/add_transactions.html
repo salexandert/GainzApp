@@ -17,14 +17,15 @@
           <h4 class="card-title">Add and Manage Transactions</h4>
           <div class="card card-plain">
             <div class="card-header" role="tab" id="headingOne">
-              <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+              <a data-toggle="collapse" data-parent="#accordion" href="#collapse_1" aria-expanded="true" aria-controls="collapseOne">
                 How to use this page
                 <i class="nc-icon nc-minimal-down"></i>
               </a>
             </div>
-            <div id="collapseOne" class="collapse show" role="tabpanel" aria-labelledby="headingOne">
+            <div id="collapse_1" class="collapse show" role="tabpanel" aria-labelledby="headingOne">
               <div class="card-body">
                 Use this page to manually add, delete, and convert, transactions.
+                <br> For example you can convert a send to a sell or a receive to a buy. 
               </div>
             </div>
           </div>
@@ -44,11 +45,11 @@
           <h4 class="card-title">Manually Add a Transaction</h4>
           <div class="card card-plain">
             <div class="card-header" role="tab" id="headingOne">
-              <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+              <a data-toggle="collapse" data-parent="#accordion" href="#collapse_2" aria-expanded="true" aria-controls="collapseOne">
                 <i class="nc-icon nc-minimal-down"></i>
               </a>
             </div>
-            <div id="collapseOne" class="collapse show" role="tabpanel" aria-labelledby="headingOne">
+            <div id="collapse_2" class="collapse show" role="tabpanel" aria-labelledby="headingOne">
               
               <!-- Card Body -->
               <div class="card-body ">
@@ -105,15 +106,15 @@
     <div class="card">
       <div class="card-body">
         <div id="accordion" role="tablist" aria-multiselectable="true" class="card-collapse">
-          <h4 class="card-title">All Asset Stats</h4>
+          <h4 class="card-title">Select an asset</h4>
           <div class="card card-plain">
             <div class="card-header" role="tab" id="headingOne">
-              <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+              <a data-toggle="collapse" data-parent="#accordion" href="#collapse_3" aria-expanded="true" aria-controls="collapseOne">
                 
                 <i class="nc-icon nc-minimal-down"></i>
               </a>
             </div>
-            <div id="collapseOne" class="collapse show" role="tabpanel" aria-labelledby="headingOne">
+            <div id="collapse_3" class="collapse show" role="tabpanel" aria-labelledby="headingOne">
               
               <!-- Card Body -->
               <div class="card-body ">
@@ -172,12 +173,12 @@
           <h4 class="card-title">Sells</h4>
           <div class="card card-plain">
             <div class="card-header" role="tab" id="headingOne">
-              <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+              <a data-toggle="collapse" data-parent="#accordion" href="#collapse_4" aria-expanded="true" aria-controls="collapseOne">
                 
                 <i class="nc-icon nc-minimal-down"></i>
               </a>
             </div>
-            <div id="collapseOne" class="collapse show" role="tabpanel" aria-labelledby="headingOne">
+            <div id="collapse_4" class="collapse show" role="tabpanel" aria-labelledby="headingOne">
                           
               <!-- Card Body -->
               <div class="card-body ">
@@ -196,8 +197,7 @@
                     </thead>
                 </table>
                 <button type="button" id="sells_delete_button" class="btn btn-danger">Delete</button>
-                <button type="button" id="buys_convert_button" class="btn btn-warning" disabled>Convert to Sell</button>
-              
+                              
               </div>
               <!-- /Card Body -->
             
@@ -219,12 +219,12 @@
           <h4 class="card-title">Buys</h4>
           <div class="card card-plain">
             <div class="card-header" role="tab" id="headingOne">
-              <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+              <a data-toggle="collapse" data-parent="#accordion" href="#collapse_5" aria-expanded="true" aria-controls="collapseOne">
                 
                 <i class="nc-icon nc-minimal-down"></i>
               </a>
             </div>
-            <div id="collapseOne" class="collapse show" role="tabpanel" aria-labelledby="headingOne">
+            <div id="collapse_5" class="collapse show" role="tabpanel" aria-labelledby="headingOne">
                           
               <!-- Card Body -->
               <div class="card-body ">      
@@ -243,7 +243,7 @@
                   </thead>  
                 </table>
                 <button type="button" id="buys_delete_button" class="btn btn-danger">Delete</button>
-                <button type="button" id="buys_convert_button" class="btn btn-warning" disabled>Convert to Lost</button>
+                <button type="button" id="buys_convert_button" class="btn btn-warning">Convert to Lost</button>
               </div>
               <!-- /Card Body -->
             </div>
@@ -265,12 +265,12 @@
           <h4 class="card-title">Sends</h4>
           <div class="card card-plain">
             <div class="card-header" role="tab" id="headingOne">
-              <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+              <a data-toggle="collapse" data-parent="#accordion" href="#collapse_6" aria-expanded="true" aria-controls="collapseOne">
                 
                 <i class="nc-icon nc-minimal-down"></i>
               </a>
             </div>
-            <div id="collapseOne" class="collapse show" role="tabpanel" aria-labelledby="headingOne">
+            <div id="collapse_6" class="collapse show" role="tabpanel" aria-labelledby="headingOne">
                           
               <!-- Card Body -->
               <div class="card-body ">        
@@ -288,6 +288,7 @@
                     </tr>
                   </thead>  
                 </table>
+                <button type="button" id="send_convert_button" class="btn btn-warning">Convert to Sell</button>
               
               </div>
               <!-- /Card Body -->
@@ -301,21 +302,21 @@
 <!-- Sends Table End -->
 
 
-<!-- Sends Table  -->
+<!-- Receives Table  -->
 <div class="row">
   <div class="col-md-12">
     <div class="card">
       <div class="card-body">
         <div id="accordion" role="tablist" aria-multiselectable="true" class="card-collapse">
-          <h4 class="card-title">Recieves (WIP)</h4>
+          <h4 class="card-title">Receives</h4>
           <div class="card card-plain">
             <div class="card-header" role="tab" id="headingOne">
-              <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+              <a data-toggle="collapse" data-parent="#accordion" href="#collapse_7" aria-expanded="true" aria-controls="collapseOne">
                 
                 <i class="nc-icon nc-minimal-down"></i>
               </a>
             </div>
-            <div id="collapseOne" class="collapse show" role="tabpanel" aria-labelledby="headingOne">
+            <div id="collapse_7" class="collapse show" role="tabpanel" aria-labelledby="headingOne">
                           
               <!-- Card Body -->
               <div class="card-body ">         
@@ -333,6 +334,8 @@
                     </tr>
                   </thead>  
                 </table>
+
+                <button type="button" id="receive_convert_button" class="btn btn-warning">Convert to Buy</button>
               
               </div>
               <!-- /Card Body -->
@@ -344,7 +347,7 @@
     </div>
   </div>
 </div>
-<!-- receive Table End -->
+<!-- Receive Table End -->
            
 
 

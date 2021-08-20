@@ -121,4 +121,13 @@ class Send(Transaction):
         self.symbol = symbol.upper()
         self.usd_spot = float(usd_spot)
         self.usd_total = self.usd_spot * float(quantity)
+
+
+class Receive(Transaction):
+    def __init__(self, symbol, quantity, time_stamp, source, usd_spot, trans_type='receive', linked_transactions=[]):
+        super().__init__(symbol=symbol, usd_spot=usd_spot, quantity=quantity, time_stamp=time_stamp, source=source, trans_type=trans_type,  linked_transactions=linked_transactions)
+
+        self.symbol = symbol.upper()
+        self.usd_spot = float(usd_spot)
+        self.usd_total = self.usd_spot * float(quantity)
         

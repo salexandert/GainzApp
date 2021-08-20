@@ -1,6 +1,7 @@
 
 import datetime
-
+from transaction import Transaction
+from dateutil.tz import tzutc
 
 
 def get_stats_table_data(transactions):
@@ -30,6 +31,7 @@ def get_stats_table_data(transactions):
         total_sold_usd = 0.0
 
         total_sent_quantity = 0.0
+        total_received_quantity = 0.0
 
         profit_loss = 0.0
 
@@ -61,6 +63,9 @@ def get_stats_table_data(transactions):
             elif trans.trans_type.lower() == "send":
                 total_sent_quantity += trans.quantity
 
+            elif trans.trans_type.lower() == "receive":
+                total_received_quantity += trans.quantity
+
             # print(f"Total Sold in usd: {total_sold_usd}")
             # print(f"Trans USD Total {trans.usd_total}")
         
@@ -74,6 +79,10 @@ def get_stats_table_data(transactions):
             if a.hodl is not None:
                 hodl = a.hodl
                 # print(f"Asset Object symbol {a.symbol} Asset {asset} HODL {a.hodl}")
+
+        if total_sold_unlinked_quantity != 0 and abs(total_sold_unlinked_quantity) < .000000009:
+            total_sold_unlinked_quantity = "Less than .000000009"
+
                                 
         stats_table_data.append({   
                 "symbol": f"{asset}",
@@ -85,6 +94,7 @@ def get_stats_table_data(transactions):
                 "total_sold_usd": "${:,.2f}".format(total_sold_usd),
                 "total_profit_loss": "${:,.2f}".format(profit_loss),
                 "total_sent_quantity": total_sent_quantity,
+                "total_received_quantity": total_received_quantity,
                 "hodl": hodl
 
             })
@@ -217,8 +227,8 @@ def get_linkable_table_data(transactions, trans1_obj):
             continue
         
         # Don't show if already linked
-        if trans.name in other_transactions:
-            continue
+        # if trans.name in other_transactions:
+        #     continue
         
         # Don't show if time problem
         if trans1_obj.trans_type == "sell":
@@ -386,6 +396,11 @@ def get_stats_table_data_range(transactions, date_range=None):
                     hodl = a.hodl
                     # print(f"Asset Object symbol {a.symbol} Asset {asset} HODL {a.hodl}")
 
+
+            if total_sold_unlinked_quantity != 0 and abs(total_sold_unlinked_quantity) < .000000009:
+                total_sold_unlinked_quantity = "Less than .000000009"
+
+
             stats_table_data.append({   
                     "symbol": f"{asset}",
                     "total_purchased_quantity": total_purchased_quantity,
@@ -409,6 +424,7 @@ def get_stats_table_data_range(transactions, date_range=None):
                     
                 })
     
+
     return stats_table_data
    
 
@@ -627,4 +643,113 @@ def get_sends_trans_table_data_range(transactions, asset, date_range):
         
 
     return table_data
+
+
+
+def get_receives_trans_table_data_range(transactions, asset, date_range):
+    
+    start_date = date_range['start_date']
+    end_date = date_range['end_date']
+                                                                
+    # Filter Transactions to date range
+    filtered_transactions = []
+    for trans in transactions:
+        if trans.symbol != asset:
+            continue
+        
+        if start_date and not end_date:
+            if trans.time_stamp >= start_date:
+                filtered_transactions.append(trans)
+
+        elif not start_date and end_date:
+            if trans.time_stamp <= end_date:
+                filtered_transactions.append(trans)
+
+        elif start_date and end_date:
+            if trans.time_stamp >= start_date and trans.time_stamp <= end_date:              
+                filtered_transactions.append(trans)
+
+
+    table_data = []
+    for trans in filtered_transactions:
+        if trans.trans_type == "receive":
+        
+            table_data.append([
+                trans.source,
+                trans.symbol,
+                datetime.datetime.strftime(trans.time_stamp, "%Y-%m-%d %H:%M:%S"),
+                trans.quantity,
+                trans.unlinked_quantity,
+                "${:,.2f}".format(trans.usd_spot),
+                "${:,.2f}".format(trans.usd_total)
+            ])
+        
+
+    return table_data
+
+
+def get_trans_obj_from_table_data(transactions, symbol, trans_type, quantity, time_stamp) -> Transaction:
+
+    trans_obj = None
+
+    for trans in transactions:
+
+        if trans.symbol == symbol and trans.trans_type == trans_type and trans.quantity == quantity:
+
+            if isinstance(trans.time_stamp, datetime.date):
+                trans2_time_stamp = trans.time_stamp
+            
+            else:
+                trans2_time_stamp = trans.time_stamp.to_pydatetime()
+                time_stamp = time_stamp.replace(tzinfo=tzutc())
+                trans2_time_stamp = trans2_time_stamp.replace(tzinfo=tzutc())
+
+
+            if time_stamp == trans2_time_stamp:
+
+                # print(f"Trans with Symbol {sell_symbol} and quantity {sell_quantity} Found")
+                # print(f"USD Spot {sell_usd_spot}  {trans.usd_spot}")
+                # print(f"\nTrans 1 Time Stamp {sell_time_stamp} ")
+                # print(f"Time Stamp {sell_time_stamp}  {trans2_time_stamp}")
+                # print(f"Time Stamp {type(sell_time_stamp)}  {type(trans2_time_stamp)}")
+                # print(sell_time_stamp == trans2_time_stamp)
+                
+                trans_obj = trans
+               
+                break
+
+        
+    return trans_obj
+
+
+def get_all_links_table_data(transactions, asset):
+
+
+    # Get links
+    links = set([
+            link 
+            for trans in transactions if trans.symbol == asset
+            for link in trans.links
+            ])
+
+
+    table_data = []
+
+
+    for link in links:
+
+        table_data.append([
+            link.symbol,
+            datetime.datetime.strftime(link.buy.time_stamp, "%Y-%m-%d %H:%M:%S"),
+            datetime.datetime.strftime(link.sell.time_stamp, "%Y-%m-%d %H:%M:%S"),
+            "${:,.2f}".format(link.buy.usd_spot),
+            "${:,.2f}".format(link.sell.usd_spot),
+            link.quantity,
+            "${:,.2f}".format(link.proceeds),
+            "${:,.2f}".format(link.cost_basis),
+            "${:,.2f}".format(link.profit_loss)
+        ])
+
+    return table_data
+
 

@@ -1,5 +1,5 @@
 from conversion import Conversion
-from transaction import Buy, Sell, Send, Transaction
+from transaction import Buy, Receive, Sell, Send, Receive, Transaction
 import pandas as pd
 import os
 from ast import literal_eval
@@ -13,7 +13,7 @@ import pandas as pd
 from time import strftime
 import os
 from ast import literal_eval
-from transaction import Buy, Sell
+
 import numpy as np
 from assets import Asset
 import sys
@@ -144,7 +144,7 @@ class Transactions:
                         sell_price = link_quantity * sell.usd_spot
                         profit = sell_price - buy_price
 
-                        if profit < 0.01:
+                        if abs(profit) < 0.01:
                             continue
                         
                         sell.link_transaction(buy, link_quantity)
@@ -228,7 +228,7 @@ class Transactions:
                         sell_price = link_quantity * sell.usd_spot
                         profit = sell_price - buy_price
 
-                        if profit < 0.01:
+                        if abs(profit) < 0.01:
                             continue
                         
                         # Link 
@@ -468,18 +468,23 @@ class Transactions:
         sell_df = trans_df[(trans_df['trans_type'] == 'sell')].copy()
         buy_df = trans_df[(trans_df['trans_type'] == 'buy')].copy()
         send_df = trans_df[(trans_df['trans_type'] == 'send')].copy()
+        receive_df = trans_df[(trans_df['trans_type'] == 'receive')].copy()
         
         send_df.reset_index(inplace=True)
         sell_df.reset_index(inplace=True)
         buy_df.reset_index(inplace=True)
+        receive_df.reset_index(inplace=True)
         
         sell_df.sort_values(by='time_stamp', inplace=True)
         buy_df.sort_values(by='time_stamp', inplace=True)
+        send_df.sort_values(by='time_stamp', inplace=True)
+        receive_df.sort_values(by='time_stamp', inplace=True)
 
         # Objects >
         sells = []
         buys = []
         sends = []
+        receives = []
         conversions = []
         asset_objects = []
 
@@ -498,6 +503,11 @@ class Transactions:
         for index, row in send_df.iterrows():
             # buys.append(Buy(symbol='BTC', quantity=row['Quantity Transacted'], time_stamp=row['Timestamp'], usd_spot=row['USD Spot Price at Transaction']))
             sends.append(Send(symbol=row['symbol'], quantity=row['quantity'], time_stamp=row['time_stamp'], usd_spot=row['usd_spot'], linked_transactions=row['linked_transactions'], source=row['source']))
+
+        # Load Receives
+        for index, row in receive_df.iterrows():
+            # buys.append(Buy(symbol='BTC', quantity=row['Quantity Transacted'], time_stamp=row['Timestamp'], usd_spot=row['USD Spot Price at Transaction']))
+            receives.append(Receive(symbol=row['symbol'], quantity=row['quantity'], time_stamp=row['time_stamp'], usd_spot=row['usd_spot'], linked_transactions=row['linked_transactions'], source=row['source']))
         
         # Load Conversions
         for index, row in conversion_df.iterrows():
@@ -520,7 +530,7 @@ class Transactions:
 
         self.asset_objects = asset_objects
 
-        imported_transactions = buys + sells + sends
+        imported_transactions = buys + sells + sends + receives
 
         # Duplicates check
         transactions = set()
@@ -558,6 +568,7 @@ class Transactions:
                 if buy_obj and sell_obj:
                     # print("Buy and Sell Found Breaking\n")
                     break
+            
             if sell_obj and buy_obj:
                 # print(f" quantity of link on load {quantity}")
                 sell_obj.link_transaction(buy_obj, link_quantity=quantity)
@@ -1128,7 +1139,7 @@ class Transactions:
         # trans_df = pd.read_csv(filename, header=3)
         trans_df = df
 
-        # print(trans_df.columns)
+        convert_df = None
 
         # Import from cashapp csv
         if 'Date' in trans_df.columns:
@@ -1145,6 +1156,9 @@ class Transactions:
             sell_df = trans_df[trans_df['Transaction Type'] == 'Bitcoin Sale'].copy()
             buy_df = trans_df[trans_df['Transaction Type'] == 'Bitcoin Buy'].copy()
             send_df = trans_df[trans_df['Transaction Type'] == 'Bitcoin Withdrawal'].copy()
+            receive_df = trans_df[trans_df['Transaction Type'] == 'Bitcoin Deposit'].copy()
+            convert_df = None
+            
 
         #import from coinbase csv
         else:
@@ -1157,41 +1171,75 @@ class Transactions:
             sell_df = trans_df[trans_df['Transaction Type'] == 'Sell'].copy()
             buy_df = trans_df[trans_df['Transaction Type'] == 'Buy'].copy()
             send_df = trans_df[trans_df['Transaction Type'] == 'Send'].copy()
-
+            receive_df = trans_df[trans_df['Transaction Type'] == 'Receive'].copy()
+            convert_df = trans_df[trans_df['Transaction Type'] == 'Convert'].copy()
 
         sell_df.reset_index(inplace=True)
         buy_df.reset_index(inplace=True)
         send_df.reset_index(inplace=True)
+        receive_df.reset_index(inplace=True)
+
 
         sell_df.sort_values(by='Timestamp', inplace=True)
         buy_df.sort_values(by='Timestamp', inplace=True)
         send_df.sort_values(by='Timestamp', inplace=True)
+        receive_df.sort_values(by='Timestamp', inplace=True)
 
         # Objects >
         sells = []
         buys = []
         sends = []
+        receives = []
         assets = []
 
 
-        # Create Objects
+        ## Create Objects
+        # Sells
         for index, row in sell_df.iterrows():
-            # sells.append(Sell(symbol='BTC', quantity=row['Quantity Transacted'], time_stamp=row['Timestamp'], usd_spot=row['USD Spot Price at Transaction']))
             sells.append(Sell(symbol=row['Asset'], quantity=row['Quantity Transacted'], time_stamp=row['Timestamp'], usd_spot=row['USD Spot Price at Transaction'], source=row['Source']))
 
+        # Buys
         for index, row in buy_df.iterrows():
-            # buys.append(Buy(symbol='BTC', quantity=row['Quantity Transacted'], time_stamp=row['Timestamp'], usd_spot=row['USD Spot Price at Transaction']))
             buys.append(Buy(symbol=row['Asset'], quantity=row['Quantity Transacted'], time_stamp=row['Timestamp'], usd_spot=row['USD Spot Price at Transaction'], source=row['Source']))
 
+        # Sends
         for index, row in send_df.iterrows():
-            # buys.append(Buy(symbol='BTC', quantity=row['Quantity Transacted'], time_stamp=row['Timestamp'], usd_spot=row['USD Spot Price at Transaction']))
             sends.append(Send(symbol=row['Asset'], quantity=row['Quantity Transacted'], time_stamp=row['Timestamp'], usd_spot=row['USD Spot Price at Transaction'], source=row['Source']))
+
+        # Receives
+        for index, row in receive_df.iterrows():
+            receives.append(Receive(symbol=row['Asset'], quantity=row['Quantity Transacted'], time_stamp=row['Timestamp'], usd_spot=row['USD Spot Price at Transaction'], source=row['Source']))
+
+        
+        if convert_df is not None:
+            convert_df.reset_index(inplace=True)
+            for index, row in convert_df.iterrows():
+
+                symbol=row['Asset']
+                quantity=row['Quantity Transacted']
+                time_stamp=row['Timestamp']
+                usd_spot=row['USD Spot Price at Transaction']
+                source=row['Source']
+
+                sells.append(Sell(symbol=row['Asset'], quantity=row['Quantity Transacted'], time_stamp=row['Timestamp'], usd_spot=row['USD Spot Price at Transaction'], source=f"{row['Source']} - Convert Sell"))
+
+                usd_total = row['USD Total (inclusive of fees)']
+
+        
+                notes = row['Notes']
+
+                buy_quantity = float(notes.split()[4])
+                buy_asset = notes.split()[5]
+
+                buy_usd_spot = usd_total / buy_quantity
+
+                buys.append(Buy(symbol=buy_asset, quantity=buy_quantity, time_stamp=row['Timestamp'], usd_spot=buy_usd_spot, source=f"{row['Source']} - Convert Buy" ))
 
         if self.transactions:
             
             deduped_transactions = set()
 
-            imported_transactions =  buys + sells + sends
+            imported_transactions =  buys + sells + sends + receives
 
             for trans in self.transactions:
                 deduped_transactions.add(trans)
@@ -1203,7 +1251,7 @@ class Transactions:
         
         else:
             
-            self.transactions = buys + sells + sends
+            self.transactions = buys + sells + sends + receives
 
         
         for asset in self.assets:

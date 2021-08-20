@@ -1,21 +1,21 @@
-from transactions import Transactions
+
 from . import blueprint
 from flask import Flask, render_template, session, redirect, url_for, session, request, current_app
 from flask_wtf import FlaskForm
 from flask_login import login_required, current_user
-from wtforms import (StringField, BooleanField, DateTimeField,
-                     RadioField,SelectField,TextField,
-                     TextAreaField,SubmitField, DecimalField, DateField, IntegerField, FloatField)
-from wtforms.validators import DataRequired
+from wtforms import (SelectField,TextField,
+                     SubmitField, DecimalField, DateField)
+
 from wtforms.fields.html5 import DateField
 from transaction import Buy, Sell
 import json
 from werkzeug.utils import secure_filename
 from flask import jsonify
+from conversion import Conversion
 
 from wtforms.fields.html5 import DateTimeLocalField
 from utils import *
-from dateutil.tz import tzutc
+
 import dateutil.parser
 
 class ManualTransaction(FlaskForm):
@@ -57,8 +57,6 @@ def import_wizard():
     current_hodl = CurrentHodl()
 
 
-    if 'imported_transactions' not in session:
-        session['imported_transactions'] = []
 
     if 'current_hodl' not in session:
         session['current_hodl'] = []
@@ -95,9 +93,7 @@ def add_transaction():
 
     # Import Manual trans
     if manual_trans.is_submitted():
-        print('valid as fuck')
         
-        imported_transactions = session['imported_transactions']
 
         print(manual_trans.data)
         if manual_trans.type.data == 'buy':
@@ -122,6 +118,7 @@ def add_transaction():
         
         
         transactions.transactions.append(trans)
+
         transactions.save(description="Manually Added Transaction")
         
         trans_data = {}
@@ -134,8 +131,6 @@ def add_transaction():
         trans_data['unlinked_quantity'] = trans.unlinked_quantity
         trans_data['usd_total'] = "${:,.2f}".format(trans.usd_total)
     
-        imported_transactions.append(trans_data)
-        session['imported_transactions'] = imported_transactions
 
         stats_table_data = get_stats_table_data(transactions)
         
@@ -228,38 +223,25 @@ def linkable_data():
     
     # Get Sell Object
     row_data = request.json['row_data']
-    sell_symbol = row_data[1]
-    sell_time_stamp_str = row_data[2]
-    sell_time_stamp = dateutil.parser.parse(sell_time_stamp_str)
-    sell_quantity = row_data[3]
-    sell_usd_spot = row_data[5]
+    symbol = row_data[1]
+    time_stamp_str = row_data[2]
+    time_stamp = dateutil.parser.parse(time_stamp_str)
+    quantity = row_data[3]
+    usd_spot = row_data[5]
 
-    for trans in transactions:
-        
-        if trans.symbol == sell_symbol and trans.quantity == sell_quantity:
-            
-            trans2_time_stamp = trans.time_stamp.to_pydatetime()
-            sell_time_stamp = sell_time_stamp.replace(tzinfo=tzutc())
-            trans2_time_stamp = trans2_time_stamp.replace(tzinfo=tzutc())
+    sell_obj = get_trans_obj_from_table_data(transactions=transactions, symbol=symbol, trans_type='sell', quantity=quantity, time_stamp=time_stamp)
 
-            if sell_time_stamp == trans2_time_stamp:
-
-                # print(f"Trans with Symbol {sell_symbol} and quantity {sell_quantity} Found")
-                # print(f"USD Spot {sell_usd_spot}  {trans.usd_spot}")
-                # print(f"\nTrans 1 Time Stamp {sell_time_stamp} ")
-                # print(f"Time Stamp {sell_time_stamp}  {trans2_time_stamp}")
-                # print(f"Time Stamp {type(sell_time_stamp)}  {type(trans2_time_stamp)}")
-                # print(sell_time_stamp == trans2_time_stamp)
-                
-                sell_obj = trans
-                break
+    potential_sale_quantity = sell_obj.unlinked_quantity
+    potential_sale_usd_spot = sell_obj.usd_spot
+    total_in_usd = (sell_obj.usd_spot * sell_obj.unlinked_quantity)
+    asset = sell_obj.symbol
 
     # Get Linked Table Data
     other_transactions = sell_obj.linked_transactions
     linked_table_data = []
     for link in sell_obj.links:
         linked_table_data.append([
-            datetime.datetime.strftime(trans.time_stamp, "%Y-%m-%d %H:%M:%S"),
+            datetime.datetime.strftime(link.buy.time_stamp, "%Y-%m-%d %H:%M:%S"),
             link.buy.source,
             link.buy.quantity,
             link.buy.unlinked_quantity,
@@ -269,199 +251,425 @@ def linkable_data():
         ])
         
     
-    # Get Linkable Table Data
+    # All Linkable Buys 
+    linkable_buys = [
+    trans for trans in transactions
+        if trans.trans_type == "buy"
+        and trans.symbol == sell_obj.symbol
+        and (datetime.datetime.now() >= trans.time_stamp)
+        and trans.unlinked_quantity > .0000001
+    ]
+
     linkable_table_data = []
-    for trans in transactions:
-        
-        # Don't show if different Asset types
-        if sell_obj.symbol != trans.symbol:
-            continue            
-
-        # Don't show if 0.0 unlinked quantity WE SHOULD TEST 0 NOT 0.0 AS 0.01 ISSUE CAN ARRISE < changed 7/24 11:30 AM
-        if sell_obj.unlinked_quantity <= 0 or trans.unlinked_quantity <= 0:
-            continue
-        
-        # Don't show if same type
-        if trans.trans_type == sell_obj.trans_type:
-            continue
-        
-        # Don't show if already linked
-        if trans.name in other_transactions:
-            continue
-        
-        # Don't show if time problem
-        if sell_obj.trans_type == "sell":
-            if sell_obj.time_stamp < trans.time_stamp: 
-                continue
-        
-        elif sell_obj.trans_type == "buy":
-            if sell_obj.time_stamp < trans.time_stamp:
-                continue
-
-        # Determine Buy and Sell Objects
-        if sell_obj.trans_type == "sell" and trans.trans_type == "buy":
-            
-            sell_obj = sell_obj
-            buy_obj = trans
-
-        elif sell_obj.trans_type == "buy" and trans.trans_type == "sell":
-            sell_obj = trans
-            buy_obj = sell_obj
-        
-        else:
-            continue
-
+    
+    for trans in linkable_buys:
+        target_quantity = potential_sale_quantity
         # Determine max link quantity
-        if sell_obj.unlinked_quantity <= buy_obj.unlinked_quantity:
-            quantity = sell_obj.unlinked_quantity
+        if target_quantity <= trans.unlinked_quantity:
+            link_quantity = target_quantity
         
-        elif sell_obj.unlinked_quantity >= buy_obj.unlinked_quantity:
-            quantity = buy_obj.unlinked_quantity
+        elif target_quantity >= trans.unlinked_quantity:
+            link_quantity = trans.unlinked_quantity
 
-        # Determine link profitability
-        buy_price = quantity * buy_obj.usd_spot
-        sell_price = quantity * sell_obj.usd_spot
-        profit = sell_price - buy_price
+        target_quantity -= link_quantity
 
-        if profit < 0.01:
+        cost_basis = link_quantity * float(trans.usd_spot)
+        proceeds = link_quantity * potential_sale_usd_spot
+        gain_or_loss = proceeds - cost_basis
+
+        if abs(gain_or_loss) < 0.01:
             continue
-
 
         linkable_table_data.append([
-            datetime.datetime.strftime(trans.time_stamp, "%Y-%m-%d %H:%M:%S"), 
-            trans.source, 
+            trans.source,
+            trans.symbol,
+            datetime.datetime.strftime(trans.time_stamp, "%Y-%m-%d %H:%M:%S"),
             trans.quantity,
             trans.unlinked_quantity,
-            "${:,.2f}".format(trans.usd_spot), 
-            quantity,
-            "${:,.2f}".format(profit)
+            link_quantity,
+            "${:,.2f}".format(trans.usd_spot),
+            "${:,.2f}".format(proceeds),
+            "${:,.2f}".format(cost_basis),
+            "${:,.2f}".format(gain_or_loss)
             ])
 
-    # Get Batches that can satify sell
-    linkable_table_data.sort(key=lambda x: x[5], reverse=True)
-    
-    target_quantity = sell_obj.unlinked_quantity
+    # Linkable Buys Long
+    linkable_buys_long = [
+    trans for trans in transactions
+        if trans.trans_type == "buy"
+        and trans.symbol == asset
+        and (datetime.datetime.now() - trans.time_stamp).days > 365
+        and trans.unlinked_quantity > .0000001
+    ]
+
+
+    # Linkable Buys Short
+    linkable_buys_short = [
+    trans for trans in transactions
+        if trans.trans_type == "buy"
+        and trans.symbol == asset
+        and (datetime.datetime.now() - trans.time_stamp).days <= 365
+        and trans.unlinked_quantity > .0000001
+    ]
+
+
+
+    # Start Batches
+    target_quantity = potential_sale_quantity
     
     sell_fully_linked = False
-    sell_fully_linked_max_profit = False
-    sell_fully_linked_min_profit = False
-    
+
+    # Batch Types    
     min_links_batch = []
-    min_profit_batch = []
-    max_profit_batch = []
-
-    min_links_profit = 0.0
-    min_profit_profit = 0.0
-    max_profit_profit = 0.0
-
-    min_links_quantity = 0.0
-    min_profit_quantity = 0.0
-    max_profit_quantity = 0.0
+    min_links_batch_gain = 0.0
+    min_links_batch_quantity = 0.0
     
-    for trans in linkable_table_data:
+    min_gain_batch = []
+    min_gain_batch_gain = 0.0
+    min_gain_batch_quantity = 0.0
 
-        buy_unlinked_quantity = trans[3]
+    min_gain_long_batch = []
+    min_gain_long_batch_gain = 0.0
+    min_gain_long_batch_quantity = 0.0
+    
+    min_gain_short_batch = []
+    min_gain_short_batch_gain = 0.0
+    min_gain_short_batch_quantity = 0.0
+
+    max_gain_batch = []
+    max_gain_batch_gain = 0.0
+    max_gain_batch_quantity = 0.0
+    
+    max_gain_long_batch = []
+    max_gain_long_batch_gain = 0.0
+    max_gain_long_batch_quantity = 0.0
+    
+    max_gain_short_batch = []
+    max_gain_short_batch_gain = 0.0
+    max_gain_short_batch_quantity = 0.0
+
+    
+    linkable_buys.sort(key=lambda trans: trans.unlinked_quantity, reverse=True)
+
+    print(f" Linkable_buys unlinked_quantity of first {linkable_buys[0].unlinked_quantity}")
+    print(f" Linkable_buys unlinked_quantity of last {linkable_buys[-1].unlinked_quantity}")
+    
+    # Min Links Batch
+    for trans in linkable_buys:
+
+        buy_unlinked_quantity = trans.unlinked_quantity
         
         # Determine max link quantity
         if target_quantity <= buy_unlinked_quantity:
-            quantity = target_quantity
+            link_quantity = target_quantity
         
         elif target_quantity >= buy_unlinked_quantity:
-            quantity = buy_unlinked_quantity
+            link_quantity = buy_unlinked_quantity
 
-        target_quantity -= quantity
+        target_quantity -= link_quantity
 
-        trans[5] = quantity
+        cost_basis = link_quantity * float(trans.usd_spot)
+        proceeds = link_quantity * potential_sale_usd_spot
+        gain_or_loss = proceeds - cost_basis
 
-        buy_price = quantity * float(trans[4][1:].replace(',', ''))
-        sell_price = quantity * sell_obj.usd_spot
-        profit = sell_price - buy_price
+        if abs(gain_or_loss) < 0.01:
+            continue
 
-        trans[6] = "${:,.2f}".format(profit)
+        min_links_batch_gain += gain_or_loss
+        min_links_batch_quantity += link_quantity
 
-        min_links_batch.append(trans)
-
-        min_links_profit += profit
-        min_links_quantity += quantity
+        min_links_batch.append([
+            trans.source,
+            trans.symbol,
+            datetime.datetime.strftime(trans.time_stamp, "%Y-%m-%d %H:%M:%S"),
+            trans.quantity,
+            trans.unlinked_quantity,
+            link_quantity,
+            "${:,.2f}".format(trans.usd_spot),
+            "${:,.2f}".format(proceeds),
+            "${:,.2f}".format(cost_basis),
+            "${:,.2f}".format(gain_or_loss)
+            ])
 
         if target_quantity <= 0:
             sell_fully_linked = True
             break
    
+
     if sell_fully_linked:
-
-        # Minimum Profit Batch
-        target_quantity = sell_obj.unlinked_quantity
-
-        # Sort by profit
-        linkable_table_data.sort(key=lambda x: x[6])
         
-        for trans in linkable_table_data:
-            buy_unlinked_quantity = trans[3]
+        ## Batches without long/short requirement
+
+        # Min Gain Batch
+        target_quantity = potential_sale_quantity
+
+        linkable_buys.sort(key=lambda trans: trans.usd_spot, reverse=True)
+        
+        for trans in linkable_buys:
+            buy_unlinked_quantity = trans.unlinked_quantity
             
             # Determine max link quantity
             if target_quantity <= buy_unlinked_quantity:
-                quantity = target_quantity
+                link_quantity = target_quantity
             
             elif target_quantity >= buy_unlinked_quantity:
-                quantity = buy_unlinked_quantity
+                link_quantity = buy_unlinked_quantity
 
-            target_quantity -= quantity
+            target_quantity -= link_quantity
 
-            # Setting Link Quantity
-            trans[5] = quantity
+            cost_basis = link_quantity * float(trans.usd_spot)
+            proceeds = link_quantity * potential_sale_usd_spot
+            gain_or_loss = proceeds - cost_basis
 
-            # Set Link profit
-            buy_price = quantity * float(trans[4][1:].replace(',', ''))
-            sell_price = quantity * sell_obj.usd_spot
-            profit = sell_price - buy_price
-            trans[6] = "${:,.2f}".format(profit)
+            if abs(gain_or_loss) < 0.01:
+                continue
 
+            min_gain_batch_gain += gain_or_loss
+            min_gain_batch_quantity += link_quantity
 
-            min_profit_batch.append(trans)
-
-            min_profit_profit += profit
-            min_profit_quantity += quantity
+            min_gain_batch.append([
+                trans.source,
+                trans.symbol,
+                datetime.datetime.strftime(trans.time_stamp, "%Y-%m-%d %H:%M:%S"),
+                trans.quantity,
+                trans.unlinked_quantity,
+                link_quantity,
+                "${:,.2f}".format(trans.usd_spot),
+                "${:,.2f}".format(proceeds),
+                "${:,.2f}".format(cost_basis),
+                "${:,.2f}".format(gain_or_loss)
+                ])
             
             if target_quantity <= 0:
                 sell_fully_linked_min_profit = True
                 break
 
-        # Maximum Profit Batch
-        target_quantity = sell_obj.unlinked_quantity
+        # Max Gain Batch
+        target_quantity = potential_sale_quantity
         
-        # Sort by profit reversed
-        linkable_table_data.sort(key=lambda x: x[6], reverse=True)
+        # Sort by profit
+        linkable_buys.sort(key=lambda trans: trans.usd_spot)
         
-        for trans in linkable_table_data:
-            buy_unlinked_quantity = trans[3]
+        for trans in linkable_buys:
+            buy_unlinked_quantity = trans.unlinked_quantity
             
             # Determine max link quantity
             if target_quantity <= buy_unlinked_quantity:
-                quantity = target_quantity
+                link_quantity = target_quantity
             
             elif target_quantity >= buy_unlinked_quantity:
-                quantity = buy_unlinked_quantity
+                link_quantity = buy_unlinked_quantity
 
-            target_quantity -= quantity
-            buy_price = quantity * float(trans[4][1:].replace(',', ''))
-            sell_price = quantity * sell_obj.usd_spot
-            profit = sell_price - buy_price
-            trans[6] = "${:,.2f}".format(profit)
+            target_quantity -= link_quantity
+            
+            cost_basis = link_quantity * float(trans.usd_spot)
+            proceeds = link_quantity * potential_sale_usd_spot
+            gain_or_loss = proceeds - cost_basis
 
-            # Setting Link Quantity
-            trans[5] = quantity
+            if abs(gain_or_loss) < 0.01:
+                continue
 
-            max_profit_batch.append(trans)
+            max_gain_batch.append([
+                trans.source,
+                trans.symbol,
+                datetime.datetime.strftime(trans.time_stamp, "%Y-%m-%d %H:%M:%S"),
+                trans.quantity,
+                trans.unlinked_quantity,
+                link_quantity,
+                "${:,.2f}".format(trans.usd_spot),
+                "${:,.2f}".format(proceeds),
+                "${:,.2f}".format(cost_basis),
+                "${:,.2f}".format(gain_or_loss)
+                ])
 
-            max_profit_profit += profit
-            max_profit_quantity += quantity
+            max_gain_batch_gain += gain_or_loss
+            max_gain_batch_quantity += link_quantity
             
             if target_quantity <= 0:
                 sell_fully_linked_max_profit = True
                 break
 
-         
+
+        ## Batches with long requirement
+        target_quantity = potential_sale_quantity
+
+        # Min Gain Long Batch
+        linkable_buys_long.sort(key=lambda trans: trans.usd_spot, reverse=True)
+        
+        for trans in linkable_buys_long:
+            buy_unlinked_quantity = trans.unlinked_quantity
+            
+            # Determine max link quantity
+            if target_quantity <= buy_unlinked_quantity:
+                link_quantity = target_quantity
+            
+            elif target_quantity >= buy_unlinked_quantity:
+                link_quantity = buy_unlinked_quantity
+
+            target_quantity -= link_quantity
+
+            cost_basis = link_quantity * float(trans.usd_spot)
+            proceeds = link_quantity * potential_sale_usd_spot
+            gain_or_loss = proceeds - cost_basis
+
+            if abs(gain_or_loss) < 0.01:
+                continue
+
+            min_gain_long_batch_gain += gain_or_loss
+            min_gain_long_batch_quantity += link_quantity
+
+            min_gain_long_batch.append([
+                trans.source,
+                trans.symbol,
+                datetime.datetime.strftime(trans.time_stamp, "%Y-%m-%d %H:%M:%S"),
+                trans.quantity,
+                trans.unlinked_quantity,
+                link_quantity,
+                "${:,.2f}".format(trans.usd_spot),
+                "${:,.2f}".format(proceeds),
+                "${:,.2f}".format(cost_basis),
+                "${:,.2f}".format(gain_or_loss)
+                ])
+            
+            if target_quantity <= 0:
+                sell_fully_linked_min_profit = True
+                break
+
+        # Max Gain Long Batch
+        target_quantity = potential_sale_quantity
+        
+        # Sort by profit reversed
+        linkable_buys_long.sort(key=lambda trans: trans.usd_spot)
+        
+        for trans in linkable_buys_long:
+            buy_unlinked_quantity = trans.unlinked_quantity
+            
+            # Determine max link quantity
+            if target_quantity <= buy_unlinked_quantity:
+                link_quantity = target_quantity
+            
+            elif target_quantity >= buy_unlinked_quantity:
+                link_quantity = buy_unlinked_quantity
+
+            target_quantity -= link_quantity
+            
+            cost_basis = link_quantity * float(trans.usd_spot)
+            proceeds = link_quantity * potential_sale_usd_spot
+            gain_or_loss = proceeds - cost_basis
+
+            if abs(gain_or_loss) < 0.01:
+                continue
+
+            max_gain_long_batch.append([
+                trans.source,
+                trans.symbol,
+                datetime.datetime.strftime(trans.time_stamp, "%Y-%m-%d %H:%M:%S"),
+                trans.quantity,
+                trans.unlinked_quantity,
+                link_quantity,
+                "${:,.2f}".format(trans.usd_spot),
+                "${:,.2f}".format(proceeds),
+                "${:,.2f}".format(cost_basis),
+                "${:,.2f}".format(gain_or_loss)
+                ])
+
+            max_gain_long_batch_gain += gain_or_loss
+            max_gain_long_batch_quantity += link_quantity
+            
+            if target_quantity <= 0:
+                sell_fully_linked_max_profit = True
+                break
+
+
+        ## Batches with Short Requirement
+        target_quantity = potential_sale_quantity
+
+        # Min Gain short Batch
+        linkable_buys_short.sort(key=lambda trans: trans.usd_spot, reverse=True)
+        
+        for trans in linkable_buys_short:
+            buy_unlinked_quantity = trans.unlinked_quantity
+            
+            # Determine max link quantity
+            if target_quantity <= buy_unlinked_quantity:
+                link_quantity = target_quantity
+            
+            elif target_quantity >= buy_unlinked_quantity:
+                link_quantity = buy_unlinked_quantity
+
+            target_quantity -= link_quantity
+
+            cost_basis = link_quantity * float(trans.usd_spot)
+            proceeds = link_quantity * potential_sale_usd_spot
+            gain_or_loss = proceeds - cost_basis
+
+            if abs(gain_or_loss) < 0.01:
+                continue
+
+            min_gain_short_batch_gain += gain_or_loss
+            min_gain_short_batch_quantity += link_quantity
+
+            min_gain_short_batch.append([
+                trans.source,
+                trans.symbol,
+                datetime.datetime.strftime(trans.time_stamp, "%Y-%m-%d %H:%M:%S"),
+                trans.quantity,
+                trans.unlinked_quantity,
+                link_quantity,
+                "${:,.2f}".format(trans.usd_spot),
+                "${:,.2f}".format(proceeds),
+                "${:,.2f}".format(cost_basis),
+                "${:,.2f}".format(gain_or_loss)
+                ])
+            
+            if target_quantity <= 0:
+                sell_fully_linked_min_profit = True
+                break
+
+        # Max Gain short Batch
+        target_quantity = potential_sale_quantity
+        
+        # Sort by profit reversed
+        linkable_buys_short.sort(key=lambda trans: trans.usd_spot)
+        
+        for trans in linkable_buys_short:
+            buy_unlinked_quantity = trans.unlinked_quantity
+            
+            # Determine max link quantity
+            if target_quantity <= buy_unlinked_quantity:
+                link_quantity = target_quantity
+            
+            elif target_quantity >= buy_unlinked_quantity:
+                link_quantity = buy_unlinked_quantity
+
+            target_quantity -= link_quantity
+            
+            cost_basis = link_quantity * float(trans.usd_spot)
+            proceeds = link_quantity * potential_sale_usd_spot
+            gain_or_loss = proceeds - cost_basis
+
+            if abs(gain_or_loss) < 0.01:
+                continue
+
+            max_gain_short_batch.append([
+                trans.source,
+                trans.symbol,
+                datetime.datetime.strftime(trans.time_stamp, "%Y-%m-%d %H:%M:%S"),
+                trans.quantity,
+                trans.unlinked_quantity,
+                link_quantity,
+                "${:,.2f}".format(trans.usd_spot),
+                "${:,.2f}".format(proceeds),
+                "${:,.2f}".format(cost_basis),
+                "${:,.2f}".format(gain_or_loss)
+                ])
+
+            max_gain_short_batch_gain += gain_or_loss
+            max_gain_short_batch_quantity += link_quantity
+            
+            if target_quantity <= 0:
+                sell_fully_linked_max_profit = True
+                break
 
     # Get Unlinkable 
     unlinkable_transactions = []
@@ -536,20 +744,37 @@ def linkable_data():
             "Buy is Fully Linked!"        
         ])
 
-    
+
+
 
     data_dict = {}
+    data_dict['min_links_batch'] = min_links_batch
+    data_dict['min_links_batch_text'] = f"Total Quantity: {min_links_batch_quantity} <br> Total Proceeds: {'${:,.2f}'.format(total_in_usd)} <br> Total Gain or Loss: {'${:,.2f}'.format(min_links_batch_gain)} "
+
+    data_dict['min_gain_batch'] = min_gain_batch
+    data_dict['min_gain_batch_text'] = f"Total Quantity: {min_gain_batch_quantity} <br> Total Proceeds: {'${:,.2f}'.format(total_in_usd)} <br> Total Gain or Loss: {'${:,.2f}'.format(min_gain_batch_gain)}"
+    
+    data_dict['min_gain_long_batch'] = min_gain_long_batch
+    data_dict['min_gain_long_batch_text'] = f"Total Quantity: {min_gain_long_batch_quantity} <br> Total Proceeds: {'${:,.2f}'.format(total_in_usd)} <br> Total Gain or Loss: {'${:,.2f}'.format(min_gain_long_batch_gain)}"
+
+    data_dict['min_gain_short_batch'] = min_gain_short_batch
+    data_dict['min_gain_short_batch_text'] = f"Total Quantity: {min_gain_short_batch_quantity} <br> Total Proceeds: {'${:,.2f}'.format(total_in_usd)} <br> Total Gain or Loss: {'${:,.2f}'.format(min_gain_short_batch_gain)}"
 
 
-    data_dict['min_links'] = min_links_batch
-    data_dict['min_links_text'] = f"Total Quantity: {min_links_quantity} <br> Total Profit: {'${:,.2f}'.format(min_links_profit)}"
-    data_dict['min_profit'] = min_profit_batch
-    data_dict['min_profit_text'] = f"Total Quantity: {min_profit_quantity} <br> Total Profit: {'${:,.2f}'.format(min_profit_profit)}"
-    data_dict['max_profit'] = max_profit_batch
-    data_dict['max_profit_text'] = f"Total Quantity: {max_profit_quantity} <br> Total Profit: {'${:,.2f}'.format(max_profit_profit)}"
+    data_dict['max_gain_batch'] = max_gain_batch
+    data_dict['max_gain_batch_text'] = f"Total Quantity: {max_gain_batch_quantity} <br> Total Proceeds: {'${:,.2f}'.format(total_in_usd)} <br> Total Gain or Loss: {'${:,.2f}'.format(max_gain_batch_gain)}"
+
+    data_dict['max_gain_long_batch'] = max_gain_long_batch
+    data_dict['max_gain_long_batch_text'] = f"Total Quantity: {max_gain_long_batch_quantity} <br> Total Proceeds: {'${:,.2f}'.format(total_in_usd)} <br> Total Gain or Loss: {'${:,.2f}'.format(max_gain_long_batch_gain)}"
+
+    data_dict['max_gain_short_batch'] = max_gain_short_batch
+    data_dict['max_gain_short_batch_text'] = f"Total Quantity: {max_gain_long_batch_quantity} <br> Total Proceeds: {'${:,.2f}'.format(total_in_usd)} <br> Total Gain or Loss: {'${:,.2f}'.format(max_gain_short_batch_gain)}"
+
+    
     data_dict['linked'] = linked_table_data
     data_dict['linkable'] = linkable_table_data
     data_dict['unlinkable'] = unlinkable_table_data
+    
     
 
     return jsonify(data_dict)
@@ -566,59 +791,30 @@ def link_button():
     buy_data = request.json['buy_data']
     
     # Get Sell Object 
-    sell_symbol = sell_data[1]
+    symbol = sell_data[1]
     sell_time_stamp_str = sell_data[2]
     sell_time_stamp = dateutil.parser.parse(sell_time_stamp_str)
     sell_quantity = sell_data[3]
     sell_usd_spot = sell_data[5]
 
-    sell_obj = None
-    for trans in transactions:
-        
-        if trans.symbol == sell_symbol and trans.quantity == sell_quantity:
-            
-            trans2_time_stamp = trans.time_stamp.to_pydatetime()
-            sell_time_stamp = sell_time_stamp.replace(tzinfo=tzutc())
-            trans2_time_stamp = trans2_time_stamp.replace(tzinfo=tzutc())
 
-            if sell_time_stamp == trans2_time_stamp:
-
-                # print(f"Trans with Symbol {sell_symbol} and quantity {sell_quantity} Found")
-                # print(f"USD Spot {sell_usd_spot}  {trans.usd_spot}")
-                # print(f"\nTrans 1 Time Stamp {sell_time_stamp} ")
-                # print(f"Time Stamp {sell_time_stamp}  {trans2_time_stamp}")
-                # print(f"Time Stamp {type(sell_time_stamp)}  {type(trans2_time_stamp)}")
-                # print(sell_time_stamp == trans2_time_stamp)
-                
-                sell_obj = trans
-                break
+    sell_obj = get_trans_obj_from_table_data(transactions=transactions, symbol=symbol, trans_type='sell', quantity=sell_quantity, time_stamp=sell_time_stamp)
     
     # Get Buy Object
-    sell_time_stamp_str = buy_data[0]
-    sell_time_stamp = dateutil.parser.parse(sell_time_stamp_str)
-    sell_quantity = buy_data[2]
-    sell_usd_spot = buy_data[4]
-    quantity = buy_data[5]
+    buy_time_stamp_str = buy_data[2]
+    buy_time_stamp = dateutil.parser.parse(buy_time_stamp_str)
+    quantity = buy_data[3]
 
-    buy_obj = None
-    for trans in transactions:
-        
-        if trans.symbol == sell_symbol and trans.quantity == sell_quantity:
-            
-            trans2_time_stamp = trans.time_stamp.to_pydatetime()
-            sell_time_stamp = sell_time_stamp.replace(tzinfo=tzutc())
-            trans2_time_stamp = trans2_time_stamp.replace(tzinfo=tzutc())
+    
+    buy_obj = get_trans_obj_from_table_data(transactions=transactions, symbol=symbol, trans_type='buy', quantity=quantity, time_stamp=buy_time_stamp)
 
-            if sell_time_stamp == trans2_time_stamp:
-                
-                buy_obj = trans
-                break
-
-            
+  
     if sell_obj and buy_obj:
         sell_obj.link_transaction(buy_obj, quantity)
-        
         transactions.save(description="Manually Added Link")
+
+    else:
+        print(f"No Link was added because sell {type(sell_obj)} or buy {type(buy_obj)} was not found")
 
     # All Sells Table Data
     all_sells_table_data = []
@@ -677,15 +873,19 @@ def auto_link_asset():
         
     print(request.json)
     
-    asset = request.json['asset'][0]
+    if 'asset' in request.json:
+        asset = request.json['asset'][0]
+    else:
+        asset = None
+
     algo_type = request.json['algo']
 
     if algo_type == "fifo":
-        transactions.link_with_fifo(asset)
+        transactions.link_with_fifo(asset=asset)
         transactions.save(description="Auto Linked with FIFO")
 
     elif algo_type == "filo":
-        transactions.link_with_filo(asset)
+        transactions.link_with_filo(asset=asset)
         transactions.save(description="Auto Linked with FILO")
 
 
@@ -806,18 +1006,18 @@ def hodl_info():
     transactions = current_app.config['transactions']
 
     for a in transactions.asset_objects:
-        print(a.symbol, asset_symbol)
+        # print(a.symbol, asset_symbol)
         if a.symbol != asset_symbol:
             continue 
 
         a.hodl = hodl
-        print(f"Setting HODL for {a.symbol} is {a.hodl}")
+        # print(f"Setting HODL for {a.symbol} is {a.hodl}")
 
     for a in transactions.asset_objects:
-        print(f"Asset Object symbol {a.symbol} Asset {asset_symbol} HODL {a.hodl}")
+        # print(f"Asset Object symbol {a.symbol} Asset {asset_symbol} HODL {a.hodl}")
         if a.hodl is not None:
             hodl = a.hodl
-            print(f"Asset Object symbol {a.symbol} Asset {asset_symbol} HODL {a.hodl}")
+            # print(f"Asset Object symbol {a.symbol} Asset {asset_symbol} HODL {a.hodl}")
 
     transactions.save(description=f"Added HODL for {asset_symbol}")
 
@@ -864,7 +1064,6 @@ def selected_asset():
 
     date_range = get_transactions_date_range(transactions, date_range)
 
-
     # get stats table data 
     stats_table_data = get_stats_table_data_range(transactions, date_range)
 
@@ -898,14 +1097,13 @@ def selected_asset():
     # Get Linked Table Data
     linked_table_data = get_linked_table_data(transactions, asset, date_range)
 
-    
     # Get Sells Table Data 
     sells_table_data = get_sells_trans_table_data_range(transactions, asset, date_range)
 
     sells_unlinked_remaining = []
     if request.json['unlinked_remaining']:
         for sell in sells_table_data:
-            if sell[4] > 0.00001:
+            if sell[4] > 0.000000009:
                 sells_unlinked_remaining.append(sell)
 
         sells_table_data = sells_unlinked_remaining
@@ -913,9 +1111,13 @@ def selected_asset():
     # Get Buys Table Data
     buys_table_data = get_buys_trans_table_data_range(transactions, asset, date_range)
 
+    # Get All Links Table Data
+    all_links_table_data = get_all_links_table_data(transactions, asset)
 
 
     data_dict = {}
+
+    data_dict['all_links'] = all_links_table_data
     data_dict['detailed_stats'] = detailed_stats
     data_dict['linked'] = linked_table_data
     data_dict['sells'] = sells_table_data
@@ -946,13 +1148,8 @@ def add_transactions_selected_asset():
     # Get date range of transactions
     date_range = get_transactions_date_range(transactions, date_range)
 
-    # Get stats table data 
-    stats_table_data = get_stats_table_data_range(transactions, date_range)
-
-
      # Get Sells Table Data 
     sells_table_data = get_sells_trans_table_data_range(transactions, asset, date_range)
-
 
     # Get Buys Table Data
     buys_table_data = get_buys_trans_table_data_range(transactions, asset, date_range)
@@ -960,11 +1157,14 @@ def add_transactions_selected_asset():
     # Get Sends Table Data
     sends_table_data = get_sends_trans_table_data_range(transactions, asset, date_range)
 
+    # Get Receives Table Data
+    receives_table_data = get_receives_trans_table_data_range(transactions, asset, date_range)
 
     data_dict = {}
     data_dict['sells'] = sells_table_data
     data_dict['buys'] = buys_table_data
     data_dict['sends'] = sends_table_data
+    data_dict['receives'] = receives_table_data
 
     return jsonify(data_dict)
 
@@ -980,41 +1180,159 @@ def delete():
 
     # Get selected Trans Object
     row_data = request.json['row_data']
-    sell_symbol = row_data[1]
-    sell_time_stamp_str = row_data[2]
-    sell_time_stamp = dateutil.parser.parse(sell_time_stamp_str)
-    sell_quantity = row_data[3]
-    sell_usd_spot = row_data[5]
+    symbol = row_data[1]
+    time_stamp_str = row_data[2]
+    time_stamp = dateutil.parser.parse(time_stamp_str)
+    quantity = row_data[3]
+    usd_spot = row_data[5]
 
-    for trans in transactions:
+    trans_obj = get_trans_obj_from_table_data(transactions=transactions, symbol=symbol, trans_type=trans_type, quantity=quantity, time_stamp=time_stamp)
+
+    if trans_obj is not None:
+        
+        transactions.transactions.remove(trans_obj)
+
+        transactions.save(f'Deleted {asset} {trans_type} {quantity}')
+
+        return jsonify(f'Deleted {asset} {trans_type} {quantity} on {time_stamp}')
     
-        if trans.symbol == sell_symbol and trans.quantity == sell_quantity:
+    else:
+
+        return jsonify(f'Transaction Not Found! {asset} {trans_type} {quantity}')
+
+
+
+@blueprint.route('/buy_convert',  methods=['POST'])
+@login_required
+def buy_convert():
+
+    print(request.json)
+
+
+    transactions = current_app.config['transactions']
+
+    # Get selected Trans Object
+    row_data = request.json['row_data']
+    symbol = row_data[1]
+    time_stamp_str = row_data[2]
+    time_stamp = dateutil.parser.parse(time_stamp_str)
+    quantity = row_data[3]
+    usd_spot = row_data[5]
+
+    trans_obj = get_trans_obj_from_table_data(transactions=transactions, symbol=symbol, trans_type='buy', quantity=quantity, time_stamp=time_stamp)
+
+    if trans_obj is not None:
+
+        if len(trans_obj.links) > 0:
+            return jsonify(f"{trans_obj.trans_type} has {len(trans_obj.links)} links cannot convert!")
+        
+        else:
+            conversion = Conversion(input_trans_type='buy', 
+                                    output_trans_type='lost', 
+                                    input_symbol=trans_obj.symbol, 
+                                    input_quantity=trans_obj.quantity, 
+                                    input_time_stamp=trans_obj.time_stamp, 
+                                    input_usd_spot=trans_obj.usd_spot, 
+                                    input_usd_total=trans_obj.usd_total, 
+                                    reason="Converted Buy to Lost", 
+                                    source=f"{trans_obj.source} Converted in Gainz App")
+
+            transactions.conversions.append(conversion)
             
-            if isinstance(trans.time_stamp, datetime.date):
-                trans2_time_stamp = trans.time_stamp
-            else:
-                trans2_time_stamp = trans.time_stamp.to_pydatetime()
-                sell_time_stamp = sell_time_stamp.replace(tzinfo=tzutc())
-                trans2_time_stamp = trans2_time_stamp.replace(tzinfo=tzutc())
+            transactions.transactions.remove(trans_obj)
 
-            if sell_time_stamp == trans2_time_stamp:
+            transactions.save(description=f"Converted {symbol} Buy to Lost")
 
-                # print(f"Trans with Symbol {sell_symbol} and quantity {sell_quantity} Found")
-                # print(f"USD Spot {sell_usd_spot}  {trans.usd_spot}")
-                # print(f"\nTrans 1 Time Stamp {sell_time_stamp} ")
-                # print(f"Time Stamp {sell_time_stamp}  {trans2_time_stamp}")
-                # print(f"Time Stamp {type(sell_time_stamp)}  {type(trans2_time_stamp)}")
-                # print(sell_time_stamp == trans2_time_stamp)
+            return jsonify(f'Converted Buy to Lost {trans_obj.name}')
+
+
+
+@blueprint.route('/receive_convert',  methods=['POST'])
+@login_required
+def receive_convert():
+
+    print(request.json)
+
+
+    transactions = current_app.config['transactions']
+
+    # Get selected Trans Object
+    row_data = request.json['row_data']
+    symbol = row_data[1]
+    time_stamp_str = row_data[2]
+    time_stamp = dateutil.parser.parse(time_stamp_str)
+    quantity = row_data[3]
+    usd_spot = row_data[5]
+
+    receive_obj = get_trans_obj_from_table_data(transactions=transactions, symbol=symbol, trans_type='receive', quantity=quantity, time_stamp=time_stamp)
+
+    if receive_obj is not None:
+
+        buy = Buy(symbol=symbol, quantity=receive_obj.quantity, time_stamp=receive_obj.time_stamp, usd_spot=receive_obj.usd_spot, source="Gainz App Receive to Buy")
+            
+        conversion = Conversion(input_trans_type='receive', 
+                                output_trans_type='buy', 
+                                input_symbol=receive_obj.symbol, 
+                                input_quantity=receive_obj.quantity, 
+                                input_time_stamp=receive_obj.time_stamp, 
+                                input_usd_spot=receive_obj.usd_spot, 
+                                input_usd_total=receive_obj.usd_total, 
+                                reason="Converted Receive to Buy", 
+                                source=f"{receive_obj.source} Converted in Gainz App")
+
+        transactions.conversions.append(conversion)
+        
+        transactions.transactions.append(buy)
+
+        transactions.transactions.remove(receive_obj)
+
+        transactions.save(description=f"Converted {symbol} receive to buy")
+
+        return jsonify(f'Converted Receive to Buy {receive_obj.name}')
+
+
+@blueprint.route('/send_convert',  methods=['POST'])
+@login_required
+def send_convert():
+
+    print(request.json)
+
+    transactions = current_app.config['transactions']
+
+    # Get selected Trans Object
+    row_data = request.json['row_data']
+    symbol = row_data[1]
+    time_stamp_str = row_data[2]
+    time_stamp = dateutil.parser.parse(time_stamp_str)
+    quantity = row_data[3]
+    usd_spot = row_data[5]
+
+    send_obj = get_trans_obj_from_table_data(transactions=transactions, symbol=symbol, trans_type='send', quantity=quantity, time_stamp=time_stamp)
+
+    if send_obj is not None:
+
+            sell = Sell(symbol=symbol, quantity=send_obj.quantity, time_stamp=send_obj.time_stamp, usd_spot=send_obj.usd_spot, source="Gainz App Send to Sell")
                 
-                sell_obj = trans
-                break
-    
-    
-    sell_name = sell_obj.name
-    transactions.transactions.remove(trans)
-    transactions.save(f'Deleted {asset} {trans_type} {sell_name}')
+            conversion = Conversion(input_trans_type='send', 
+                                    output_trans_type='sell', 
+                                    input_symbol=send_obj.symbol, 
+                                    input_quantity=send_obj.quantity, 
+                                    input_time_stamp=send_obj.time_stamp, 
+                                    input_usd_spot=send_obj.usd_spot, 
+                                    input_usd_total=send_obj.usd_total, 
+                                    reason="Converted Send to Sell", 
+                                    source=f"{send_obj.source} Converted in Gainz App")
 
-    return jsonify(f'Deleted {asset} {trans_type} {sell_name}')
+            transactions.conversions.append(conversion)
+            
+            transactions.transactions.append(sell)
+
+            transactions.transactions.remove(send_obj)
+
+            transactions.save(description=f"Converted {symbol} Send to Sell")
+
+            return jsonify(f'Converted Receive to Buy {send_obj.name}')
+
 
 
 @blueprint.route('/link_batch',  methods=['POST'])
@@ -1026,63 +1344,33 @@ def link_batch():
     
     # Get selected Trans Object
     sell_data = request.json['sell_data']
-    buy_data = request.json['buy_data'].values()
+    buy_data = request.json['buy_data']
     
     # Get Sell Object 
-    sell_symbol = sell_data[1]
-    sell_time_stamp_str = sell_data[2]
-    sell_time_stamp = dateutil.parser.parse(sell_time_stamp_str)
-    sell_quantity = sell_data[3]
-    sell_usd_spot = sell_data[5]
+    symbol = sell_data[1]
+    time_stamp_str = sell_data[2]
+    time_stamp = dateutil.parser.parse(time_stamp_str)
+    quantity = sell_data[3]
+    usd_spot = sell_data[5]
 
-    sell_obj = None
-    for trans in transactions:
-        
-        if trans.symbol == sell_symbol and trans.quantity == sell_quantity:
-            
-            trans2_time_stamp = trans.time_stamp.to_pydatetime()
-            sell_time_stamp = sell_time_stamp.replace(tzinfo=tzutc())
-            trans2_time_stamp = trans2_time_stamp.replace(tzinfo=tzutc())
+    sell_obj = get_trans_obj_from_table_data(transactions=transactions, symbol=symbol, trans_type='sell', quantity=quantity, time_stamp=time_stamp)
+    
 
-            if sell_time_stamp == trans2_time_stamp:
+    for buy in buy_data.values():
 
-                # print(f"Trans with Symbol {sell_symbol} and quantity {sell_quantity} Found")
-                # print(f"USD Spot {sell_usd_spot}  {trans.usd_spot}")
-                # print(f"\nTrans 1 Time Stamp {sell_time_stamp} ")
-                # print(f"Time Stamp {sell_time_stamp}  {trans2_time_stamp}")
-                # print(f"Time Stamp {type(sell_time_stamp)}  {type(trans2_time_stamp)}")
-                # print(sell_time_stamp == trans2_time_stamp)
-                
-                sell_obj = trans
-                break
-
-    for buy in buy_data:
         # Get Buy Object
-        sell_time_stamp_str = buy[0]
-        sell_time_stamp = dateutil.parser.parse(sell_time_stamp_str)
-        sell_quantity = buy[2]
-        sell_usd_spot = buy[4]
-        quantity = buy[5]
+        symbol = buy[1]
+        time_stamp_str = buy[2]
+        time_stamp = dateutil.parser.parse(time_stamp_str)
+        quantity = buy[3]
+        usd_spot = buy[5]
 
-        buy_obj = None
-        for trans in transactions:
-            
-            if trans.symbol == sell_symbol and trans.quantity == sell_quantity:
-                
-                trans2_time_stamp = trans.time_stamp.to_pydatetime()
-                sell_time_stamp = sell_time_stamp.replace(tzinfo=tzutc())
-                trans2_time_stamp = trans2_time_stamp.replace(tzinfo=tzutc())
+        buy_obj = get_trans_obj_from_table_data(transactions=transactions, symbol=symbol, trans_type='buy', quantity=quantity, time_stamp=time_stamp)
 
-                if sell_time_stamp == trans2_time_stamp:
-                    
-                    buy_obj = trans
-                    break
-
-                
         if sell_obj and buy_obj:
             sell_obj.link_transaction(buy_obj, quantity)
-
-
+    
     transactions.save(description=f"linked batch of buys to {sell_obj}")
 
+    
     return jsonify('all good!')

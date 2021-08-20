@@ -47,9 +47,16 @@ class Link:
     def hodl_duration(self):
         hodl_time =  self.sell.time_stamp - self.buy.time_stamp
 
-        
         return hodl_time
 
+
+    @property
+    def proceeds(self):
+        return self.quantity * self.sell.usd_spot
+
+    @property
+    def cost_basis(self):
+        return self.quantity * self.buy.usd_spot
 
     def other_transaction(self, trans):
         if trans == self.trans1:

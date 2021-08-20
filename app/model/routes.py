@@ -69,15 +69,34 @@ def selected_asset():
 
     linkable_table_data = []
     for trans in linkable_buys:
+        target_quantity = potential_sale_quantity
+        # Determine max link quantity
+        if target_quantity <= trans.unlinked_quantity:
+            link_quantity = target_quantity
+        
+        elif target_quantity >= trans.unlinked_quantity:
+            link_quantity = trans.unlinked_quantity
+
+        target_quantity -= link_quantity
+
+        cost_basis = link_quantity * float(trans.usd_spot)
+        proceeds = link_quantity * potential_sale_usd_spot
+        gain_or_loss = proceeds - cost_basis
+
+        if abs(gain_or_loss) < 0.01:
+            continue
+
         linkable_table_data.append([
             trans.source,
             trans.symbol,
             datetime.datetime.strftime(trans.time_stamp, "%Y-%m-%d %H:%M:%S"),
             trans.quantity,
             trans.unlinked_quantity,
+            link_quantity,
             "${:,.2f}".format(trans.usd_spot),
-            "${:,.2f}".format(trans.usd_total),
-            "${:,.2f}".format(trans.unlinked_quantity * potential_sale_usd_spot)
+            "${:,.2f}".format(proceeds),
+            "${:,.2f}".format(cost_basis),
+            "${:,.2f}".format(gain_or_loss)
             ])
 
     # Linkable Buys Long
@@ -89,18 +108,6 @@ def selected_asset():
         and trans.unlinked_quantity > .0000001
     ]
 
-    linkable_long_table_data = []
-    for trans in linkable_buys_long:
-        linkable_long_table_data.append([
-            trans.source,
-            trans.symbol,
-            datetime.datetime.strftime(trans.time_stamp, "%Y-%m-%d %H:%M:%S"),
-            trans.quantity,
-            trans.unlinked_quantity,
-            "${:,.2f}".format(trans.usd_spot),
-            "${:,.2f}".format(trans.usd_total),
-            "${:,.2f}".format(trans.unlinked_quantity * potential_sale_usd_spot)
-            ])
 
     # Linkable Buys Short
     linkable_buys_short = [
@@ -111,18 +118,6 @@ def selected_asset():
         and trans.unlinked_quantity > .0000001
     ]
 
-    linkable_short_table_data = []
-    for trans in linkable_buys_short:
-        linkable_short_table_data.append([
-            trans.source,
-            trans.symbol,
-            datetime.datetime.strftime(trans.time_stamp, "%Y-%m-%d %H:%M:%S"),
-            trans.quantity,
-            trans.unlinked_quantity,
-            "${:,.2f}".format(trans.usd_spot),
-            "${:,.2f}".format(trans.usd_total),
-            "${:,.2f}".format(trans.unlinked_quantity * potential_sale_usd_spot)
-            ])
 
 
     # Start Batches
@@ -183,6 +178,9 @@ def selected_asset():
         proceeds = link_quantity * potential_sale_usd_spot
         gain_or_loss = proceeds - cost_basis
 
+        if abs(gain_or_loss) < 0.01:
+            continue
+
         min_links_batch_gain += gain_or_loss
         min_links_batch_quantity += link_quantity
 
@@ -229,6 +227,9 @@ def selected_asset():
             proceeds = link_quantity * potential_sale_usd_spot
             gain_or_loss = proceeds - cost_basis
 
+            if abs(gain_or_loss) < 0.01:
+                continue
+
             min_gain_batch_gain += gain_or_loss
             min_gain_batch_quantity += link_quantity
 
@@ -270,6 +271,9 @@ def selected_asset():
             cost_basis = link_quantity * float(trans.usd_spot)
             proceeds = link_quantity * potential_sale_usd_spot
             gain_or_loss = proceeds - cost_basis
+
+            if abs(gain_or_loss) < 0.01:
+                continue
 
             max_gain_batch.append([
                 trans.source,
@@ -314,6 +318,9 @@ def selected_asset():
             proceeds = link_quantity * potential_sale_usd_spot
             gain_or_loss = proceeds - cost_basis
 
+            if abs(gain_or_loss) < 0.01:
+                continue
+
             min_gain_long_batch_gain += gain_or_loss
             min_gain_long_batch_quantity += link_quantity
 
@@ -355,6 +362,9 @@ def selected_asset():
             cost_basis = link_quantity * float(trans.usd_spot)
             proceeds = link_quantity * potential_sale_usd_spot
             gain_or_loss = proceeds - cost_basis
+
+            if abs(gain_or_loss) < 0.01:
+                continue
 
             max_gain_long_batch.append([
                 trans.source,
@@ -399,6 +409,9 @@ def selected_asset():
             proceeds = link_quantity * potential_sale_usd_spot
             gain_or_loss = proceeds - cost_basis
 
+            if abs(gain_or_loss) < 0.01:
+                continue
+
             min_gain_short_batch_gain += gain_or_loss
             min_gain_short_batch_quantity += link_quantity
 
@@ -441,6 +454,9 @@ def selected_asset():
             proceeds = link_quantity * potential_sale_usd_spot
             gain_or_loss = proceeds - cost_basis
 
+            if abs(gain_or_loss) < 0.01:
+                continue
+
             max_gain_short_batch.append([
                 trans.source,
                 trans.symbol,
@@ -462,31 +478,28 @@ def selected_asset():
                 break
 
 
-
-
-
     data_dict = {}
     data_dict['min_links_batch'] = min_links_batch
-    data_dict['min_links_batch_text'] = f"Total Quantity: {min_links_batch_quantity} <br> Total Proceeds: {'${:,.2f}'.format(total_in_usd)} <br> Total Gain or (Loss): {'${:,.2f}'.format(min_links_batch_gain)} "
+    data_dict['min_links_batch_text'] = f"Total Quantity: {min_links_batch_quantity} <br> Total Proceeds: {'${:,.2f}'.format(total_in_usd)} <br> Total Gain or Loss: {'${:,.2f}'.format(min_links_batch_gain)} "
 
     data_dict['min_gain_batch'] = min_gain_batch
-    data_dict['min_gain_batch_text'] = f"Total Quantity: {min_gain_batch_quantity} <br> Total Proceeds: {'${:,.2f}'.format(total_in_usd)} <br> Total Gain or (Loss): {'${:,.2f}'.format(min_gain_batch_gain)}"
+    data_dict['min_gain_batch_text'] = f"Total Quantity: {min_gain_batch_quantity} <br> Total Proceeds: {'${:,.2f}'.format(total_in_usd)} <br> Total Gain or Loss: {'${:,.2f}'.format(min_gain_batch_gain)}"
     
     data_dict['min_gain_long_batch'] = min_gain_long_batch
-    data_dict['min_gain_long_batch_text'] = f"Total Quantity: {min_gain_long_batch_quantity} <br> Total Proceeds: {'${:,.2f}'.format(total_in_usd)} <br> Total Gain or (Loss): {'${:,.2f}'.format(min_gain_long_batch_gain)}"
+    data_dict['min_gain_long_batch_text'] = f"Total Quantity: {min_gain_long_batch_quantity} <br> Total Proceeds: {'${:,.2f}'.format(total_in_usd)} <br> Total Gain or Loss: {'${:,.2f}'.format(min_gain_long_batch_gain)}"
 
     data_dict['min_gain_short_batch'] = min_gain_short_batch
-    data_dict['min_gain_short_batch_text'] = f"Total Quantity: {min_gain_short_batch_quantity} <br> Total Proceeds: {'${:,.2f}'.format(total_in_usd)} <br> Total Gain or (Loss): {'${:,.2f}'.format(min_gain_short_batch_gain)}"
+    data_dict['min_gain_short_batch_text'] = f"Total Quantity: {min_gain_short_batch_quantity} <br> Total Proceeds: {'${:,.2f}'.format(total_in_usd)} <br> Total Gain or Loss: {'${:,.2f}'.format(min_gain_short_batch_gain)}"
 
 
     data_dict['max_gain_batch'] = max_gain_batch
-    data_dict['max_gain_batch_text'] = f"Total Quantity: {max_gain_batch_quantity} <br> Total Proceeds: {'${:,.2f}'.format(total_in_usd)} <br> Total Gain or (Loss): {'${:,.2f}'.format(max_gain_batch_gain)}"
+    data_dict['max_gain_batch_text'] = f"Total Quantity: {max_gain_batch_quantity} <br> Total Proceeds: {'${:,.2f}'.format(total_in_usd)} <br> Total Gain or Loss: {'${:,.2f}'.format(max_gain_batch_gain)}"
 
     data_dict['max_gain_long_batch'] = max_gain_long_batch
-    data_dict['max_gain_long_batch_text'] = f"Total Quantity: {max_gain_long_batch_quantity} <br> Total Proceeds: {'${:,.2f}'.format(total_in_usd)} <br> Total Gain or (Loss): {'${:,.2f}'.format(max_gain_long_batch_gain)}"
+    data_dict['max_gain_long_batch_text'] = f"Total Quantity: {max_gain_long_batch_quantity} <br> Total Proceeds: {'${:,.2f}'.format(total_in_usd)} <br> Total Gain or Loss: {'${:,.2f}'.format(max_gain_long_batch_gain)}"
 
     data_dict['max_gain_short_batch'] = max_gain_short_batch
-    data_dict['max_gain_short_batch_text'] = f"Total Quantity: {max_gain_long_batch_quantity} <br> Total Proceeds: {'${:,.2f}'.format(total_in_usd)} <br> Total Gain or (Loss): {'${:,.2f}'.format(max_gain_short_batch_gain)}"
+    data_dict['max_gain_short_batch_text'] = f"Total Quantity: {max_gain_long_batch_quantity} <br> Total Proceeds: {'${:,.2f}'.format(total_in_usd)} <br> Total Gain or Loss: {'${:,.2f}'.format(max_gain_short_batch_gain)}"
 
     data_dict['all_linkable_buys_datatable'] = linkable_table_data
     data_dict['potential_sale_quantity'] = potential_sale_quantity
