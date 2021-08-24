@@ -56,7 +56,7 @@ $(document).ready(function() {
             
             convert_text.append("We can account for " + needs_classification_hodl + " by any combination of the below. <br><br>")
             convert_text.append(sent + " Sends to Sells <br>")
-            convert_text.append(received + " Received to Buys <br>")
+            // convert_text.append(received + " Received to Buys <br>")
             convert_text.append(buys + " Buys to Lost <br>")
 
 
@@ -98,6 +98,22 @@ $(document).ready(function() {
         });
     });
 
+    $("#receives_to_buys_button").click(function(){
+
+        $.ajax({
+            type: "POST",
+            url: "/wizards/receive_to_buy",
+            data: JSON.stringify({
+                'quantity': $('#convert_quantity').val(),
+                'asset': $('#eh_stats_datatable').DataTable().row( {selected:true} ).data()
+              }),  
+            dataType: "json",
+            contentType: 'application/json',
+            success: function (data) {
+                location.reload()
+            },   
+        });
+    });
 
     $("#buys_to_lost_button").click(function(){
 

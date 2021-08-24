@@ -1045,7 +1045,30 @@ def sends_to_sells():
 
         # current_app.config['transactions'] = transactions.load()
 
-        return jsonify("Yess")
+    return jsonify("Yess")
+
+
+
+@blueprint.route('/receive_to_buy', methods=['POST'])
+@login_required
+def receive_to_buy():
+    
+    transactions = current_app.config['transactions']
+    
+    asset = request.json['asset'][0]
+    amount_to_convert = float(request.json['quantity'])
+    
+    for a in transactions.asset_objects:
+        if a.symbol != asset:
+            continue 
+        
+        transactions.convert_receives_to_buys(asset=asset, amount_to_convert=amount_to_convert)
+
+        transactions.save(description="Converted receives to buys")
+
+        # current_app.config['transactions'] = transactions.load()
+
+    return jsonify("Yess")
 
 
 @blueprint.route('/selected_asset',  methods=['POST'])
@@ -1356,14 +1379,20 @@ def link_batch():
     sell_obj = get_trans_obj_from_table_data(transactions=transactions, symbol=symbol, trans_type='sell', quantity=quantity, time_stamp=time_stamp)
     
 
-    for buy in buy_data.values():
+    # for k,v in buy_data.items():
+    #     print(f"KEY!  {k}\n\n")
+    #     print(f"Value!  {v}\n\n")
+
+    for k,v in buy_data.items():
+        if type(k) != int:
+            continue
 
         # Get Buy Object
-        symbol = buy[1]
-        time_stamp_str = buy[2]
+        symbol = v[1]
+        time_stamp_str = v[2]
         time_stamp = dateutil.parser.parse(time_stamp_str)
-        quantity = buy[3]
-        usd_spot = buy[5]
+        quantity = v[3]
+        usd_spot = v[5]
 
         buy_obj = get_trans_obj_from_table_data(transactions=transactions, symbol=symbol, trans_type='buy', quantity=quantity, time_stamp=time_stamp)
 

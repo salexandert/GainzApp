@@ -257,8 +257,6 @@ class Transactions:
                     bought += trans.quantity
 
 
-
-            
             for trans in self.transactions:
                 if trans.symbol != asset:
                     continue
@@ -411,6 +409,89 @@ class Transactions:
         print(f"AFTER CONVERSION Unaccounted for {amount_to_convert} {asset}")
     
      
+
+    def convert_receives_to_buys(self, asset, amount_to_convert):
+        # method used to deal with crypto not sold on exchange but no longer in possession
+
+        if asset in self.assets:
+            
+            # List of Receives Converted
+            receives_to_delete = []
+            
+            # what we want to calc
+            received = 0.0
+            quantity_of_receives_converted_to_buys = 0.0
+
+            for trans in self.transactions:
+                if trans.symbol != asset:
+                    continue
+
+                if trans.trans_type == 'receive':
+                    received += trans.quantity
+
+
+            for trans in self.transactions:
+                if trans.symbol != asset:
+                    continue
+
+                if trans.trans_type == 'receive':
+                    print(f" Candidate Found for Receive to Buy!!! {trans.name} {trans.quantity} ")
+                    print(amount_to_convert)
+                
+                if amount_to_convert > 0 and amount_to_convert <= amount_to_convert and trans.trans_type == 'receive':
+                    # Convert receive to buy
+
+                    
+
+                    buy = Buy(symbol=trans.symbol, quantity=trans.quantity, time_stamp=trans.time_stamp, usd_spot=trans.usd_spot, linked_transactions=trans.linked_transactions, source="Gainz App Receive to Buy")
+                  
+                    conversion = Conversion(input_trans_type='receive', 
+                                            output_trans_type='buy', 
+                                            input_symbol=asset, 
+                                            input_quantity=trans.quantity, 
+                                            input_time_stamp=trans.time_stamp, 
+                                            input_usd_spot=trans.usd_spot, 
+                                            input_usd_total=trans.usd_total, 
+                                            reason="Current HODL Receive to buy")
+                    
+                    self.conversions.append(conversion)
+
+                    self.transactions.append(buy)
+                
+                    receives_to_delete.append(trans)
+
+                    quantity_of_receives_converted_to_buys += trans.quantity
+
+
+        for trans in self.transactions:
+            trans.update_linked_transactions()
+            trans.set_multi_link()
+
+        
+        print(f" Num of transactions to delete {len(receives_to_delete)} ")
+        print(f" Num of transactions before delete {len(self.transactions)} ")
+        
+
+        for trans in receives_to_delete:
+            self.transactions.remove(trans)
+
+    
+        print(f" Num of transactions after delete {len(self.transactions)} ")
+        
+        # what we want to calc a second time
+        bought_after = 0.0
+
+        for trans in self.transactions:
+            if trans.symbol != asset:
+                continue
+
+            if trans.trans_type == 'buy':
+                bought_after += trans.quantity
+
+    
+        print(f"AFTER CONVERSION bought {bought_after} {asset}")
+
+
 
     def load_saves(self):
 
