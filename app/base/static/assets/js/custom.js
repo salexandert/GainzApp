@@ -54,7 +54,7 @@ $(document).ready(function() {
             hodl_text.append("<br><br>We can account for this by converting sends into sells, receives into buys, or buys into lost.")
             hodl_text.append("<br>You can do this manually on the Add & Manage Transactions Page or automatically below using the earliest transactions first.")
             
-            convert_text.append("We can account for " + needs_classification_hodl + " by any combination of the below. <br><br>")
+            convert_text.append("We can account for " + needs_classification_hodl + " by converting any combination of the below. <br><br>")
             convert_text.append(sent + " Sends to Sells <br>")
             // convert_text.append(received + " Received to Buys <br>")
             convert_text.append(buys + " Buys to Lost <br>")
@@ -608,6 +608,12 @@ $(document).ready(function() {
         },
     });
 
+    $('#add_links_all_links_datatable').DataTable({
+        select: {
+            style: 'multiple'
+        },
+    });
+   
 
     $('#addlinks_stats_datatable tbody').on( 'click', 'tr', function () {
         console.log( $('#addlinks_stats_datatable').DataTable().row( this ).data() );
@@ -795,6 +801,29 @@ $(document).ready(function() {
     });
 
 
+
+    $("#addlinks_alllinks_delete_link").click(function(){
+
+        console.log( $('#add_links_all_links_datatable').DataTable().rows( {selected:true} ).data() )
+
+
+        $.ajax({
+            type: "POST",
+            url: "/wizards/delete_link",
+            data: JSON.stringify({
+                'links': $('#add_links_all_links_datatable').DataTable().rows( {selected:true} ).data(),
+              }),  
+            dataType: "json",
+            contentType: 'application/json',
+            success: function (data) {
+                alert("Deleting link(s)!")
+                location.reload()
+            },   
+        });
+
+    });
+
+
 } );
 
 
@@ -919,7 +948,7 @@ $(document).ready(function() {
     $("#sells_delete_button").click(function(){
         $.ajax({
             type: "POST",
-            url: "/wizards/delete",
+            url: "/wizards/delete_transaction",
             data: JSON.stringify({
                 'row_data': $('#add_transactions_sells_datatable').DataTable().row( {selected:true} ).data(),
                 'asset': $('#add_transactions_stats_datatable').DataTable().row( {selected:true} ).data(),

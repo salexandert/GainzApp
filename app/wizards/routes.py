@@ -256,7 +256,7 @@ def linkable_data():
     trans for trans in transactions
         if trans.trans_type == "buy"
         and trans.symbol == sell_obj.symbol
-        and (datetime.datetime.now() >= trans.time_stamp)
+        and (sell_obj.time_stamp > trans.time_stamp)
         and trans.unlinked_quantity > .0000001
     ]
 
@@ -946,7 +946,7 @@ def auto_link_pre_check():
             
         
             # check if buy came before sell and if bought_to_date < sold_to_date
-            if buy.time_stamp > sell.time_stamp and sold_to_date > bought_to_date:
+            if buy.time_stamp > sell.time_stamp and (sold_to_date - bought_to_date) > 0.000000009:
                 
                 is_greater = True
                 break
@@ -961,15 +961,13 @@ def auto_link_pre_check():
     if bought >= sold:
         message += "Check Passed: More Buys than Sells"
         if is_greater is True:
-            message += f"<br> Check Failed: At sell timestamp [{latest_sell_time_stamp}] buys [{bought_to_date}] can no longer cover sells [{sold_to_date}] "
+            message += f"<br> Check Failed: At sell timestamp [{latest_sell_time_stamp}] Buy Quantity [{bought_to_date}] can no longer cover Sell Quantity [{sold_to_date}] "
+            message += f"<br> You can track down the discrepency and add [{sold_to_date - bought_to_date}] in buys manually or by converting receives to buys before [{latest_sell_time_stamp}], or full gain/loss will be used on quantity unlinked."
             message += "<br> If you continue you will have sells not fully linked to buys."
-            message += f"<br> You can track down the discrepency and add [{sold_to_date - bought_to_date}] in buys before [{latest_sell_time_stamp}], or  full profit amount will be used on unlinked sells."
         else:
             message += "<br> Check Passed: Individual sells can be covered by an earlier buy"
     else:
         message += "Check Failed: More Sells than buys"
-
-    
 
         
     data['message'] = message
@@ -980,9 +978,7 @@ def auto_link_pre_check():
 @blueprint.route('/buys_to_lost', methods=['POST'])
 @login_required
 def buys_to_lost():
-
-    print('Buys to Lost is BROKEN! fix later 8/17/21')
-    
+   
     transactions = current_app.config['transactions']
 
     print(request.json)
@@ -1192,9 +1188,9 @@ def add_transactions_selected_asset():
     return jsonify(data_dict)
 
 
-@blueprint.route('/delete',  methods=['POST'])
+@blueprint.route('/delete_transactions',  methods=['POST'])
 @login_required
-def delete():
+def delete_transactions():
 
     asset = request.json['asset'][0]
     trans_type = request.json['type']
@@ -1403,3 +1399,45 @@ def link_batch():
 
     
     return jsonify('all good!')
+
+
+@blueprint.route('/delete_link',  methods=['POST'])
+@login_required
+def delete_link():
+    
+    transactions = current_app.config['transactions']
+
+    links_to_delete = request.json['links']
+
+    links = transactions.links
+
+    for v in links_to_delete.values():
+        if type(v) != list:
+            continue
+
+        if type(v[0]) != str:
+            continue
+        
+        print(v)
+        symbol = v[0]
+        buy_time_stamp = dateutil.parser.parse(v[1])
+        sell_time_stamp = dateutil.parser.parse(v[2])
+        link_quantity = v[5]
+
+        print(link_quantity)
+
+        matched_link = [link for link in links if link.quantity == link_quantity and link.buy.time_stamp == buy_time_stamp and link.sell.time_stamp == sell_time_stamp][0]
+
+        for link in matched_link.buy.links:
+            if link == matched_link:
+                matched_link.buy.links.remove(link)
+
+        for link in matched_link.sell.links:
+            if link == matched_link:
+                matched_link.sell.links.remove(link)
+
+        del(matched_link)
+
+    transactions.save("Deleted Link(s)")
+
+    return jsonify("Deleted Link(s)")

@@ -4,25 +4,24 @@ import pandas as pd
 import os
 from ast import literal_eval
 from time import strftime
-from openpyxl import load_workbook, Workbook, workbook
+from openpyxl import load_workbook
 import base64
 import datetime
 import io
-from openpyxl import load_workbook, Workbook
 import pandas as pd
 from time import strftime
 import os
 from ast import literal_eval
-
-import numpy as np
 from assets import Asset
 import sys
 import pathlib
 
 from utils import *
 
-# basedir = os.path.abspath(os.path.dirname(__file__))
-basedir = os.path.abspath(os.path.dirname(sys.executable))
+
+## Top basedir is for development
+basedir = os.getcwd()
+# basedir = os.path.abspath(os.path.dirname(sys.executable))
 
 class Transactions:
 
@@ -685,7 +684,7 @@ class Transactions:
 
 
     def save(self, description=None):
-        save_as_filename = f"./saves/saved_{strftime('Y%Y-M%m-D%d_H%H-M%M-S%S')}.xlsx"
+        save_as_filename = os.path.join(basedir, "saves", f"saved_{strftime('Y%Y-M%m-D%d_H%H-M%M-S%S')}.xlsx")
         
         for trans in self.transactions:
             trans.update_linked_transactions()
@@ -736,7 +735,7 @@ class Transactions:
         # Idea to programatically create Excel Links, Fancy ;-)
         # =HYPERLINK("[Export_Y2021-M03-D06_H19-M34.xlsx]Links!A20","Display Text")
         
-        save_as_filename = f"./Exports/Export_{strftime('Y%Y-M%m-D%d_H%H-M%M')}.xlsx"
+        save_as_filename = os.path.join(basedir, "Exports", f"Export_{strftime('Y%Y-M%m-D%d_H%H-M%M')}.xlsx")
         
         # Template to use
         workbook = load_workbook(filename='Gainz_Template.xlsx')
@@ -1214,7 +1213,7 @@ class Transactions:
         # print(f"Base Dir in import transactions {basedir}")
         # pathlib.Path(os.path.join(basedir, "saves")).mkdir(parents=True, exist_ok=True) 
 
-        save_as_filename = os.path.join("saves", f"saved_{strftime('Y%Y-M%m-D%d_H%H-M%M-S%S')}.xlsx")
+        save_as_filename = os.path.join(basedir, "saves", f"saved_{strftime('Y%Y-M%m-D%d_H%H-M%M-S%S')}.xlsx")
         
 
         # trans_df = pd.read_csv(filename, header=3)

@@ -122,8 +122,6 @@ def selected_asset():
             to_date_usd_total += trans.usd_total
             to_date_profit = (to_date_quantity * trans.usd_spot) - to_date_usd_total
 
-
-
             chart_data.append({'x': datetime.datetime.strftime(trans.time_stamp, "%Y-%m-%d %H:%M:%S"), 'y': to_date_profit})
 
         elif trans.trans_type == 'sell':

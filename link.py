@@ -43,6 +43,7 @@ class Link:
     def __repr__(self):
         return f"Link ID: {self.id} Link Quantity: {self.quantity}"
 
+
     @property
     def hodl_duration(self):
         hodl_time =  self.sell.time_stamp - self.buy.time_stamp
