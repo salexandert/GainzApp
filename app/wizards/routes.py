@@ -1429,11 +1429,11 @@ def delete_link():
         matched_link = [link for link in links if link.quantity == link_quantity and link.buy.time_stamp == buy_time_stamp and link.sell.time_stamp == sell_time_stamp][0]
 
         for link in matched_link.buy.links:
-            if link == matched_link:
+            if link in matched_link.buy.links:
                 matched_link.buy.links.remove(link)
 
         for link in matched_link.sell.links:
-            if link == matched_link:
+            if link in matched_link.sell.links:
                 matched_link.sell.links.remove(link)
 
         del(matched_link)

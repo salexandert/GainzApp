@@ -1429,4 +1429,15 @@ if __name__ == "__main__":
 
     transactions = Transactions()
 
+    for trans in transactions:
+        if trans.quantity == 0.75446135:
+
+            import ipdb
+            ipdb.set_trace()
+
+
+    
+
+
+
   
