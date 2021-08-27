@@ -1,11 +1,4 @@
 
-
-// Sidebar
-$(document).ready(function() {
-
-});
-
-
 // HODL Accounting 
 $(document).ready(function() {
 
@@ -18,18 +11,22 @@ $(document).ready(function() {
 
     $('#eh_stats_datatable tbody').on( 'click', 'tr', function () {
         console.log( table.row( this ).data() );
+
+
         var asset = table.row( this ).data()[0]
         var buys = table.row( this ).data()[1]
         var sells = table.row( this ).data()[2]
         var sent = table.row( this ).data()[3]
         var received = table.row( this ).data()[4]
         var hodl = table.row( this ).data()[9]
+        
         var needs_classification = buys - sells
         var min_hodl = buys - sent
         var hodl_text = $('#eh_options').text('')
         var convert_text = $('#convert_text').text('')
         var Sold_or_Lost = buys - hodl
         var needs_classification_hodl = Sold_or_Lost - sells
+        
         if (hodl == "N/A") {
         
             hodl_text.append(asset + ' Selected')
@@ -50,8 +47,9 @@ $(document).ready(function() {
             hodl_text.append(asset + ' Selected')
             hodl_text.append("<br><br>Buys: " + buys + " - HODL: " + hodl + " = Sold_or_Lost: " + Sold_or_Lost)
             hodl_text.append("<br>Sold_or_Lost: " + Sold_or_Lost + " - Sells: " + sells + " = Needs_Classification: " + needs_classification_hodl)
-            if (needs_classification_hodl <= .0019) {  hodl_text.append("<br> Pretty close to 0, might be best to leave it as-is.")}
-            hodl_text.append("<br><br>We can account for this by converting sends into sells, receives into buys, or buys into lost.")
+            
+            if (needs_classification_hodl <= .0019) {  hodl_text.append("<br><br> Pretty close to 0, might be best to leave it as-is.")}
+            hodl_text.append("<br><br>We can account for discrepancies by converting sends into sells, receives into buys, or buys into lost.")
             hodl_text.append("<br>You can do this manually on the Add & Manage Transactions Page or automatically below using the earliest transactions first.")
             
             convert_text.append("We can account for " + needs_classification_hodl + " by converting any combination of the below. <br><br>")
@@ -59,8 +57,22 @@ $(document).ready(function() {
             // convert_text.append(received + " Received to Buys <br>")
             convert_text.append(buys + " Buys to Lost <br>")
 
-
         }
+
+        $.ajax({
+            type: "POST",
+            url: "/wizards/auto_link_pre_check",
+            data: JSON.stringify({
+                'row_data': table.row( this ).data()
+              }),  
+            dataType: "json",
+            contentType: 'application/json',
+            success: function (data) {
+                $('#hodl_pre_check_text').html(data['message'])
+            },   
+        });
+
+
 
     });
 
@@ -93,6 +105,7 @@ $(document).ready(function() {
             dataType: "json",
             contentType: 'application/json',
             success: function (data) {
+                alert(data)
                 location.reload()
             },   
         });
@@ -908,7 +921,7 @@ $(document).ready(function() {
     $('#add_transactions_receive_datatable').DataTable({
         "pageLength": 10,
         select: {
-            style: 'single'
+            style: 'multiple'
         },
     });
 
@@ -948,7 +961,7 @@ $(document).ready(function() {
     $("#sells_delete_button").click(function(){
         $.ajax({
             type: "POST",
-            url: "/wizards/delete_transaction",
+            url: "/wizards/delete_transactions",
             data: JSON.stringify({
                 'row_data': $('#add_transactions_sells_datatable').DataTable().row( {selected:true} ).data(),
                 'asset': $('#add_transactions_stats_datatable').DataTable().row( {selected:true} ).data(),
@@ -1004,7 +1017,7 @@ $(document).ready(function() {
             type: "POST",
             url: "/wizards/receive_convert",
             data: JSON.stringify({
-                'row_data': $('#add_transactions_receive_datatable').DataTable().row( {selected:true} ).data(),
+                'table_data': $('#add_transactions_receive_datatable').DataTable().rows( {selected:true} ).data(),
               }),  
             dataType: "json",
             contentType: 'application/json',

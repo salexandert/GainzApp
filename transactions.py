@@ -322,9 +322,10 @@ class Transactions:
             sends_to_delete = []
 
             # what we want to calc
-            bought = 0.0
-            sold = 0.0
             sent = 0.0
+            sold = 0.0
+            bought = 0.0
+            received = 0.0
             quantity_of_sends_converted_to_sells = 0.0
             inital_amount_to_convert = amount_to_convert
 
@@ -333,6 +334,15 @@ class Transactions:
             for trans in self.transactions:
                 if trans.symbol != asset:
                     continue
+
+                if trans.trans_type == "sell":
+                    sold += trans.quantity
+        
+                if trans.trans_type == "buy":
+                    bought += trans.quantity
+
+                if trans.trans_type == 'receive':
+                    received += trans.quantity
 
                 if trans.trans_type != 'send':
                     continue
@@ -345,8 +355,23 @@ class Transactions:
                         print(f"skipping transaction {trans.name} because no usd_spot")
                         continue
                     
+                    if_converted_sold = sold + trans.quantity
+                    difference = bought - if_converted_sold
+                    # print(bought, if_converted_sold, difference)
+                    if difference < 0.000000009:
+                        print(f"\nIn Convert Sends to Sells, Buys {bought} can no longer cover sells {if_converted_sold} difference {difference} @ {trans.time_stamp}")
+
+                        if received > difference:
+                            print(f"We can convert Receives {received} to Buys to cover {difference} @ {trans.time_stamp}")
+
+                        else:
+                            continue
+
+
                     sell = Sell(symbol=trans.symbol, quantity=trans.quantity, time_stamp=trans.time_stamp, usd_spot=trans.usd_spot, linked_transactions=trans.linked_transactions, source="Gainz App Send to Sale")
-                
+
+                    sold += sell.quantity
+
                     conversion = Conversion(input_trans_type='send', 
                                             output_trans_type='sell', 
                                             input_symbol=asset, 
@@ -375,16 +400,11 @@ class Transactions:
         print(f" Num of transactions to delete {len(sends_to_delete)} ")
         print(f" Num of transactions before delete {len(self.transactions)} ")
         
-
         for trans in sends_to_delete:
             self.transactions.remove(trans)
 
-        # del sends 
-        # del sells
-
         print(f" Num of transactions after delete {len(self.transactions)} ")
         
-    
         # what we want to calc a second time
         bought_after = 0.0
         sold_after = 0.0
@@ -403,11 +423,13 @@ class Transactions:
             elif trans.trans_type == 'send':
                 sent_after += trans.quantity
 
-        print(f"AFTER CONVERSION Sold {sold_after} {asset}")
-        print(f"AFTER CONVERSION Sent {sent_after} {asset}")
-        print(f"AFTER CONVERSION Unaccounted for {amount_to_convert} {asset}")
-    
-     
+        # print(f"AFTER CONVERSION Sold {sold_after} {asset}")
+        # print(f"AFTER CONVERSION Sent {sent_after} {asset}")
+        # print(f"AFTER CONVERSION Unaccounted for {amount_to_convert} {asset}")
+
+
+        return f"\nSuccessfully Converted {quantity_of_sends_converted_to_sells} in Sends to Sells in {len(sends_to_delete)} transactions!!\n"
+
 
     def convert_receives_to_buys(self, asset, amount_to_convert):
         # method used to deal with crypto not sold on exchange but no longer in possession

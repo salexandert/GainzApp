@@ -857,6 +857,7 @@ def hodl_accounting():
     return render_template('hodl_accounting.html', stats_table_data=stats_table_data)
 
 
+
 @blueprint.route('/auto_link', methods=['GET'])
 @login_required
 def auto_link():
@@ -895,7 +896,6 @@ def auto_link_asset():
 @blueprint.route('/auto_link_pre_check', methods=['POST'])
 @login_required
 def auto_link_pre_check():
-    
     
     # print(request.json)
     
@@ -956,14 +956,13 @@ def auto_link_pre_check():
                 bought_to_date += buy.quantity
 
             
-
     message = ""
     if bought >= sold:
         message += "Check Passed: More Buys than Sells"
         if is_greater is True:
             message += f"<br> Check Failed: At sell timestamp [{latest_sell_time_stamp}] Buy Quantity [{bought_to_date}] can no longer cover Sell Quantity [{sold_to_date}] "
-            message += f"<br> You can track down the discrepency and add [{sold_to_date - bought_to_date}] in buys manually or by converting receives to buys before [{latest_sell_time_stamp}], or full gain/loss will be used on quantity unlinked."
-            message += "<br> If you continue you will have sells not fully linked to buys."
+            message += f"<br> You can track down the discrepency and add [{sold_to_date - bought_to_date}] in buys manually or by converting receives to buys before [{latest_sell_time_stamp}]."
+            message += "<br> If you continue you will have sells not fully linked (unlinked quantity) to buys. Full proceeds on quantity unlinked of sell will be used for Gain/Loss."
         else:
             message += "<br> Check Passed: Individual sells can be covered by an earlier buy"
     else:
@@ -1029,19 +1028,19 @@ def sends_to_sells():
 
     asset = request.json['asset'][0]
     amount_to_convert = float(request.json['quantity'])
-    
+
+    quantity_of_sends_converted_to_sells = None
+    number_of_converted_transactions = None
+
     for a in transactions.asset_objects:
         if a.symbol != asset:
             continue 
         
-
-        transactions.convert_sends_to_sells(asset=asset, amount_to_convert=amount_to_convert)
+        result_str = transactions.convert_sends_to_sells(asset=asset, amount_to_convert=amount_to_convert)
 
         transactions.save(description="Converted Sends to sells")
 
-        # current_app.config['transactions'] = transactions.load()
-
-    return jsonify("Yess")
+    return jsonify(result_str)
 
 
 
@@ -1141,8 +1140,6 @@ def selected_asset():
     data_dict['linked'] = linked_table_data
     data_dict['sells'] = sells_table_data
     data_dict['buys'] = buys_table_data
-    
-    
     
     return jsonify(data_dict)
 
@@ -1270,44 +1267,49 @@ def buy_convert():
 @login_required
 def receive_convert():
 
-    print(request.json)
-
-
     transactions = current_app.config['transactions']
 
-    # Get selected Trans Object
-    row_data = request.json['row_data']
-    symbol = row_data[1]
-    time_stamp_str = row_data[2]
-    time_stamp = dateutil.parser.parse(time_stamp_str)
-    quantity = row_data[3]
-    usd_spot = row_data[5]
+    table_data = request.json['table_data']
 
-    receive_obj = get_trans_obj_from_table_data(transactions=transactions, symbol=symbol, trans_type='receive', quantity=quantity, time_stamp=time_stamp)
+    for row_data in table_data.values():
+        if type(row_data) != list:
+            continue
 
-    if receive_obj is not None:
+        if type(row_data[0]) != str:
+            continue
 
-        buy = Buy(symbol=symbol, quantity=receive_obj.quantity, time_stamp=receive_obj.time_stamp, usd_spot=receive_obj.usd_spot, source="Gainz App Receive to Buy")
+        # Get selected Trans Object
+        symbol = row_data[1]
+        time_stamp_str = row_data[2]
+        time_stamp = dateutil.parser.parse(time_stamp_str)
+        quantity = row_data[3]
+        usd_spot = row_data[5]
+
+        receive_obj = get_trans_obj_from_table_data(transactions=transactions, symbol=symbol, trans_type='receive', quantity=quantity, time_stamp=time_stamp)
+
+        if receive_obj is not None:
+
+            buy = Buy(symbol=symbol, quantity=receive_obj.quantity, time_stamp=receive_obj.time_stamp, usd_spot=receive_obj.usd_spot, source="Gainz App Receive to Buy")
+                
+            conversion = Conversion(input_trans_type='receive', 
+                                    output_trans_type='buy', 
+                                    input_symbol=receive_obj.symbol, 
+                                    input_quantity=receive_obj.quantity, 
+                                    input_time_stamp=receive_obj.time_stamp, 
+                                    input_usd_spot=receive_obj.usd_spot, 
+                                    input_usd_total=receive_obj.usd_total, 
+                                    reason="Converted Receive to Buy", 
+                                    source=f"{receive_obj.source} Converted in Gainz App")
+
+            transactions.conversions.append(conversion)
             
-        conversion = Conversion(input_trans_type='receive', 
-                                output_trans_type='buy', 
-                                input_symbol=receive_obj.symbol, 
-                                input_quantity=receive_obj.quantity, 
-                                input_time_stamp=receive_obj.time_stamp, 
-                                input_usd_spot=receive_obj.usd_spot, 
-                                input_usd_total=receive_obj.usd_total, 
-                                reason="Converted Receive to Buy", 
-                                source=f"{receive_obj.source} Converted in Gainz App")
+            transactions.transactions.append(buy)
 
-        transactions.conversions.append(conversion)
-        
-        transactions.transactions.append(buy)
+            transactions.transactions.remove(receive_obj)
 
-        transactions.transactions.remove(receive_obj)
+    transactions.save(description=f"Converted receive(s) to buy(s)")
 
-        transactions.save(description=f"Converted {symbol} receive to buy")
-
-        return jsonify(f'Converted Receive to Buy {receive_obj.name}')
+    return jsonify(f'Converted Receive(s) to Buy {receive_obj.name}')
 
 
 @blueprint.route('/send_convert',  methods=['POST'])

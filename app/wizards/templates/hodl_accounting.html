@@ -24,24 +24,24 @@
             </div>
             <div id="collapse_1" class="collapse show" role="tabpanel" aria-labelledby="headingOne">
               <div class="card-body">
-                  Use this page to account for discrepencies between exchange data and your current HODL.
-                  <br>
-                  <br>For example you have 10 BTC in buys but only 5 BTC in your posession.
-
-                  <br>Why should you care? If you do nothing you may link sells to buys that were previously sold, lost in boating accidents, stolen, ect. 
-                  <br>
-                  <br>The two options available are to convert sends into sells or convert buys into lost (future feature will track buy -> send -> lost for greater verbosity).
-                  <br> 
-                  <br> If HODL information provided:
-                  <br>
-                  <br> Buys - HODL = Sold_or_Lost 
-                  <br> Sold_or_Lost - Sells = Needs_Classification
-                  <br>
-                  <br> Else:
-                  <br>
-                  <br> Buys - Sells = Needs_Classification
-                  <br>
-                  <br>All conversion operations are saved for reference and exportation.
+                Use this page to find and resolve common discrepencies in your data.
+                <br><br><b>Exchange Data and HODL true up. </b>
+                <br>For example you have 10 BTC in buys but only 5 BTC in your posession we have a few way to account for this.
+                <br>Why should you care? If you do nothing you may link sells to buys that were previously sold, lost in boating accidents, stolen, ect. 
+                <br>The two options available are to convert sends into sells or convert buys into lost (future feature will track buy -> send -> lost for greater verbosity).
+                <br>If HODL information provided:
+                <br>
+                <br> Buys - HODL = Sold_or_Lost 
+                <br> Sold_or_Lost - Sells = Needs_Classification
+                <br>
+                <br> Else:
+                <br>
+                <br> Buys - Sells = Needs_Classification
+                <br>
+                <br>All conversion operations are saved for reference and exportation.
+                <br><br><b>Linking pre-check and true up. </b>
+                <br>For example you have 10 BTC in sells but all the buys prior to that date only add up to 5 BTC. 
+                <br>In this situation we will run out of buys to link sells to. In this case we can convert receives to buys or add buys manually. 
               </div>
             </div>
           </div>
@@ -138,22 +138,25 @@
               
               <!-- Card Body -->
               <div class="card-body ">
-                        
-                        
+                <b>Exchange Data and HODL true up. </b>
                 <p id='eh_options'> Select a row from Stats Table to Populate </p>
-                
                 <input type="number" id='hodl_quantity' placeholder="Current HODL">
-                
                 <button type="button" id="submit_hodl_button" class="btn btn-success">Submit HODL</button> <br>
+                
                 <br>
+                
                 <p id='convert_text'></p>
                 <input type="number" id='convert_quantity' placeholder="Quantity to Convert">
                 
                 <button type="button" id="sends_to_sells_button" class="btn btn-warning">Convert Sends to Sells</button>
-                <!-- <button type="button" id="receives_to_buys_button" class="btn btn-warning">Convert Receives to Buys</button> -->
                 <button type="button" id="buys_to_lost_button" class="btn btn-warning">Convert Buys to Lost</button>
+                
+                <br><br>
 
-  
+                <b>Linking pre-check and true up. </b>
+                <p class="welcome-text" id='hodl_pre_check_text'> Select a row from Stats Table to Populate </p>
+
+              
               </div>
               <!-- /Card Body -->
             </div>
@@ -165,9 +168,7 @@
 </div>
 <!-- Add Transaction End -->
 
-          </div>
-        </div>
-        <!-- /page content -->
+
 
 
 {% endblock content %}
