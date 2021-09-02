@@ -699,7 +699,7 @@ $(document).ready(function() {
                 if (data['max_gain_long_batch'].length > 0) {$('#add_links_batch_options').append('<option>Max Gain Long</option>')}
                 if (data['max_gain_short_batch'].length > 0) {$('#add_links_batch_options').append('<option>Max Gain Short</option>')}
 
-                if (data['min_gain_batch'].length > 0) { $('#add_links_batch_options').val('Min Gain').change() }
+                if (data['max_gain_long_batch'].length > 0) { $('#add_links_batch_options').val('Max Gain Long').change() }
                 else if (data['max_gain_batch'].length > 0) { $('#add_links_batch_options').val('Max Gain').change() }
                 else if (data['min_links_batch'].length > 0) {  $('#add_links_batch_options').val('Min links').change()  }
                 else { $('#add_links_batch_options').val('') }
@@ -765,10 +765,6 @@ $(document).ready(function() {
         }
 
      });
-
-
-
-
 
 
     $("#link_button").click(function(){
@@ -981,7 +977,7 @@ $(document).ready(function() {
     $("#buys_delete_button").click(function(){
         $.ajax({
             type: "POST",
-            url: "/wizards/delete",
+            url: "/wizards/delete_transactions",
             data: JSON.stringify({
                 'row_data': $('#add_transactions_buys_datatable').DataTable().row( {selected:true} ).data(),
                 'asset': $('#add_transactions_stats_datatable').DataTable().row( {selected:true} ).data(),
@@ -1100,7 +1096,7 @@ $(document).ready(function() {
                 if (data['max_gain_long_batch'].length > 0) {$('#model_batch_options').append('<option>Max Gain Long</option>')}
                 if (data['max_gain_short_batch'].length > 0) {$('#model_batch_options').append('<option>Max Gain Short</option>')}
 
-                if (data['min_gain_batch'].length > 0) { $('#model_batch_options').val('Min Gain').change() }
+                if (data['max_gain_long_batch'].length > 0) { $('#model_batch_options').val('Max Gain Long').change() }
                 else if (data['max_gain_batch'].length > 0) { $('#model_batch_options').val('Max Gain').change() }
                 else if (data['min_links_batch'].length > 0) {  $('#model_batch_options').val('Min links').change()  }
                 else { $('#model_batch_options').val('') }

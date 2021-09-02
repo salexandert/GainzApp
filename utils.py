@@ -7,8 +7,6 @@ from dateutil.tz import tzutc
 def get_stats_table_data(transactions):
     # Stats Table Generation
 
-
-
     # Get links
     links = set([
             link 
@@ -80,7 +78,7 @@ def get_stats_table_data(transactions):
                 hodl = a.hodl
                 # print(f"Asset Object symbol {a.symbol} Asset {asset} HODL {a.hodl}")
 
-        if total_sold_unlinked_quantity != 0 and abs(total_sold_unlinked_quantity) < .000000009:
+        if total_sold_unlinked_quantity != 0 and abs(total_sold_unlinked_quantity) < 0.000000009:
             total_sold_unlinked_quantity = "Less than .000000009"
 
                                 
@@ -155,7 +153,12 @@ def get_linked_table_data(transactions, asset, date_range):
     
     # Filter Transactions to date range
     filtered_transactions = []
+
     for trans in transactions:
+        if asset:
+            if trans.symbol != asset:
+                continue
+
         if start_date and not end_date:
             if trans.time_stamp >= start_date:
                 filtered_transactions.append(trans)
@@ -175,7 +178,7 @@ def get_linked_table_data(transactions, asset, date_range):
             for link in trans.links
             ])
 
-    print(f" len of links {len(links)}")
+    print(f" {asset} len of links {len(links)}")
     
     # Get linked Table Data
     linked_table_data = []
@@ -542,17 +545,24 @@ def get_sells_trans_table_data_range(transactions, asset, date_range):
         if trans.trans_type == "sell":
 
             trans.update_linked_transactions()
+
+            if trans.unlinked_quantity != 0.0 and trans.unlinked_quantity < 0.00000009:
+                
+                unlinked_quantity = "Less than 0.00000009"
+            else:
+                unlinked_quantity = trans.unlinked_quantity
         
             table_data.append([
                 trans.source,
                 trans.symbol,
                 datetime.datetime.strftime(trans.time_stamp, "%Y-%m-%d %H:%M:%S"),
                 trans.quantity,
-                trans.unlinked_quantity,
+                unlinked_quantity,
                 "${:,.2f}".format(trans.usd_spot),
                 "${:,.2f}".format(trans.usd_total)
             ])
         
+
 
     return table_data
 
@@ -586,17 +596,24 @@ def get_buys_trans_table_data_range(transactions, asset, date_range):
     table_data = []
     for trans in filtered_transactions:
         if trans.trans_type == "buy":
+
+            if trans.unlinked_quantity != 0.0 and trans.unlinked_quantity < 0.00000009:
+                
+                unlinked_quantity = "Less than 0.00000009"
+            else:
+                unlinked_quantity = trans.unlinked_quantity
         
             table_data.append([
                 trans.source,
                 trans.symbol,
                 datetime.datetime.strftime(trans.time_stamp, "%Y-%m-%d %H:%M:%S"),
                 trans.quantity,
-                trans.unlinked_quantity,
+                unlinked_quantity,
                 "${:,.2f}".format(trans.usd_spot),
                 "${:,.2f}".format(trans.usd_total)
             ])
-        
+    
+    
 
     return table_data
 
@@ -630,17 +647,26 @@ def get_sends_trans_table_data_range(transactions, asset, date_range):
     table_data = []
     for trans in filtered_transactions:
         if trans.trans_type == "send":
-        
+            
+
+            if trans.unlinked_quantity != 0.0 and trans.unlinked_quantity < 0.00000009:
+                
+                unlinked_quantity = "Less than 0.00000009"
+            else:
+                unlinked_quantity = trans.unlinked_quantity
+
+
             table_data.append([
                 trans.source,
                 trans.symbol,
                 datetime.datetime.strftime(trans.time_stamp, "%Y-%m-%d %H:%M:%S"),
                 trans.quantity,
-                trans.unlinked_quantity,
+                unlinked_quantity,
                 "${:,.2f}".format(trans.usd_spot),
                 "${:,.2f}".format(trans.usd_total)
             ])
         
+   
 
     return table_data
 
@@ -673,17 +699,25 @@ def get_receives_trans_table_data_range(transactions, asset, date_range):
     table_data = []
     for trans in filtered_transactions:
         if trans.trans_type == "receive":
+
+
+            if trans.unlinked_quantity != 0.0 and trans.unlinked_quantity < 0.00000009:
+                
+                unlinked_quantity = "Less than 0.00000009"
+            else:
+                unlinked_quantity = trans.unlinked_quantity
         
             table_data.append([
                 trans.source,
                 trans.symbol,
                 datetime.datetime.strftime(trans.time_stamp, "%Y-%m-%d %H:%M:%S"),
                 trans.quantity,
-                trans.unlinked_quantity,
+                unlinked_quantity,
                 "${:,.2f}".format(trans.usd_spot),
                 "${:,.2f}".format(trans.usd_total)
             ])
-        
+    
+   
 
     return table_data
 
@@ -735,7 +769,6 @@ def get_all_links_table_data(transactions, asset):
 
     table_data = []
 
-
     for link in links:
 
         table_data.append([
@@ -749,6 +782,8 @@ def get_all_links_table_data(transactions, asset):
             "${:,.2f}".format(link.cost_basis),
             "${:,.2f}".format(link.profit_loss)
         ])
+
+  
 
     return table_data
 

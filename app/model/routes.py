@@ -55,8 +55,8 @@ def selected_asset():
         total_in_usd = (potential_sale_usd_spot * potential_sale_quantity)
 
 
-    print(f" Potential Sale Quantity: [{potential_sale_quantity}]")
-    print(f" Total in USD: [ ${total_in_usd} ]")
+    # print(f" Potential Sale Quantity: [{potential_sale_quantity}]")
+    # print(f" Total in USD: [ ${total_in_usd} ]")
 
     # All Linkable Buys 
     linkable_buys = [
@@ -157,8 +157,8 @@ def selected_asset():
     
     linkable_buys.sort(key=lambda trans: trans.unlinked_quantity, reverse=True)
 
-    print(f" Linkable_buys unlinked_quantity of first {linkable_buys[0].unlinked_quantity}")
-    print(f" Linkable_buys unlinked_quantity of last {linkable_buys[-1].unlinked_quantity}")
+    # print(f" Linkable_buys unlinked_quantity of first {linkable_buys[0].unlinked_quantity}")
+    # print(f" Linkable_buys unlinked_quantity of last {linkable_buys[-1].unlinked_quantity}")
     
     # Min Links Batch
     for trans in linkable_buys:

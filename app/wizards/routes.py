@@ -219,7 +219,7 @@ def add_links():
 def linkable_data():
     transactions = current_app.config['transactions']
     
-    print(request.json)
+    # print(request.json)
     
     # Get Sell Object
     row_data = request.json['row_data']
@@ -240,16 +240,22 @@ def linkable_data():
     other_transactions = sell_obj.linked_transactions
     linked_table_data = []
     for link in sell_obj.links:
+
+        if link.buy.unlinked_quantity != 0.0 and link.buy.unlinked_quantity < 0.00000009:
+            unlinked_quantity = "Less than 0.00000009"
+        else:
+            unlinked_quantity = link.buy.unlinked_quantity
+        
         linked_table_data.append([
             datetime.datetime.strftime(link.buy.time_stamp, "%Y-%m-%d %H:%M:%S"),
             link.buy.source,
             link.buy.quantity,
-            link.buy.unlinked_quantity,
+            unlinked_quantity,
             "${:,.2f}".format(link.buy.usd_spot),
             link.quantity,
             "${:,.2f}".format(link.profit_loss)
         ])
-        
+    
     
     # All Linkable Buys 
     linkable_buys = [
@@ -312,8 +318,6 @@ def linkable_data():
         and trans.unlinked_quantity > .0000001
     ]
 
-
-
     # Start Batches
     target_quantity = potential_sale_quantity
     
@@ -350,9 +354,6 @@ def linkable_data():
 
     
     linkable_buys.sort(key=lambda trans: trans.unlinked_quantity, reverse=True)
-
-    print(f" Linkable_buys unlinked_quantity of first {linkable_buys[0].unlinked_quantity}")
-    print(f" Linkable_buys unlinked_quantity of last {linkable_buys[-1].unlinked_quantity}")
     
     # Min Links Batch
     for trans in linkable_buys:
@@ -703,7 +704,7 @@ def linkable_data():
             if sell_obj.time_stamp < trans.time_stamp: 
                 continue
         
-        # Don't show if 0.0 unlinked quantity WE SHOULD TEST 0 NOT 0.0 AS 0.01 ISSUE CAN ARRISE < changed 7/24 11:30 AM
+        # Don't show if 0.0 unlinked quantity
         if trans.unlinked_quantity <= 0:
             unlinkable_transactions.append(trans)
 
@@ -727,21 +728,18 @@ def linkable_data():
             quantity = buy_obj.unlinked_quantity
 
         # Determine link profitability
-        buy_price = quantity * buy_obj.usd_spot
-        sell_price = quantity * sell_obj.usd_spot
-        profit = sell_price - buy_price
+        if trans.unlinked_quantity != 0.0 and trans.unlinked_quantity < 0.00000009:
+            unlinked_quantity = "less than 0.00000009"
+        else:
+            unlinked_quantity = trans.unlinked_quantity
 
         unlinkable_table_data.append([
-            trans.name, 
-            trans.trans_type.capitalize(),
+            trans.source,
             trans.symbol,
-            trans.time_stamp, 
+            datetime.datetime.strftime(trans.time_stamp, "%Y-%m-%d %H:%M:%S"),
             trans.quantity,
-            trans.unlinked_quantity,
-            "${:,.2f}".format(trans.usd_spot), 
-            "${:,.2f}".format(trans.usd_total),
-            "${:,.2f}".format(profit),
-            "Buy is Fully Linked!"        
+            unlinked_quantity,
+            "${:,.2f}".format(trans.usd_spot),      
         ])
 
 
@@ -783,7 +781,9 @@ def linkable_data():
 @blueprint.route('/link_button', methods=['POST'])
 @login_required
 def link_button():
-    print(request.json)
+    
+    # print(request.json)
+    
     transactions = current_app.config['transactions']
     
     # Get selected Trans Object
@@ -803,14 +803,15 @@ def link_button():
     # Get Buy Object
     buy_time_stamp_str = buy_data[2]
     buy_time_stamp = dateutil.parser.parse(buy_time_stamp_str)
-    quantity = buy_data[3]
+    buy_quantity = buy_data[3]
+    link_quantity = buy_data[5]
 
     
-    buy_obj = get_trans_obj_from_table_data(transactions=transactions, symbol=symbol, trans_type='buy', quantity=quantity, time_stamp=buy_time_stamp)
+    buy_obj = get_trans_obj_from_table_data(transactions=transactions, symbol=symbol, trans_type='buy', quantity=buy_quantity, time_stamp=buy_time_stamp)
 
   
     if sell_obj and buy_obj:
-        sell_obj.link_transaction(buy_obj, quantity)
+        sell_obj.link_transaction(buy_obj, link_quantity)
         transactions.save(description="Manually Added Link")
 
     else:
@@ -843,7 +844,7 @@ def hodl_accounting():
     stats_table_data = get_stats_table_data(transactions)
 
     if request.method == "POST":
-        print(request.json)
+        # print(request.json)
 
         asset = request.json['asset'][0]
         hodl = float(request.json['quantity'])
@@ -872,7 +873,7 @@ def auto_link():
 def auto_link_asset():
     transactions = current_app.config['transactions']
         
-    print(request.json)
+    # print(request.json)
     
     if 'asset' in request.json:
         asset = request.json['asset'][0]
@@ -980,7 +981,7 @@ def buys_to_lost():
    
     transactions = current_app.config['transactions']
 
-    print(request.json)
+    # print(request.json)
 
     asset = request.json['asset'][0]
     amount = float(request.json['quantity'])
@@ -1071,7 +1072,7 @@ def receive_to_buy():
 def selected_asset():
     # Populate Links, Sells, Buys Tables based on selected asset from stats table
 
-    print(request.json)
+    # print(request.json)
 
     transactions = current_app.config['transactions']
 
@@ -1121,6 +1122,9 @@ def selected_asset():
     sells_unlinked_remaining = []
     if request.json['unlinked_remaining']:
         for sell in sells_table_data:
+            if type(sell[4]) is str:
+                continue
+
             if sell[4] > 0.000000009:
                 sells_unlinked_remaining.append(sell)
 
@@ -1150,7 +1154,7 @@ def selected_asset():
 def add_transactions_selected_asset():
 
 
-    print(request.json)
+    # print(request.json)
 
     transactions = current_app.config['transactions']
 
@@ -1222,7 +1226,7 @@ def delete_transactions():
 @login_required
 def buy_convert():
 
-    print(request.json)
+    # print(request.json)
 
 
     transactions = current_app.config['transactions']
@@ -1316,7 +1320,7 @@ def receive_convert():
 @login_required
 def send_convert():
 
-    print(request.json)
+    # print(request.json)
 
     transactions = current_app.config['transactions']
 
@@ -1372,30 +1376,39 @@ def link_batch():
     time_stamp_str = sell_data[2]
     time_stamp = dateutil.parser.parse(time_stamp_str)
     quantity = sell_data[3]
-    usd_spot = sell_data[5]
+
 
     sell_obj = get_trans_obj_from_table_data(transactions=transactions, symbol=symbol, trans_type='sell', quantity=quantity, time_stamp=time_stamp)
     
+    for row_data in buy_data.values():
+        if type(row_data) != list:
+            continue
 
-    # for k,v in buy_data.items():
-    #     print(f"KEY!  {k}\n\n")
-    #     print(f"Value!  {v}\n\n")
+        if type(row_data[0]) != str:
+            continue
 
-    for k,v in buy_data.items():
-        if type(k) != int:
+        print(row_data)
+
+    for row_data in buy_data.values():
+        if type(row_data) != list:
+            continue
+
+        if type(row_data[0]) != str:
             continue
 
         # Get Buy Object
-        symbol = v[1]
-        time_stamp_str = v[2]
+        symbol = row_data[1]
+        time_stamp_str = row_data[2]
         time_stamp = dateutil.parser.parse(time_stamp_str)
-        quantity = v[3]
-        usd_spot = v[5]
+        buy_quantity = row_data[3]
+        link_quantity = row_data[5]
 
-        buy_obj = get_trans_obj_from_table_data(transactions=transactions, symbol=symbol, trans_type='buy', quantity=quantity, time_stamp=time_stamp)
+        buy_obj = get_trans_obj_from_table_data(transactions=transactions, symbol=symbol, trans_type='buy', quantity=buy_quantity, time_stamp=time_stamp)
 
         if sell_obj and buy_obj:
-            sell_obj.link_transaction(buy_obj, quantity)
+            sell_obj.link_transaction(buy_obj, link_quantity)
+        else:
+            print(f"Sell/Buy or Both were not found Sell [{sell_obj}] Buy [{buy_obj}]")
     
     transactions.save(description=f"linked batch of buys to {sell_obj}")
 
