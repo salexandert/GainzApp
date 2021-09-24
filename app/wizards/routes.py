@@ -304,7 +304,8 @@ def linkable_data():
     trans for trans in transactions
         if trans.trans_type == "buy"
         and trans.symbol == asset
-        and (datetime.datetime.now() - trans.time_stamp).days > 365
+        and (sell_obj.time_stamp > trans.time_stamp)
+        and (sell_obj.time_stamp - trans.time_stamp).days > 365
         and trans.unlinked_quantity > .0000001
     ]
 
@@ -314,7 +315,8 @@ def linkable_data():
     trans for trans in transactions
         if trans.trans_type == "buy"
         and trans.symbol == asset
-        and (datetime.datetime.now() - trans.time_stamp).days <= 365
+        and (sell_obj.time_stamp > trans.time_stamp)
+        and (sell_obj.time_stamp - trans.time_stamp).days <= 365
         and trans.unlinked_quantity > .0000001
     ]
 
@@ -766,7 +768,7 @@ def linkable_data():
     data_dict['max_gain_long_batch_text'] = f"Total Quantity: {max_gain_long_batch_quantity} <br> Total Proceeds: {'${:,.2f}'.format(total_in_usd)} <br> Total Gain or Loss: {'${:,.2f}'.format(max_gain_long_batch_gain)}"
 
     data_dict['max_gain_short_batch'] = max_gain_short_batch
-    data_dict['max_gain_short_batch_text'] = f"Total Quantity: {max_gain_long_batch_quantity} <br> Total Proceeds: {'${:,.2f}'.format(total_in_usd)} <br> Total Gain or Loss: {'${:,.2f}'.format(max_gain_short_batch_gain)}"
+    data_dict['max_gain_short_batch_text'] = f"Total Quantity: {max_gain_short_batch_quantity} <br> Total Proceeds: {'${:,.2f}'.format(total_in_usd)} <br> Total Gain or Loss: {'${:,.2f}'.format(max_gain_short_batch_gain)}"
 
     
     data_dict['linked'] = linked_table_data
@@ -1476,6 +1478,9 @@ def delete_link_from_linked():
 
         del(matched_link)
 
+    for trans in transactions:
+        trans.update_linked_transactions()
+
     transactions.save("Deleted Link(s)")
 
     return jsonify("Deleted Link(s)")
@@ -1520,6 +1525,9 @@ def delete_link():
                 matched_link.sell.links.remove(link)
 
         del(matched_link)
+
+    for trans in transactions:
+        trans.update_linked_transactions()
 
     transactions.save("Deleted Link(s)")
 

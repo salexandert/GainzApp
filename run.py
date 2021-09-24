@@ -25,9 +25,7 @@ Migrate(app, db)
 
 
 import logging
-logging.basicConfig(filename='gainz.log', level=logging.DEBUG)
-
-
+# logging.basicConfig(filename='gainz.log', level=logging.DEBUG)
 # log = logging.getLogger('werkzeug')
 # log.setLevel(logging.ERROR)
 
