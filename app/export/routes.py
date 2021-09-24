@@ -24,7 +24,7 @@ def save():
 
     save_as_filename = transactions.export_to_excel()
 
-    print(f"exporting to {save_as_filename}")
+    # print(f"exporting to {save_as_filename}")
 
     return jsonify(save_as_filename)
     

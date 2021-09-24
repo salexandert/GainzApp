@@ -296,10 +296,13 @@ class Transactions:
         
         return links
 
-    def link_with_fifo(self, asset=None, min_link=0.01):
+    def auto_link(self, algo, asset=None, min_link=0.01, pre_check=False):
         
         sells = {}
         buys = {}
+
+        # failures is a list of dicts
+        failures = []
 
         # Sort into Buys a Sells
         for trans in self.transactions:
@@ -325,16 +328,19 @@ class Transactions:
         
         # Sort By Time Stamp
         for key in buys.keys():
-            
-            buys[key].sort(key=lambda x: x.time_stamp)
+
+            if algo == 'fifo':
+                buys[key].sort(key=lambda x: x.time_stamp)
+            elif algo == 'filo':
+                buys[key].sort(key=lambda x: x.time_stamp, reverse=True)
 
         for key in sells.keys():
-            
             sells[key].sort(key=lambda x: x.time_stamp)
-
 
         # Start the Algo
         for key in sells.keys():
+
+            links = []
 
             for sell in sells[key]:
  
@@ -376,96 +382,38 @@ class Transactions:
                         if abs(profit) < 0.01:
                             continue
                         
-                        sell.link_transaction(buy, link_quantity)
-                        
-                    
+                        link = sell.link_transaction(buy, link_quantity)
+                        links.append(link)
+
+                               
                         # if sell.unlinked_quantity <= min_link:
                         #     print(f"    [{sell.unlinked_quantity}] <=  [{min_link}] MIN LINK SURPASSED AFTER LINK  {link_quantity}  !!!!!")
-                            
-                        
-                        
-
-    def link_with_filo(self, asset):
-
-        sells = {}
-        buys = {}
-
-        # Sort into Buys a Sells
-        for trans in self.transactions:
-
-            # If asset is provided only auto-link symbol provided
-            if asset is not None:
-                if trans.symbol != asset:
-                    continue
-
-            if trans.trans_type == 'buy':
-
-                if trans.symbol not in buys.keys():
-                    buys[trans.symbol] = []
-
-                buys[trans.symbol].append(trans)
-
-            elif trans.trans_type == 'sell':
-                
-                if trans.symbol not in sells.keys():
-                    sells[trans.symbol] = []
-
-                sells[trans.symbol].append(trans)
-        
-        # Sort By Time Stamp
-        for key in buys.keys():
-
-            buys[key].sort(key=lambda x: x.time_stamp, reverse=True)
-        
-        for key in sells.keys():
-            
-            sells[key].sort(key=lambda x: x.time_stamp)
-
-        # Start the Algo
-        for key in sells.keys():
-
-            for sell in sells[key]:
-
-                # check if sell has remaining unlinked quantity
-                if sell.unlinked_quantity > 0:
                     
-                    for buy in buys[key]:
-                        
-                        # Skip if buy has no remaining unlinked quantity
-                        if buy.unlinked_quantity == 0:
-                            continue
-                        
-                        # break if sell has no remaining unlinked quantity
-                        if sell.unlinked_quantity == 0:
-                            break
-                        
-                        # check if sell came after buy
-                        if sell.time_stamp <= buy.time_stamp:
-                            continue
+                    if sell.unlinked_quantity > 0.0000009:
+                        # print(f"Sell Unlinkable when using [{algo}] symbol [{sell.symbol}] unlinkable_quantity [{sell.unlinked_quantity}]")
+                        failures.append({
+                            'asset': sell.symbol, 
+                            'unlinkable': sell.unlinked_quantity,
+                            'quantity': sell.quantity,
+                            'timestamp': sell.time_stamp,
+                            'algo': algo
+                        })
 
-                                                
-                        # if sell unlinked is greater than buy unlinked, link quantity equals buy unlinked
-                        if sell.unlinked_quantity >= buy.unlinked_quantity:
-                            link_quantity = buy.unlinked_quantity
-                        
-                        # if sell unlinked is less than buy unlinked, link quantity equals sell unlinked
-                        elif sell.unlinked_quantity <= buy.unlinked_quantity: 
-                            link_quantity = sell.unlinked_quantity
-                        
-                        # Determine link profitability
-                        buy_price = link_quantity * buy.usd_spot
-                        sell_price = link_quantity * sell.usd_spot
-                        profit = sell_price - buy_price
-
-                        if abs(profit) < 0.01:
-                            continue
-                        
-                        # Link 
-                        sell.link_transaction(buy, link_quantity)
+        if pre_check:
+            for trans in self.transactions:
+                if asset is not None:
+                    if trans.symbol != asset:
+                        continue
+                
+                for link in links:
+                    for trans_link in trans.links:
+                        if link is trans_link:
+                            trans.links.remove(trans_link)
 
         
+        return failures
+                            
 
-    
     def convert_buys_to_lost(self, asset, amount):
         # method used to deal with crypto not sold on exchange but no longer in possession
 
@@ -1387,7 +1335,7 @@ class Transactions:
                 ["Average Sell Price", asset_stats["average_sell_price"]],
                 ["Quantity Sold", asset_stats['total_sold_quantity']],
                 ["Quantity Sold Unlinked", asset_stats['total_sold_unlinked_quantity']],
-                ["Quantity Purchased Unlinked, AKA The HODL", asset_stats['total_purchased_unlinked_quantity']],
+                ["Quantity Purchased Unlinked", asset_stats['total_purchased_unlinked_quantity']],
                 ["Quantity Purchased in USD", asset_stats['total_purchased_usd']],
                 ["Quantity Sold in USD", asset_stats['total_sold_usd']],
                 ["Profit / Loss in USD* (Valid when Quantity Sold Unlinked is 0)", asset_stats['total_profit_loss']],

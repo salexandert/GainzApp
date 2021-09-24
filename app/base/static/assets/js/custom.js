@@ -189,7 +189,7 @@ $(document).ready(function() {
             dataType: "json",
             contentType: 'application/json',
             success: function (data) {
-                
+                alert(data)
                 location.reload()
             },   
         });
@@ -336,11 +336,9 @@ $(document).ready(function() {
       });
 
 
-      
+    // Init Charts
     var myChart=null;
-
-
-
+    var myChart1=null;
 
     $('#statspage_stats_datatable tbody').on( 'click', 'tr', function () {
         console.log( table.row( this ).data() );
@@ -363,17 +361,17 @@ $(document).ready(function() {
                 $('#statspage_detailed_datatable').DataTable().clear();
                 $('#statspage_detailed_datatable').DataTable().rows.add(return_data['detailed_stats']).draw();
                 
-                $('#statspage_links_datatable').DataTable().clear();
-                $('#statspage_links_datatable').DataTable().rows.add(return_data['linked']).draw();
+                // $('#statspage_links_datatable').DataTable().clear();
+                // $('#statspage_links_datatable').DataTable().rows.add(return_data['linked']).draw();
 
-                $('#statspage_sells_datatable').DataTable().clear();
-                $('#statspage_sells_datatable').DataTable().rows.add(return_data['sells']).draw();
+                // $('#statspage_sells_datatable').DataTable().clear();
+                // $('#statspage_sells_datatable').DataTable().rows.add(return_data['sells']).draw();
 
-                $('#statspage_buys_datatable').DataTable().clear();
-                $('#statspage_buys_datatable').DataTable().rows.add(return_data['buys']).draw();
+                // $('#statspage_buys_datatable').DataTable().clear();
+                // $('#statspage_buys_datatable').DataTable().rows.add(return_data['buys']).draw();
 
                 
-                if(myChart!=null) {myChart.destroy();}
+                if (myChart!=null) {myChart.destroy();}
 
                 var ctx = document.getElementById("gainzChart").getContext("2d");
 
@@ -387,6 +385,99 @@ $(document).ready(function() {
                 gradientFill.addColorStop(1, "rgba(249, 99, 59, 0.40)");
 
                 myChart = new Chart(ctx, {
+                  type: 'line',
+                  data: {
+                    datasets: [
+                        {
+                            label: "Unrealized Gain/Loss",
+                            borderColor: "#6bd098",
+                            fill: false,
+                            borderWidth: 3,
+                            data: return_data['chart_data']
+                        },
+                    ]
+                },
+                  options: {
+                    tooltips: {
+                        callbacks: {
+                            label: function(tooltipItem, data) {
+                                var label = data.datasets[tooltipItem.datasetIndex].label || '';
+           
+                                if (label) {
+                                    label += ': ';
+                                }
+
+                                label += formatter.format(tooltipItem.yLabel)
+                                
+                                return label;
+                            }
+                        }
+                      },
+
+
+                    responsive: true,
+                    title:      {
+                        display: false,
+                        text:    "Gainz Chart"
+                    },
+                    scales: {
+                        
+                        xAxes: [{
+                            type: "time",
+                            time: {
+                                unit: 'month',
+                                tooltipFormat: 'll'
+                            },
+                            scaleLabel: {
+                                display:     true,
+                                labelString: 'Date'
+                            },
+                            
+                        }],
+                        
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: false,
+                                callback: function(value, index, values) {
+                                  if(parseInt(value) >= 1000){
+                                    return '$' + value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                                  } else {
+                                    return '$' + value;
+                                  }
+                                }
+                            },
+
+                            scaleLabel: {
+                                display:     true,
+                                labelString: 'Unrealized Profit in USD*'
+                            },
+
+                              gridLines: {
+                                drawBorder: false,
+                                zeroLineColor: "transparent",
+                                color: 'rgba(255,255,255,0.05)'
+                              }
+                        }]
+                    }
+                }
+                });
+
+
+
+                if (myChart1!=null) {myChart1.destroy();}
+
+                var ctx = document.getElementById("gainzChart1").getContext("2d");
+
+                chartColor = "#FFFFFF";
+                gradientStroke = ctx.createLinearGradient(500, 0, 100, 0);
+                gradientStroke.addColorStop(0, '#80b6f4');
+                gradientStroke.addColorStop(1, chartColor);
+            
+                gradientFill = ctx.createLinearGradient(0, 170, 0, 50);
+                gradientFill.addColorStop(0, "rgba(128, 182, 244, 0)");
+                gradientFill.addColorStop(1, "rgba(249, 99, 59, 0.40)");
+
+                myChart1 = new Chart(ctx, {
                   type: 'line',
                   data: {
                     datasets: [
@@ -550,27 +641,27 @@ $(document).ready(function() {
         },
     });
 
-    $('#exportpage_stats_datatable tbody').on( 'click', 'tr', function () {
-        console.log( table.row( this ).data() );
-        $.ajax({
-            type: "POST",
-            url: "/stats/selected_asset",
-            data: JSON.stringify({
-                'row_data': table.row( this ).data(),
-                'start_date': $('#export_datepicker').data('daterangepicker')['startDate'],
-                'end_date': $('#export_datepicker').data('daterangepicker')['endDate']
-                }),  
+    // $('#exportpage_stats_datatable tbody').on( 'click', 'tr', function () {
+    //     console.log( table.row( this ).data() );
+    //     $.ajax({
+    //         type: "POST",
+    //         url: "/stats/selected_asset",
+    //         data: JSON.stringify({
+    //             'row_data': table.row( this ).data(),
+    //             'start_date': $('#export_datepicker').data('daterangepicker')['startDate'],
+    //             'end_date': $('#export_datepicker').data('daterangepicker')['endDate']
+    //             }),  
 
-            contentType: 'application/json',
-            success: function (data) {
+    //         contentType: 'application/json',
+    //         success: function (data) {
 
-                console.log(data)
+    //             console.log(data)
                 
-                $('#statspage_detailed_datatable').DataTable().clear();
-                $('#statspage_detailed_datatable').DataTable().rows.add(data['detailed_stats']).draw();
-            },   
-        });
-    } );
+    //             $('#statspage_detailed_datatable').DataTable().clear();
+    //             $('#statspage_detailed_datatable').DataTable().rows.add(data['detailed_stats']).draw();
+    //         },   
+    //     });
+    // } );
 
 
     $("#export_button").click(function(){
@@ -583,7 +674,7 @@ $(document).ready(function() {
             dataType: "json",
             contentType: 'application/json',
             success: function (data) {
-                alert("Saving Export as" + data)
+                alert("Saving Export as " + data)
             },   
         });
     });
@@ -611,7 +702,7 @@ $(document).ready(function() {
 
     $('#linked_datatable').DataTable({
         select: {
-            style: 'single'
+            style: 'multiple'
         },
     });
 
@@ -627,6 +718,39 @@ $(document).ready(function() {
         },
     });
    
+    
+    $('#checkbox_unlinked').on('click', function() {
+
+        if ($('#addlinks_stats_datatable').DataTable().row( {selected:true} ).length > 0 ) {
+
+            $.ajax({
+                type: "POST",
+                url: "/wizards/selected_asset",
+                data: JSON.stringify({
+                    'row_data': $('#addlinks_stats_datatable').DataTable().row( {selected:true} ).data(),
+                    'start_date': '',
+                    'end_date': '',
+                    'unlinked_remaining': $('#checkbox_unlinked').is(':checked')
+                    }),  
+
+                contentType: 'application/json',
+                success: function (data) {
+
+                    console.log(data)
+                    
+                    
+                    $('#addlinks_sells_datatable').DataTable().clear();
+                    $('#addlinks_sells_datatable').DataTable().rows.add(data['sells']).draw();
+
+                    $('#add_links_all_links_datatable').DataTable().clear();
+                    $('#add_links_all_links_datatable').DataTable().rows.add(data['all_links']).draw();
+
+                },   
+            });
+
+        }
+
+    });
 
     $('#addlinks_stats_datatable tbody').on( 'click', 'tr', function () {
         console.log( $('#addlinks_stats_datatable').DataTable().row( this ).data() );
@@ -809,6 +933,29 @@ $(document).ready(function() {
         });
     });
 
+
+    $("#addlinks_linked_delete_link").click(function(){
+
+        console.log( $('#linked_datatable').DataTable().rows( {selected:true} ).data() )
+
+
+        $.ajax({
+            type: "POST",
+            url: "/wizards/delete_link_from_linked",
+            data: JSON.stringify({
+                'links': $('#linked_datatable').DataTable().rows( {selected:true} ).data(),
+                'symbol': $('#addlinks_sells_datatable').DataTable().row( {selected:true} ).data()[1],
+                'sell_time_stamp': $('#addlinks_sells_datatable').DataTable().row( {selected:true} ).data()[2]
+              }),  
+            dataType: "json",
+            contentType: 'application/json',
+            success: function (data) {
+                alert("Deleting link(s)!")
+                location.reload()
+            },   
+        });
+
+    });
 
 
     $("#addlinks_alllinks_delete_link").click(function(){

@@ -241,7 +241,7 @@ def linkable_data():
     linked_table_data = []
     for link in sell_obj.links:
 
-        if link.buy.unlinked_quantity != 0.0 and link.buy.unlinked_quantity < 0.00000009:
+        if link.buy.unlinked_quantity != 0 and link.buy.unlinked_quantity < 0.00000009:
             unlinked_quantity = "Less than 0.00000009"
         else:
             unlinked_quantity = link.buy.unlinked_quantity
@@ -728,7 +728,7 @@ def linkable_data():
             quantity = buy_obj.unlinked_quantity
 
         # Determine link profitability
-        if trans.unlinked_quantity != 0.0 and trans.unlinked_quantity < 0.00000009:
+        if trans.unlinked_quantity != 0 and trans.unlinked_quantity < 0.00000009:
             unlinked_quantity = "less than 0.00000009"
         else:
             unlinked_quantity = trans.unlinked_quantity
@@ -882,16 +882,18 @@ def auto_link_asset():
 
     algo_type = request.json['algo']
 
+    transactions.auto_link(asset=asset, algo=algo_type)
+
     if algo_type == "fifo":
-        transactions.link_with_fifo(asset=asset)
+        transactions.auto_link(asset=asset, algo=algo_type)
         transactions.save(description="Auto Linked with FIFO")
 
     elif algo_type == "filo":
-        transactions.link_with_filo(asset=asset)
+        transactions.auto_link(asset=asset, algo=algo_type)
         transactions.save(description="Auto Linked with FILO")
 
 
-    return jsonify("Auto-Link FTW!")
+    return jsonify(f"Auto Link using {algo_type} Successful!")
 
 
 @blueprint.route('/auto_link_pre_check', methods=['POST'])
@@ -906,13 +908,24 @@ def auto_link_pre_check():
 
     transactions = current_app.config['transactions']
 
+    auto_link_failures = transactions.auto_link(asset=asset, algo='fifo', pre_check=True)
+    
+    auto_link_failures.extend(transactions.auto_link(asset=asset, algo='filo', pre_check=True))
+
+    auto_link_check_failed = False
+
+    if len(auto_link_failures) > 0:
+        auto_link_check_failed = True
+        for i in auto_link_failures:
+            print(i)
+
+
     sells = []
     buys = []
     
     sold = 0.0
     bought = 0.0
     
-    checks = True
 
     for trans in transactions:
         if trans.symbol != asset:
@@ -934,8 +947,8 @@ def auto_link_pre_check():
     sold_to_date = 0.0
     latest_sell_time_stamp = None
     is_greater = False
+    
     for sell in sells:
-
         if is_greater is True:
             break
 
@@ -945,7 +958,6 @@ def auto_link_pre_check():
         
         for buy in buys:
             
-        
             # check if buy came before sell and if bought_to_date < sold_to_date
             if buy.time_stamp > sell.time_stamp and (sold_to_date - bought_to_date) > 0.000000009:
                 
@@ -953,19 +965,26 @@ def auto_link_pre_check():
                 break
 
             else:
-
                 bought_to_date += buy.quantity
 
-            
     message = ""
     if bought >= sold:
         message += "Check Passed: More Buys than Sells"
+        
         if is_greater is True:
             message += f"<br> Check Failed: At sell timestamp [{latest_sell_time_stamp}] Buy Quantity [{bought_to_date}] can no longer cover Sell Quantity [{sold_to_date}] "
             message += f"<br> You can track down the discrepency and add [{sold_to_date - bought_to_date}] in buys manually or by converting receives to buys before [{latest_sell_time_stamp}]."
             message += "<br> If you continue you will have sells not fully linked (unlinked quantity) to buys. Full proceeds on quantity unlinked of sell will be used for Gain/Loss."
+       
         else:
             message += "<br> Check Passed: Individual sells can be covered by an earlier buy"
+
+            if auto_link_check_failed is True:
+                message += "<br> Check Failed: Sell will not be fully linked using Auto Link"
+                for i in auto_link_failures:
+
+                    message += f"<br> {i}"
+    
     else:
         message += "Check Failed: More Sells than buys"
 
@@ -1107,7 +1126,7 @@ def selected_asset():
         ["Average Sell Price", asset_stats["average_sell_price"]],
         ["Quantity Sold", asset_stats['total_sold_quantity']],
         ["Quantity Sold Unlinked", asset_stats['total_sold_unlinked_quantity']],
-        ["Quantity Purchased Unlinked, AKA The HODL", asset_stats['total_purchased_unlinked_quantity']],
+        ["Quantity Purchased Unlinked", asset_stats['total_purchased_unlinked_quantity']],
         ["Quantity Purchased in USD", asset_stats['total_purchased_usd']],
         ["Quantity Sold in USD", asset_stats['total_sold_usd']],
         ["Profit / Loss in USD* (Valid when Quantity Sold Unlinked is 0)", asset_stats['total_profit_loss']],
@@ -1416,6 +1435,55 @@ def link_batch():
     return jsonify('all good!')
 
 
+@blueprint.route('/delete_link_from_linked',  methods=['POST'])
+@login_required
+def delete_link_from_linked():
+    
+    transactions = current_app.config['transactions']
+
+    links_to_delete = request.json['links']
+
+    links = transactions.links
+
+    for v in links_to_delete.values():
+        if type(v) != list:
+            continue
+
+        if type(v[0]) != str:
+            continue
+        
+        print(v)
+
+        sell_time_stamp =  dateutil.parser.parse(request.json['sell_time_stamp'])
+        
+        symbol = request.json['symbol'] # incorportate in matched link!
+
+
+        buy_time_stamp = dateutil.parser.parse(v[0])
+        link_quantity = v[5]
+
+        print(link_quantity)
+
+        matched_link = [link for link in links if link.quantity == link_quantity and link.buy.time_stamp == buy_time_stamp and link.sell.time_stamp == sell_time_stamp][0]
+
+        for link in matched_link.buy.links:
+            if link in matched_link.buy.links:
+                matched_link.buy.links.remove(link)
+
+        for link in matched_link.sell.links:
+            if link in matched_link.sell.links:
+                matched_link.sell.links.remove(link)
+
+        del(matched_link)
+
+    transactions.save("Deleted Link(s)")
+
+    return jsonify("Deleted Link(s)")
+
+
+
+
+
 @blueprint.route('/delete_link',  methods=['POST'])
 @login_required
 def delete_link():
@@ -1456,3 +1524,4 @@ def delete_link():
     transactions.save("Deleted Link(s)")
 
     return jsonify("Deleted Link(s)")
+

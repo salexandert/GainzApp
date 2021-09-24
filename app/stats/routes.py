@@ -30,7 +30,7 @@ def index():
 def selected_asset():
     # Populate Links, Sells, Buys Tables based on selected asset from stats table
 
-    print(request.json)
+    # print(request.json)
 
     transactions = current_app.config['transactions']
 
@@ -66,7 +66,7 @@ def selected_asset():
         ["Average Sell Price", asset_stats["average_sell_price"]],
         ["Quantity Sold", asset_stats['total_sold_quantity']],
         ["Quantity Sold Unlinked", asset_stats['total_sold_unlinked_quantity']],
-        ["Quantity Purchased Unlinked, AKA The HODL", asset_stats['total_purchased_unlinked_quantity']],
+        ["Quantity Purchased Unlinked", asset_stats['total_purchased_unlinked_quantity']],
         ["Quantity Purchased in USD", asset_stats['total_purchased_usd']],
         ["Quantity Sold in USD", asset_stats['total_sold_usd']],
         ["Profit / Loss in USD", asset_stats['total_profit_loss']],
@@ -199,7 +199,7 @@ def date_range():
 def linkable_data():
     
     
-    print(request.json)
+    # print(request.json)
     transactions = current_app.config['transactions']
 
     # Get selected Trans Object
@@ -208,7 +208,7 @@ def linkable_data():
     for trans in transactions:
         # print(trans.name)
         if trans.name == trans1_name:
-            print(f"Trans1 Found {trans.name}")
+            # print(f"Trans1 Found {trans.name}")
             trans1_obj = trans
             break
 
@@ -219,7 +219,5 @@ def linkable_data():
     data_dict['linked'] = linked_table_data
     data_dict['linkable'] = linkable_table_data
     
-    print("linked Below")
-
 
     return jsonify(data_dict)

@@ -71,11 +71,15 @@ class Transaction:
         buy.update_linked_transactions()
         sell.update_linked_transactions()
 
+        return link
+
     
     @property
     def unlinked_quantity(self):
+        self.update_linked_transactions()
         
         unlinked_quantity = self.quantity        
+        
         for link in self.links:
             unlinked_quantity -= link.quantity
                        
