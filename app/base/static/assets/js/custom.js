@@ -814,7 +814,7 @@ $(document).ready(function() {
 
              
 
-                if (data['min_links_batch'].length > 0) {$('#add_links_batch_options').append('<option>Min links</option>')}
+                if (data['min_links_batch'].length > 0) {$('#add_links_batch_options').append('<option>Min Links</option>')}
                 if (data['min_gain_batch'].length > 0) {$('#add_links_batch_options').append('<option>Min Gain</option>')}
                 if (data['min_gain_long_batch'].length > 0) {$('#add_links_batch_options').append('<option>Min Gain Long</option>')}
                 if (data['min_gain_short_batch'].length > 0) {$('#add_links_batch_options').append('<option>Min Gain Short</option>')}
@@ -825,7 +825,7 @@ $(document).ready(function() {
 
                 if (data['max_gain_long_batch'].length > 0) { $('#add_links_batch_options').val('Max Gain Long').change() }
                 else if (data['max_gain_batch'].length > 0) { $('#add_links_batch_options').val('Max Gain').change() }
-                else if (data['min_links_batch'].length > 0) {  $('#add_links_batch_options').val('Min links').change()  }
+                else if (data['min_links_batch'].length > 0) {  $('#add_links_batch_options').val('Min Links').change()  }
                 else { $('#add_links_batch_options').val('') }
 
 
@@ -1234,7 +1234,7 @@ $(document).ready(function() {
 
                 $('#model_batch_options').children().remove()
 
-                if (data['min_links_batch'].length > 0) {$('#model_batch_options').append('<option>Min links</option>')}
+                if (data['min_links_batch'].length > 0) {$('#model_batch_options').append('<option>Min Links</option>')}
                 if (data['min_gain_batch'].length > 0) {$('#model_batch_options').append('<option>Min Gain</option>')}
                 if (data['min_gain_long_batch'].length > 0) {$('#model_batch_options').append('<option>Min Gain Long</option>')}
                 if (data['min_gain_short_batch'].length > 0) {$('#model_batch_options').append('<option>Min Gain Short</option>')}
@@ -1245,7 +1245,7 @@ $(document).ready(function() {
 
                 if (data['max_gain_long_batch'].length > 0) { $('#model_batch_options').val('Max Gain Long').change() }
                 else if (data['max_gain_batch'].length > 0) { $('#model_batch_options').val('Max Gain').change() }
-                else if (data['min_links_batch'].length > 0) {  $('#model_batch_options').val('Min links').change()  }
+                else if (data['min_links_batch'].length > 0) {  $('#model_batch_options').val('Min Links').change()  }
                 else { $('#model_batch_options').val('') }
 
 

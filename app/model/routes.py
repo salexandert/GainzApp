@@ -32,7 +32,7 @@ def index():
 def selected_asset():
     # Populate Links, Sells, Buys Tables based on selected asset from stats table
 
-    print(request.json)
+    # print(request.json)
 
     transactions = current_app.config['transactions']
 
@@ -41,8 +41,8 @@ def selected_asset():
     # Selected Asset
     row_data = request.json['row_data']
     potential_sale_usd_spot = float(request.json['usd_spot'].replace(',', ''))
-    print(request.json['quantity'])
-    print(type(request.json['quantity']))
+    # print(request.json['quantity'])
+    # print(type(request.json['quantity']))
 
     
     # calculate quantity 
@@ -560,7 +560,7 @@ def date_range():
 def linkable_data():
     
     
-    print(request.json)
+    # print(request.json)
     transactions = current_app.config['transactions']
 
     # Get selected Trans Object
@@ -569,7 +569,7 @@ def linkable_data():
     for trans in transactions:
         # print(trans.name)
         if trans.name == trans1_name:
-            print(f"Trans1 Found {trans.name}")
+            # print(f"Trans1 Found {trans.name}")
             trans1_obj = trans
             break
 
@@ -580,7 +580,7 @@ def linkable_data():
     data_dict['linked'] = linked_table_data
     data_dict['linkable'] = linkable_table_data
     
-    print("linked Below")
+
 
 
     return jsonify(data_dict)

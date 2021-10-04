@@ -537,7 +537,7 @@ class Transactions:
                     difference = bought - if_converted_sold
                     # print(bought, if_converted_sold, difference)
                     if difference < 0.000000009:
-                        print(f"\nIn Convert Sends to Sells, Buys {bought} can no longer cover sells {if_converted_sold} difference {difference} @ {trans.time_stamp}")
+                        print(f"\nIn Convert Sends to Sells, Buys [{bought}] can no longer cover sells [{if_converted_sold}] difference [{difference}] @ {trans.time_stamp}")
 
                         if received > difference:
                             print(f"We can convert Receives {received} to Buys to cover {difference} @ {trans.time_stamp}")
@@ -545,8 +545,21 @@ class Transactions:
                         else:
                             continue
 
-
                     sell = Sell(symbol=trans.symbol, quantity=trans.quantity, time_stamp=trans.time_stamp, usd_spot=trans.usd_spot, linked_transactions=trans.linked_transactions, source="Gainz App Send to Sale")
+
+                    self.transactions.append(sell)
+
+                    auto_link_failures = self.auto_link(asset=asset, algo='fifo', pre_check=True)
+                    if len(auto_link_failures) == 1:
+                        # print(f"Delete this bih {auto_link_failures[0]}")
+                        self.transactions.remove(sell)
+                        del(sell)
+                        # print('Deleted that bih')
+                        continue
+
+                    # elif len(auto_link_failures) > 1:
+                    #     print('More than 1 failures we done messed up!')
+
 
                     sold += sell.quantity
 
@@ -562,13 +575,12 @@ class Transactions:
 
                     self.conversions.append(conversion)
                     
-                    self.transactions.append(sell)
-
                     sends_to_delete.append(trans)
 
                     quantity_of_sends_converted_to_sells += trans.quantity
                     
                     amount_to_convert -= trans.quantity
+
 
         for trans in self.transactions:
             trans.update_linked_transactions()
@@ -633,9 +645,9 @@ class Transactions:
                 if trans.symbol != asset:
                     continue
 
-                if trans.trans_type == 'receive':
-                    print(f" Candidate Found for Receive to Buy!!! {trans.name} {trans.quantity} ")
-                    print(amount_to_convert)
+                # if trans.trans_type == 'receive':
+                    # print(f" Candidate Found for Receive to Buy!!! {trans.name} {trans.quantity} ")
+                    # print(amount_to_convert)
                 
                 if amount_to_convert > 0 and amount_to_convert <= amount_to_convert and trans.trans_type == 'receive':
                     # Convert receive to buy

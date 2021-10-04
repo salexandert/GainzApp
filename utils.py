@@ -178,7 +178,7 @@ def get_linked_table_data(transactions, asset, date_range):
             for link in trans.links
             ])
 
-    print(f" {asset} len of links {len(links)}")
+    # print(f" {asset} len of links {len(links)}")
     
     # Get linked Table Data
     linked_table_data = []

@@ -95,7 +95,7 @@ def add_transaction():
     if manual_trans.is_submitted():
         
 
-        print(manual_trans.data)
+        # print(manual_trans.data)
         if manual_trans.type.data == 'buy':
             trans = Buy(
                 trans_type=manual_trans.type.data,
@@ -150,7 +150,7 @@ def add_links():
     # Search for Sell
     search = Search()
     if search.validate_on_submit():
-        print(search.data)
+        # print(search.data)
         
         transactions_found = []
         for trans in all_trans_table_data:
@@ -159,10 +159,10 @@ def add_links():
             if trans['type'] == 'sell':
                 
                 if search.symbol.data.upper() == trans['asset']:
-                    print(f"symbols Match {trans['asset']}")
+                    # print(f"symbols Match {trans['asset']}")
                     
                     if search.timestamp.data == trans['time_stamp']:
-                        print('match',  trans['time_stamp'])
+                        # print('match',  trans['time_stamp'])
                         potential_trans = True
                     else:
                         print(f" This is the timestamp {trans['time_stamp']} right here ")
@@ -170,7 +170,7 @@ def add_links():
                 if search.quantity.data:
                     if float(search.quantity.data) == float(trans['quantity']):
                         potential_trans = True
-                        print(f"Quantity Match on {trans['quantity']}")
+                        # print(f"Quantity Match on {trans['quantity']}")
 
 
                 # find with profit
@@ -917,9 +917,9 @@ def auto_link_pre_check():
     auto_link_check_failed = False
 
     if len(auto_link_failures) > 0:
-        auto_link_check_failed = True
         for i in auto_link_failures:
-            print(i)
+            if i['unlinkable'] > 0.00009:
+                auto_link_check_failed = True
 
 
     sells = []
@@ -941,8 +941,8 @@ def auto_link_pre_check():
             buys.append(trans)
             bought += trans.quantity
 
-    print(asset)
-    print(bought, sold)
+    # print(asset)
+    # print(bought, sold)
 
     sells.sort(key=lambda x: x.time_stamp)
     buys.sort(key=lambda x: x.time_stamp)
@@ -1061,6 +1061,34 @@ def sends_to_sells():
         result_str = transactions.convert_sends_to_sells(asset=asset, amount_to_convert=amount_to_convert)
 
         transactions.save(description="Converted Sends to sells")
+
+    auto_link_failures = transactions.auto_link(asset=asset, algo='fifo', pre_check=True)
+
+    if len(auto_link_failures) > 0:
+        for failure in auto_link_failures:
+            
+            send_to_delete = None
+
+            for trans in transactions:
+                if trans.trans_type != "sell":
+                    continue
+
+                if trans.symbol != failure['asset']:
+                    continue
+                    
+                if trans.quantity != failure['quantity']:
+                    continue
+            
+                if trans.time_stamp != failure['timestamp']:
+                    continue
+
+                send_to_delete = trans
+                break
+            
+            if send_to_delete is not None:
+                print(f"We need to delete \n [{send_to_delete}] \n")
+                # quantity = send_to_delete.quantity
+                # del(send_to_delete)
 
     return jsonify(result_str)
 
@@ -1454,7 +1482,7 @@ def delete_link_from_linked():
         if type(v[0]) != str:
             continue
         
-        print(v)
+        # print(v)
 
         sell_time_stamp =  dateutil.parser.parse(request.json['sell_time_stamp'])
         
@@ -1464,7 +1492,7 @@ def delete_link_from_linked():
         buy_time_stamp = dateutil.parser.parse(v[0])
         link_quantity = v[5]
 
-        print(link_quantity)
+        # print(link_quantity)
 
         matched_link = [link for link in links if link.quantity == link_quantity and link.buy.time_stamp == buy_time_stamp and link.sell.time_stamp == sell_time_stamp][0]
 
@@ -1506,13 +1534,13 @@ def delete_link():
         if type(v[0]) != str:
             continue
         
-        print(v)
+        # print(v)
         symbol = v[0]
         buy_time_stamp = dateutil.parser.parse(v[1])
         sell_time_stamp = dateutil.parser.parse(v[2])
         link_quantity = v[5]
 
-        print(link_quantity)
+        # print(link_quantity)
 
         matched_link = [link for link in links if link.quantity == link_quantity and link.buy.time_stamp == buy_time_stamp and link.sell.time_stamp == sell_time_stamp][0]
 
