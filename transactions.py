@@ -255,14 +255,17 @@ basedir = os.getcwd()
 
 class Transactions:
 
-    def __init__(self):
+    def __init__(self, view=None):
         
         self.saves = self.load_saves()
         self.index = 0
         self.conversions = []
         self.asset_objects = []
 
-        if len(self.saves) > 0:
+        if view is not None:
+            self.transactions = self.load(view)
+            self.view = view
+        elif len(self.saves) > 0:
             view = self.saves[-1]['value']
             self.transactions = self.load(view)
             self.view = view
@@ -338,7 +341,9 @@ class Transactions:
             sells[key].sort(key=lambda x: x.time_stamp)
 
         # Start the Algo
-        for key in sells.keys():
+        keys = list(sells.keys())
+        keys.sort()
+        for key in keys:
 
             links = []
 
@@ -1641,11 +1646,7 @@ if __name__ == "__main__":
 
     transactions = Transactions()
 
-    for trans in transactions:
-        if trans.quantity == 0.75446135:
-
-            import ipdb
-            ipdb.set_trace()
+    print(transactions.view)
 
 
     
