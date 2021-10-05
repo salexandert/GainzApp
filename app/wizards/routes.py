@@ -47,7 +47,8 @@ class Search(FlaskForm):
     
     submit = SubmitField('Search')
 
-    
+
+
 @blueprint.route('/import', methods=['GET', 'POST'])
 @login_required
 def import_wizard():
@@ -55,8 +56,6 @@ def import_wizard():
     transactions = current_app.config['transactions']
     manual_trans = ManualTransaction()
     current_hodl = CurrentHodl()
-
-
 
     if 'current_hodl' not in session:
         session['current_hodl'] = []
@@ -79,6 +78,153 @@ def import_wizard():
     all_trans_table_data = get_all_trans_table_data(transactions)
     
     return render_template('import_transactions.html', manual_trans=manual_trans, current_hodl=current_hodl,transactions=all_trans_table_data, stats_table_data=stats_table_data)
+
+
+@blueprint.route('/add_transactions_selected_asset',  methods=['POST'])
+@login_required
+def add_transactions_selected_asset():
+
+    # print(request.json)
+
+    transactions = current_app.config['transactions']
+
+    date_range = {
+        'start_date': '',
+        'end_date': ''
+    }
+
+    asset = request.json['row_data'][0]
+
+    # Get date range of transactions
+    date_range = get_transactions_date_range(transactions, date_range)
+
+     # Get Sells Table Data 
+    sells_table_data = get_sells_trans_table_data_range(transactions, asset, date_range)
+
+    # Get Buys Table Data
+    buys_table_data = get_buys_trans_table_data_range(transactions, asset, date_range)
+
+    buys_unlinked_remaining = []
+    if request.json['unlinked_remaining']:
+        for buy in buys_table_data:
+            if type(buy[4]) is str:
+                continue
+
+            if buy[4] > 0.000000009:
+                buys_unlinked_remaining.append(buy)
+
+        buys_table_data = buys_unlinked_remaining
+
+    
+    if 'usd_spot' in request.json:
+        print(request.json['usd_spot'])
+        usd_spot = float(request.json['usd_spot'].replace(',', ''))
+        for row in buys_table_data:
+            if row[4] == 'Less than 0.00000009' or row[4] == '0':
+                remaining_in_usd = row[4]
+            else:
+                remaining_in_usd = usd_spot * float(row[4])
+                remaining_in_usd = "${:,.2f}".format(remaining_in_usd)
+            
+            row.append(remaining_in_usd)
+    else:
+        for row in buys_table_data:
+            row.append("Provide USD Spot to Populate")
+
+    # Get Sends Table Data
+    sends_table_data = get_sends_trans_table_data_range(transactions, asset, date_range)
+
+    # Get Receives Table Data
+    receives_table_data = get_receives_trans_table_data_range(transactions, asset, date_range)
+
+    data_dict = {}
+    data_dict['sells'] = sells_table_data
+    data_dict['buys'] = buys_table_data
+    data_dict['sends'] = sends_table_data
+    data_dict['receives'] = receives_table_data
+
+    return jsonify(data_dict)
+
+
+@blueprint.route('/add_links_selected_asset',  methods=['POST'])
+@login_required
+def add_links_selected_asset():
+    # Populate Links, Sells, Buys Tables based on selected asset from stats table
+
+    # print(request.json)
+
+    transactions = current_app.config['transactions']
+
+    date_range = {
+        'start_date': request.json['start_date'],
+        'end_date': request.json['end_date']
+    }
+
+    date_range = get_transactions_date_range(transactions, date_range)
+
+    # get stats table data 
+    stats_table_data = get_stats_table_data_range(transactions, date_range)
+
+    # get stats for selected asset
+    asset_stats = None
+    for asset in stats_table_data:
+        if asset['symbol'] == request.json['row_data'][0]:
+            asset_stats = asset
+            break
+        
+    asset = asset_stats['symbol']
+
+    # print(asset_stats)
+
+    # Create detailed stats table data
+    detailed_stats = [
+        ["Quantity Purchased", asset_stats['total_purchased_quantity']],
+        ["Number of Buys", asset_stats["num_buys"]],
+        ["Number of Sells", asset_stats["num_sells"]],
+        ["Number of Links", asset_stats["num_links"]],
+        ["Average Buy Price", asset_stats["average_buy_price"]],
+        ["Average Sell Price", asset_stats["average_sell_price"]],
+        ["Quantity Sold", asset_stats['total_sold_quantity']],
+        ["Quantity Sold Unlinked", asset_stats['total_sold_unlinked_quantity']],
+        ["Quantity Purchased Unlinked", asset_stats['total_purchased_unlinked_quantity']],
+        ["Quantity Purchased in USD", asset_stats['total_purchased_usd']],
+        ["Quantity Sold in USD", asset_stats['total_sold_usd']],
+        ["Profit / Loss in USD* (Valid when Quantity Sold Unlinked is 0)", asset_stats['total_profit_loss']],
+    ]
+
+    # Get Linked Table Data
+    linked_table_data = get_linked_table_data(transactions, asset, date_range)
+
+    # Get Sells Table Data 
+    sells_table_data = get_sells_trans_table_data_range(transactions, asset, date_range)
+
+    sells_unlinked_remaining = []
+    if request.json['unlinked_remaining']:
+        for sell in sells_table_data:
+            if type(sell[4]) is str:
+                continue
+
+            if sell[4] > 0.000000009:
+                sells_unlinked_remaining.append(sell)
+
+        sells_table_data = sells_unlinked_remaining
+
+    # Get Buys Table Data
+    buys_table_data = get_buys_trans_table_data_range(transactions, asset, date_range)
+
+    # Get All Links Table Data
+    all_links_table_data = get_all_links_table_data(transactions, asset)
+
+
+    data_dict = {}
+
+    data_dict['all_links'] = all_links_table_data
+    data_dict['detailed_stats'] = detailed_stats
+    data_dict['linked'] = linked_table_data
+    data_dict['sells'] = sells_table_data
+    data_dict['buys'] = buys_table_data
+    
+    return jsonify(data_dict)
 
 
 @blueprint.route('/add_transactions', methods=['GET', 'POST'])
@@ -131,10 +277,8 @@ def add_transaction():
         trans_data['unlinked_quantity'] = trans.unlinked_quantity
         trans_data['usd_total'] = "${:,.2f}".format(trans.usd_total)
     
-
         stats_table_data = get_stats_table_data(transactions)
         
-    
     return render_template('add_transactions.html',  manual_trans=manual_trans, stats_table_data=stats_table_data)
 
 
@@ -1116,126 +1260,6 @@ def receive_to_buy():
     return jsonify("Yess")
 
 
-@blueprint.route('/selected_asset',  methods=['POST'])
-@login_required
-def selected_asset():
-    # Populate Links, Sells, Buys Tables based on selected asset from stats table
-
-    # print(request.json)
-
-    transactions = current_app.config['transactions']
-
-    date_range = {
-        'start_date': request.json['start_date'],
-        'end_date': request.json['end_date']
-    }
-
-    date_range = get_transactions_date_range(transactions, date_range)
-
-    # get stats table data 
-    stats_table_data = get_stats_table_data_range(transactions, date_range)
-
-    # get stats for selected asset
-    asset_stats = None
-    for asset in stats_table_data:
-        if asset['symbol'] == request.json['row_data'][0]:
-            asset_stats = asset
-            break
-        
-    asset = asset_stats['symbol']
-
-    # print(asset_stats)
-
-    # Create detailed stats table data
-    detailed_stats = [
-        ["Quantity Purchased", asset_stats['total_purchased_quantity']],
-        ["Number of Buys", asset_stats["num_buys"]],
-        ["Number of Sells", asset_stats["num_sells"]],
-        ["Number of Links", asset_stats["num_links"]],
-        ["Average Buy Price", asset_stats["average_buy_price"]],
-        ["Average Sell Price", asset_stats["average_sell_price"]],
-        ["Quantity Sold", asset_stats['total_sold_quantity']],
-        ["Quantity Sold Unlinked", asset_stats['total_sold_unlinked_quantity']],
-        ["Quantity Purchased Unlinked", asset_stats['total_purchased_unlinked_quantity']],
-        ["Quantity Purchased in USD", asset_stats['total_purchased_usd']],
-        ["Quantity Sold in USD", asset_stats['total_sold_usd']],
-        ["Profit / Loss in USD* (Valid when Quantity Sold Unlinked is 0)", asset_stats['total_profit_loss']],
-    ]
-
-    # Get Linked Table Data
-    linked_table_data = get_linked_table_data(transactions, asset, date_range)
-
-    # Get Sells Table Data 
-    sells_table_data = get_sells_trans_table_data_range(transactions, asset, date_range)
-
-    sells_unlinked_remaining = []
-    if request.json['unlinked_remaining']:
-        for sell in sells_table_data:
-            if type(sell[4]) is str:
-                continue
-
-            if sell[4] > 0.000000009:
-                sells_unlinked_remaining.append(sell)
-
-        sells_table_data = sells_unlinked_remaining
-
-    # Get Buys Table Data
-    buys_table_data = get_buys_trans_table_data_range(transactions, asset, date_range)
-
-    # Get All Links Table Data
-    all_links_table_data = get_all_links_table_data(transactions, asset)
-
-
-    data_dict = {}
-
-    data_dict['all_links'] = all_links_table_data
-    data_dict['detailed_stats'] = detailed_stats
-    data_dict['linked'] = linked_table_data
-    data_dict['sells'] = sells_table_data
-    data_dict['buys'] = buys_table_data
-    
-    return jsonify(data_dict)
-
-
-
-@blueprint.route('/add_transactions_selected_asset',  methods=['POST'])
-@login_required
-def add_transactions_selected_asset():
-
-
-    # print(request.json)
-
-    transactions = current_app.config['transactions']
-
-    date_range = {
-        'start_date': '',
-        'end_date': ''
-    }
-
-    asset = request.json['row_data'][0]
-
-    # Get date range of transactions
-    date_range = get_transactions_date_range(transactions, date_range)
-
-     # Get Sells Table Data 
-    sells_table_data = get_sells_trans_table_data_range(transactions, asset, date_range)
-
-    # Get Buys Table Data
-    buys_table_data = get_buys_trans_table_data_range(transactions, asset, date_range)
-
-    # Get Sends Table Data
-    sends_table_data = get_sends_trans_table_data_range(transactions, asset, date_range)
-
-    # Get Receives Table Data
-    receives_table_data = get_receives_trans_table_data_range(transactions, asset, date_range)
-
-    data_dict = {}
-    data_dict['sells'] = sells_table_data
-    data_dict['buys'] = buys_table_data
-    data_dict['sends'] = sends_table_data
-    data_dict['receives'] = receives_table_data
-
-    return jsonify(data_dict)
 
 
 @blueprint.route('/delete_transactions',  methods=['POST'])

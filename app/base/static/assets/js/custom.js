@@ -725,7 +725,7 @@ $(document).ready(function() {
 
             $.ajax({
                 type: "POST",
-                url: "/wizards/selected_asset",
+                url: "/wizards/add_links_selected_asset",
                 data: JSON.stringify({
                     'row_data': $('#addlinks_stats_datatable').DataTable().row( {selected:true} ).data(),
                     'start_date': '',
@@ -757,7 +757,7 @@ $(document).ready(function() {
 
         $.ajax({
             type: "POST",
-            url: "/wizards/selected_asset",
+            url: "/wizards/add_links_selected_asset",
             data: JSON.stringify({
                 'row_data': $('#addlinks_stats_datatable').DataTable().row( this ).data(),
                 'start_date': '',
@@ -1070,12 +1070,12 @@ $(document).ready(function() {
 
     $('#add_transactions_stats_datatable tbody').on( 'click', 'tr', function () {
         
-        
         $.ajax({
             type: "POST",
             url: "/wizards/add_transactions_selected_asset",
             data: JSON.stringify({
                 'row_data':  $('#add_transactions_stats_datatable').DataTable().row( this ).data(),
+                'unlinked_remaining': $('#manage_trans_buys_checkbox_unlinked').is(':checked')
                 }),  
 
             contentType: 'application/json',
@@ -1094,6 +1094,7 @@ $(document).ready(function() {
 
                 $('#add_transactions_receive_datatable').DataTable().clear();
                 $('#add_transactions_receive_datatable').DataTable().rows.add(data['receives']).draw();
+                
 
                     
             },   
@@ -1120,6 +1121,82 @@ $(document).ready(function() {
         });
     });
 
+    $('#manage_trans_buys_checkbox_unlinked').on('click', function() {
+       
+        var json_data = {
+            'row_data':  $('#add_transactions_stats_datatable').DataTable().row( {selected:true} ).data(),
+            'unlinked_remaining': $('#manage_trans_buys_checkbox_unlinked').is(':checked'),
+        }
+
+        if ($('#manage_transactions_usd_spot').val()) {
+            console.log($('#manage_transactions_usd_spot').val())
+            json_data['usd_spot'] = $('#manage_transactions_usd_spot').val()
+        }
+
+        $.ajax({
+            type: "POST",
+            url: "/wizards/add_transactions_selected_asset",
+            data: JSON.stringify(json_data),  
+
+            contentType: 'application/json',
+            success: function (data) {
+
+                console.log(data)
+                
+                $('#add_transactions_sells_datatable').DataTable().clear();
+                $('#add_transactions_sells_datatable').DataTable().rows.add(data['sells']).draw();
+                
+                $('#add_transactions_buys_datatable').DataTable().clear();
+                $('#add_transactions_buys_datatable').DataTable().rows.add(data['buys']).draw();
+
+                $('#add_transactions_sends_datatable').DataTable().clear();
+                $('#add_transactions_sends_datatable').DataTable().rows.add(data['sends']).draw();
+
+                $('#add_transactions_receive_datatable').DataTable().clear();
+                $('#add_transactions_receive_datatable').DataTable().rows.add(data['receives']).draw();
+            },   
+        });
+
+    });
+
+    $("#manage_transactions_usd_spot").on('change', function(){
+
+        // console.log($(this).val())
+        
+        $.ajax({
+            type: "POST",
+            url: "/wizards/add_transactions_selected_asset",
+            data: JSON.stringify({
+                'row_data':  $('#add_transactions_stats_datatable').DataTable().row( {selected:true} ).data(),
+                'unlinked_remaining': $('#manage_trans_buys_checkbox_unlinked').is(':checked'),
+                'usd_spot': $(this).val()
+                }),  
+
+            contentType: 'application/json',
+            success: function (data) {
+
+                console.log(data)
+                
+                $('#add_transactions_sells_datatable').DataTable().clear();
+                $('#add_transactions_sells_datatable').DataTable().rows.add(data['sells']).draw();
+                
+                $('#add_transactions_buys_datatable').DataTable().clear();
+                $('#add_transactions_buys_datatable').DataTable().rows.add(data['buys']).draw();
+
+                $('#add_transactions_sends_datatable').DataTable().clear();
+                $('#add_transactions_sends_datatable').DataTable().rows.add(data['sends']).draw();
+
+                $('#add_transactions_receive_datatable').DataTable().clear();
+                $('#add_transactions_receive_datatable').DataTable().rows.add(data['receives']).draw();
+                
+
+                    
+            },   
+        });
+
+
+
+    });
 
     $("#buys_delete_button").click(function(){
         $.ajax({
