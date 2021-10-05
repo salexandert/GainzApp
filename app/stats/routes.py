@@ -109,7 +109,7 @@ def selected_asset():
                 filtered_transactions.append(trans)
 
 
-    chart_data = []
+    unrealized_chart_data = []
 
     to_date_quantity = 0.0
     to_date_usd_total = 0.0
@@ -122,19 +122,15 @@ def selected_asset():
             to_date_usd_total += trans.usd_total
             to_date_profit = (to_date_quantity * trans.usd_spot) - to_date_usd_total
 
-            chart_data.append({'x': datetime.datetime.strftime(trans.time_stamp, "%Y-%m-%d %H:%M:%S"), 'y': to_date_profit})
+            unrealized_chart_data.append({'x': datetime.datetime.strftime(trans.time_stamp, "%Y-%m-%d %H:%M:%S"), 'y': to_date_profit, 'quantity': to_date_quantity})
 
         elif trans.trans_type == 'sell':
 
             to_date_quantity -= trans.quantity
-            
             to_date_usd_total -= trans.usd_total
-            
             to_date_profit = (to_date_quantity * trans.usd_spot) - to_date_usd_total
 
-
-
-            chart_data.append({'x': datetime.datetime.strftime(trans.time_stamp, "%Y-%m-%d %H:%M:%S"), 'y': to_date_profit})
+            unrealized_chart_data.append({'x': datetime.datetime.strftime(trans.time_stamp, "%Y-%m-%d %H:%M:%S"), 'y': to_date_profit, 'quantity': to_date_quantity})
 
     
     data_dict = {}
@@ -143,7 +139,8 @@ def selected_asset():
     data_dict['sells'] = sells_table_data
     data_dict['buys'] = buys_table_data
 
-    data_dict['chart_data'] = chart_data
+    data_dict['unrealized_chart_data'] = unrealized_chart_data
+
 
     
     return jsonify(data_dict)

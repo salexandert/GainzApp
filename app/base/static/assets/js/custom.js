@@ -338,7 +338,6 @@ $(document).ready(function() {
 
     // Init Charts
     var myChart=null;
-    var myChart1=null;
 
     $('#statspage_stats_datatable tbody').on( 'click', 'tr', function () {
         console.log( table.row( this ).data() );
@@ -393,7 +392,7 @@ $(document).ready(function() {
                             borderColor: "#6bd098",
                             fill: false,
                             borderWidth: 3,
-                            data: return_data['chart_data']
+                            data: return_data['unrealized_chart_data']
                         },
                     ]
                 },
@@ -408,8 +407,10 @@ $(document).ready(function() {
                                 }
 
                                 label += formatter.format(tooltipItem.yLabel)
+                                label += "\n\n"
+                                label += formatter.format(data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index]['quantity'])
                                 
-                                return label;
+                                return [label, 'somenewnew'];
                             }
                         }
                       },
@@ -462,98 +463,6 @@ $(document).ready(function() {
                 }
                 });
 
-
-
-                if (myChart1!=null) {myChart1.destroy();}
-
-                var ctx = document.getElementById("gainzChart1").getContext("2d");
-
-                chartColor = "#FFFFFF";
-                gradientStroke = ctx.createLinearGradient(500, 0, 100, 0);
-                gradientStroke.addColorStop(0, '#80b6f4');
-                gradientStroke.addColorStop(1, chartColor);
-            
-                gradientFill = ctx.createLinearGradient(0, 170, 0, 50);
-                gradientFill.addColorStop(0, "rgba(128, 182, 244, 0)");
-                gradientFill.addColorStop(1, "rgba(249, 99, 59, 0.40)");
-
-                myChart1 = new Chart(ctx, {
-                  type: 'line',
-                  data: {
-                    datasets: [
-                        {
-                            label: "Unrealized Profit",
-                            borderColor: "#6bd098",
-                            fill: false,
-                            borderWidth: 3,
-                            data: return_data['chart_data']
-                        },
-                    ]
-                },
-                  options: {
-                    tooltips: {
-                        callbacks: {
-                            label: function(tooltipItem, data) {
-                                var label = data.datasets[tooltipItem.datasetIndex].label || '';
-           
-                                if (label) {
-                                    label += ': ';
-                                }
-
-                                label += formatter.format(tooltipItem.yLabel)
-                                
-                                return label;
-                            }
-                        }
-                      },
-
-
-                    responsive: true,
-                    title:      {
-                        display: false,
-                        text:    "Gainz Chart"
-                    },
-                    scales: {
-                        
-                        xAxes: [{
-                            type: "time",
-                            time: {
-                                unit: 'month',
-                                tooltipFormat: 'll'
-                            },
-                            scaleLabel: {
-                                display:     true,
-                                labelString: 'Date'
-                            },
-                            
-                        }],
-                        
-                        yAxes: [{
-                            ticks: {
-                                beginAtZero: false,
-                                callback: function(value, index, values) {
-                                  if(parseInt(value) >= 1000){
-                                    return '$' + value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-                                  } else {
-                                    return '$' + value;
-                                  }
-                                }
-                            },
-
-                            scaleLabel: {
-                                display:     true,
-                                labelString: 'Unrealized Profit in USD*'
-                            },
-
-                              gridLines: {
-                                drawBorder: false,
-                                zeroLineColor: "transparent",
-                                color: 'rgba(255,255,255,0.05)'
-                              }
-                        }]
-                    }
-                }
-                });
 
                     
             },   

@@ -168,8 +168,16 @@
       <div class="card-body">
           <div class="card card-plain">
             <div class="card-header">
-              <h5 class="card-title">Unrealized Chart</h5>
-              <p class="card-category">Unrealized Gains or Losses</p>
+              <h5 class="card-title">Gainz Chart</h5>
+              <p class="card-category">Unrealized Gains or Losses minus cost basis</p>
+              <div class="col-sm-2">
+                <label class="col-form-label">USD Spot:</label>
+                <div class="form-group">
+                  <input id='manage_transactions_usd_spot' class="form-control" type="text" name="number" number="true" />
+                </div>
+                <input id="remove_cost_baisis_checkbox" type="checkbox" class="flat" checked='checked'> Remove Cost Basis
+
+              </div>
             </div>
             <div class="card-body">
               <canvas id="gainzChart"></canvas>
@@ -180,27 +188,6 @@
   </div>
 </div>
 <!-- /Gainz Chart  -->
-
-<!-- Gainz Chart  -->
-<div class="row">
-  <div class="col-md-12">
-    <div class="card">
-      <div class="card-body">
-          <div class="card card-plain">
-            <div class="card-header">
-              <h5 class="card-title">Value Remaining</h5>
-              <p class="card-category">Value Remaining over time</p>
-            </div>
-            <div class="card-body">
-              <canvas id="gainzChart1"></canvas>
-            </div>
-          </div>
-      </div>
-    </div>
-  </div>
-</div>
-<!-- /Gainz Chart  -->
-
 
 
 
