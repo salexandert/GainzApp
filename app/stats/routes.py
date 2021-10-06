@@ -120,7 +120,12 @@ def selected_asset():
         
             to_date_quantity += trans.quantity
             to_date_usd_total += trans.usd_total
-            to_date_profit = (to_date_quantity * trans.usd_spot) - to_date_usd_total
+            if 'remove_cost_baisis_checkbox' in request.json:
+
+                if request.json['remove_cost_baisis_checkbox']:
+                    to_date_profit = (to_date_quantity * trans.usd_spot) - to_date_usd_total
+                else:
+                    to_date_profit = (to_date_quantity * trans.usd_spot)
 
             unrealized_chart_data.append({'x': datetime.datetime.strftime(trans.time_stamp, "%Y-%m-%d %H:%M:%S"), 'y': to_date_profit, 'quantity': to_date_quantity})
 
@@ -128,7 +133,12 @@ def selected_asset():
 
             to_date_quantity -= trans.quantity
             to_date_usd_total -= trans.usd_total
-            to_date_profit = (to_date_quantity * trans.usd_spot) - to_date_usd_total
+            if 'remove_cost_baisis_checkbox' in request.json:
+
+                if request.json['remove_cost_baisis_checkbox']:
+                    to_date_profit = (to_date_quantity * trans.usd_spot) - to_date_usd_total
+                else:
+                    to_date_profit = (to_date_quantity * trans.usd_spot)
 
             unrealized_chart_data.append({'x': datetime.datetime.strftime(trans.time_stamp, "%Y-%m-%d %H:%M:%S"), 'y': to_date_profit, 'quantity': to_date_quantity})
 

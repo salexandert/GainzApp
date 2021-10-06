@@ -326,30 +326,15 @@ $(document).ready(function() {
         },
     });
 
-    var formatter = new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-      
-        // These options are needed to round to whole numbers if that's what you want.
-        //minimumFractionDigits: 0, // (this suffices for whole numbers, but will print 2500.10 as $2,500.1)
-        //maximumFractionDigits: 0, // (causes 2500.99 to be printed as $2,501)
-      });
-
-
-    // Init Charts
-    var myChart=null;
-
-    $('#statspage_stats_datatable tbody').on( 'click', 'tr', function () {
-        console.log( table.row( this ).data() );
-        
-        
+    $('#remove_cost_baisis_checkbox').on('click', function() {
         $.ajax({
             type: "POST",
             url: "/stats/selected_asset",
             data: JSON.stringify({
-                'row_data': table.row( this ).data(),
+                'row_data': table.row( {selected:true}).data(),
                 'start_date': $("#start_date").datetimepicker().val(),
-                'end_date': $("#end_date").datetimepicker().val()
+                'end_date': $("#end_date").datetimepicker().val(),
+                'remove_cost_baisis_checkbox': $('#remove_cost_baisis_checkbox').is(':checked')
                 }),  
 
             contentType: 'application/json',
@@ -400,17 +385,168 @@ $(document).ready(function() {
                     tooltips: {
                         callbacks: {
                             label: function(tooltipItem, data) {
-                                var label = data.datasets[tooltipItem.datasetIndex].label || '';
-           
-                                if (label) {
-                                    label += ': ';
+                                var gain_loss = data.datasets[tooltipItem.datasetIndex].label || '';
+                                var quantity = "Quantity: " 
+                                quantity += data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index]['quantity']
+                                
+                                if (gain_loss) {
+                                    gain_loss += ': ';
                                 }
 
-                                label += formatter.format(tooltipItem.yLabel)
-                                label += "\n\n"
-                                label += formatter.format(data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index]['quantity'])
+                                gain_loss += formatter.format(tooltipItem.yLabel)                              
+
                                 
-                                return [label, 'somenewnew'];
+                                return [gain_loss, quantity];
+                            }
+                        }
+                      },
+
+
+                    responsive: true,
+                    title:      {
+                        display: false,
+                        text:    "Gainz Chart"
+                    },
+                    scales: {
+                        
+                        xAxes: [{
+                            type: "time",
+                            time: {
+                                unit: 'month',
+                                tooltipFormat: 'll'
+                            },
+                            scaleLabel: {
+                                display:     true,
+                                labelString: 'Date'
+                            },
+                            
+                        }],
+                        
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: false,
+                                callback: function(value, index, values) {
+                                  if(parseInt(value) >= 1000){
+                                    return '$' + value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                                  } else {
+                                    return '$' + value;
+                                  }
+                                }
+                            },
+
+                            scaleLabel: {
+                                display:     true,
+                                labelString: 'Unrealized Profit in USD*'
+                            },
+
+                              gridLines: {
+                                drawBorder: false,
+                                zeroLineColor: "transparent",
+                                color: 'rgba(255,255,255,0.05)'
+                              }
+                        }]
+                    }
+                }
+                });
+
+
+                    
+            },   
+        });
+    } );
+
+
+
+
+
+
+
+    var formatter = new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+      
+        // These options are needed to round to whole numbers if that's what you want.
+        //minimumFractionDigits: 0, // (this suffices for whole numbers, but will print 2500.10 as $2,500.1)
+        //maximumFractionDigits: 0, // (causes 2500.99 to be printed as $2,501)
+      });
+
+
+    // Init Charts
+    var myChart=null;
+
+    $('#statspage_stats_datatable tbody').on( 'click', 'tr', function () {
+        console.log( table.row( this ).data() );
+
+        $.ajax({
+            type: "POST",
+            url: "/stats/selected_asset",
+            data: JSON.stringify({
+                'row_data': table.row( this ).data(),
+                'start_date': $("#start_date").datetimepicker().val(),
+                'end_date': $("#end_date").datetimepicker().val(),
+                'remove_cost_baisis_checkbox': $('#remove_cost_baisis_checkbox').is(':checked')
+                }),  
+
+            contentType: 'application/json',
+            success: function (return_data) {
+
+                console.log(return_data)
+                
+                $('#statspage_detailed_datatable').DataTable().clear();
+                $('#statspage_detailed_datatable').DataTable().rows.add(return_data['detailed_stats']).draw();
+                
+                // $('#statspage_links_datatable').DataTable().clear();
+                // $('#statspage_links_datatable').DataTable().rows.add(return_data['linked']).draw();
+
+                // $('#statspage_sells_datatable').DataTable().clear();
+                // $('#statspage_sells_datatable').DataTable().rows.add(return_data['sells']).draw();
+
+                // $('#statspage_buys_datatable').DataTable().clear();
+                // $('#statspage_buys_datatable').DataTable().rows.add(return_data['buys']).draw();
+
+                
+                if (myChart!=null) {myChart.destroy();}
+
+                var ctx = document.getElementById("gainzChart").getContext("2d");
+
+                chartColor = "#FFFFFF";
+                gradientStroke = ctx.createLinearGradient(500, 0, 100, 0);
+                gradientStroke.addColorStop(0, '#80b6f4');
+                gradientStroke.addColorStop(1, chartColor);
+            
+                gradientFill = ctx.createLinearGradient(0, 170, 0, 50);
+                gradientFill.addColorStop(0, "rgba(128, 182, 244, 0)");
+                gradientFill.addColorStop(1, "rgba(249, 99, 59, 0.40)");
+
+                myChart = new Chart(ctx, {
+                  type: 'line',
+                  data: {
+                    datasets: [
+                        {
+                            label: "Unrealized Gain/Loss",
+                            borderColor: "#6bd098",
+                            fill: false,
+                            borderWidth: 3,
+                            data: return_data['unrealized_chart_data']
+                        },
+                    ]
+                },
+                  options: {
+                    tooltips: {
+                        callbacks: {
+                            label: function(tooltipItem, data) {
+                                var gain_loss = data.datasets[tooltipItem.datasetIndex].label || '';
+                                var quantity = "Quantity: " 
+                                quantity += data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index]['quantity']
+                                
+                                if (gain_loss) {
+                                    gain_loss += ': ';
+                                }
+
+                                gain_loss += formatter.format(tooltipItem.yLabel)                              
+
+                                
+                                return [gain_loss, quantity];
                             }
                         }
                       },
