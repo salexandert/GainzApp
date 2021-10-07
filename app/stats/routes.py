@@ -6,6 +6,7 @@ from flask_wtf import FlaskForm
 from wtforms.fields.html5 import DateTimeLocalField
 from utils import *
 from wtforms import SubmitField
+from time import strftime
 
 class StatsDateRange(FlaskForm):
 
@@ -120,39 +121,55 @@ def selected_asset():
         
             to_date_quantity += trans.quantity
             to_date_usd_total += trans.usd_total
-            if 'remove_cost_baisis_checkbox' in request.json:
+            gain_loss = (to_date_quantity * trans.usd_spot) - to_date_usd_total
+            to_date_profit = (to_date_quantity * trans.usd_spot)
 
-                if request.json['remove_cost_baisis_checkbox']:
-                    to_date_profit = (to_date_quantity * trans.usd_spot) - to_date_usd_total
-                else:
-                    to_date_profit = (to_date_quantity * trans.usd_spot)
-
-            unrealized_chart_data.append({'x': datetime.datetime.strftime(trans.time_stamp, "%Y-%m-%d %H:%M:%S"), 'y': to_date_profit, 'quantity': to_date_quantity})
+            unrealized_chart_data.append({
+                'x': datetime.datetime.strftime(trans.time_stamp, "%Y-%m-%d %H:%M:%S"), 
+                'y': to_date_profit, 
+                'quantity': to_date_quantity, 
+                'usd_spot': "${:,.2f}".format(trans.usd_spot),
+                'cost_baisis': "${:,.2f}".format(to_date_usd_total),
+                'gain_loss': "${:,.2f}".format(gain_loss)
+                })
 
         elif trans.trans_type == 'sell':
 
             to_date_quantity -= trans.quantity
             to_date_usd_total -= trans.usd_total
-            if 'remove_cost_baisis_checkbox' in request.json:
+            gain_loss = (to_date_quantity * trans.usd_spot) - to_date_usd_total
+            to_date_profit = (to_date_quantity * trans.usd_spot)
 
-                if request.json['remove_cost_baisis_checkbox']:
-                    to_date_profit = (to_date_quantity * trans.usd_spot) - to_date_usd_total
-                else:
-                    to_date_profit = (to_date_quantity * trans.usd_spot)
+            unrealized_chart_data.append({
+                'x': datetime.datetime.strftime(trans.time_stamp, "%Y-%m-%d %H:%M:%S"), 
+                'y': to_date_profit, 
+                'quantity': to_date_quantity, 
+                'usd_spot':  "${:,.2f}".format(trans.usd_spot),
+                'cost_baisis': "${:,.2f}".format(to_date_usd_total),
+                'gain_loss': "${:,.2f}".format(gain_loss)
+                })
 
-            unrealized_chart_data.append({'x': datetime.datetime.strftime(trans.time_stamp, "%Y-%m-%d %H:%M:%S"), 'y': to_date_profit, 'quantity': to_date_quantity})
+    if 'current_usd_spot' in request.json:
+        usd_spot = float(request.json['current_usd_spot'].replace(',', ''))
+        to_date_profit = (to_date_quantity * usd_spot)
+        gain_loss = (to_date_quantity * usd_spot) - to_date_usd_total
+        
+        unrealized_chart_data.append({
+                'x': strftime("%Y-%m-%d %H:%M:%S"), 
+                'y': to_date_profit, 
+                'quantity': to_date_quantity, 
+                'usd_spot':  "${:,.2f}".format(usd_spot),
+                'cost_baisis': "${:,.2f}".format(to_date_usd_total),
+                'gain_loss': "${:,.2f}".format(gain_loss)
+                })
 
-    
     data_dict = {}
     data_dict['detailed_stats'] = detailed_stats
     data_dict['linked'] = linked_table_data
     data_dict['sells'] = sells_table_data
     data_dict['buys'] = buys_table_data
-
     data_dict['unrealized_chart_data'] = unrealized_chart_data
 
-
-    
     return jsonify(data_dict)
 
 

@@ -244,7 +244,6 @@ $(document).ready(function() {
     $("#start_date").datetimepicker().on('dp.change', function(ev){
         console.log($("#start_date").datetimepicker().val())
 
-
         $.ajax({
             type: "POST",
             url: "/stats/date_range",
@@ -326,7 +325,8 @@ $(document).ready(function() {
         },
     });
 
-    $('#remove_cost_baisis_checkbox').on('click', function() {
+    $("#stats_usd_spot").on('change', function(){
+        
         $.ajax({
             type: "POST",
             url: "/stats/selected_asset",
@@ -334,7 +334,7 @@ $(document).ready(function() {
                 'row_data': table.row( {selected:true}).data(),
                 'start_date': $("#start_date").datetimepicker().val(),
                 'end_date': $("#end_date").datetimepicker().val(),
-                'remove_cost_baisis_checkbox': $('#remove_cost_baisis_checkbox').is(':checked')
+                'current_usd_spot': $(this).val()
                 }),  
 
             contentType: 'application/json',
@@ -344,17 +344,7 @@ $(document).ready(function() {
                 
                 $('#statspage_detailed_datatable').DataTable().clear();
                 $('#statspage_detailed_datatable').DataTable().rows.add(return_data['detailed_stats']).draw();
-                
-                // $('#statspage_links_datatable').DataTable().clear();
-                // $('#statspage_links_datatable').DataTable().rows.add(return_data['linked']).draw();
-
-                // $('#statspage_sells_datatable').DataTable().clear();
-                // $('#statspage_sells_datatable').DataTable().rows.add(return_data['sells']).draw();
-
-                // $('#statspage_buys_datatable').DataTable().clear();
-                // $('#statspage_buys_datatable').DataTable().rows.add(return_data['buys']).draw();
-
-                
+                                
                 if (myChart!=null) {myChart.destroy();}
 
                 var ctx = document.getElementById("gainzChart").getContext("2d");
@@ -373,7 +363,7 @@ $(document).ready(function() {
                   data: {
                     datasets: [
                         {
-                            label: "Unrealized Gain/Loss",
+                            label: "Value",
                             borderColor: "#6bd098",
                             fill: false,
                             borderWidth: 3,
@@ -382,21 +372,31 @@ $(document).ready(function() {
                     ]
                 },
                   options: {
+                    elements: {
+                        line: {
+                            tension: 0.08
+                        }
+                    },
                     tooltips: {
                         callbacks: {
                             label: function(tooltipItem, data) {
-                                var gain_loss = data.datasets[tooltipItem.datasetIndex].label || '';
+                                var value = data.datasets[tooltipItem.datasetIndex].label || '';
+                                if (value) { value += ': '; }
+                                value += formatter.format(tooltipItem.yLabel)
+
                                 var quantity = "Quantity: " 
                                 quantity += data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index]['quantity']
                                 
-                                if (gain_loss) {
-                                    gain_loss += ': ';
-                                }
+                                var usd_spot = "USD Spot: "
+                                usd_spot += data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index]['usd_spot']
 
-                                gain_loss += formatter.format(tooltipItem.yLabel)                              
+                                var cost_baisis = "Cost Baisis: "
+                                cost_baisis += data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index]['cost_baisis']
 
-                                
-                                return [gain_loss, quantity];
+                                var gain_loss = "Gain/Loss: "
+                                gain_loss += data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index]['gain_loss']
+                        
+                                return [value, quantity, usd_spot, cost_baisis, gain_loss];
                             }
                         }
                       },
@@ -436,7 +436,7 @@ $(document).ready(function() {
 
                             scaleLabel: {
                                 display:     true,
-                                labelString: 'Unrealized Profit in USD*'
+                                labelString: 'Value (Quantity * USD Spot)'
                             },
 
                               gridLines: {
@@ -448,17 +448,13 @@ $(document).ready(function() {
                     }
                 }
                 });
-
-
                     
             },   
         });
-    } );
 
+        
 
-
-
-
+    });
 
 
     var formatter = new Intl.NumberFormat('en-US', {
@@ -475,7 +471,7 @@ $(document).ready(function() {
     var myChart=null;
 
     $('#statspage_stats_datatable tbody').on( 'click', 'tr', function () {
-        console.log( table.row( this ).data() );
+        // console.log( table.row( this ).data() );
 
         $.ajax({
             type: "POST",
@@ -484,7 +480,6 @@ $(document).ready(function() {
                 'row_data': table.row( this ).data(),
                 'start_date': $("#start_date").datetimepicker().val(),
                 'end_date': $("#end_date").datetimepicker().val(),
-                'remove_cost_baisis_checkbox': $('#remove_cost_baisis_checkbox').is(':checked')
                 }),  
 
             contentType: 'application/json',
@@ -522,31 +517,41 @@ $(document).ready(function() {
                   type: 'line',
                   data: {
                     datasets: [
-                        {
-                            label: "Unrealized Gain/Loss",
-                            borderColor: "#6bd098",
-                            fill: false,
-                            borderWidth: 3,
-                            data: return_data['unrealized_chart_data']
-                        },
-                    ]
-                },
+                            {
+                                label: "Value",
+                                borderColor: "#6bd098",
+                                fill: false,
+                                borderWidth: 3,
+                                data: return_data['unrealized_chart_data']
+                            },
+                        ]
+                    },
                   options: {
+                    elements: {
+                        line: {
+                            tension: 0.08
+                        }
+                    },
                     tooltips: {
                         callbacks: {
                             label: function(tooltipItem, data) {
-                                var gain_loss = data.datasets[tooltipItem.datasetIndex].label || '';
+                                var value = data.datasets[tooltipItem.datasetIndex].label || '';
+                                if (value) { value += ': '; }
+                                value += formatter.format(tooltipItem.yLabel)
+
                                 var quantity = "Quantity: " 
                                 quantity += data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index]['quantity']
                                 
-                                if (gain_loss) {
-                                    gain_loss += ': ';
-                                }
+                                var usd_spot = "USD Spot: "
+                                usd_spot += data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index]['usd_spot']
 
-                                gain_loss += formatter.format(tooltipItem.yLabel)                              
+                                var cost_baisis = "Cost Baisis: "
+                                cost_baisis += data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index]['cost_baisis']
 
-                                
-                                return [gain_loss, quantity];
+                                var gain_loss = "Gain/Loss: "
+                                gain_loss += data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index]['gain_loss']
+                        
+                                return [value, quantity, usd_spot, cost_baisis, gain_loss];
                             }
                         }
                       },
@@ -586,7 +591,7 @@ $(document).ready(function() {
 
                             scaleLabel: {
                                 display:     true,
-                                labelString: 'Unrealized Profit in USD*'
+                                labelString: 'Value (Quantity * USD Spot)'
                             },
 
                               gridLines: {
@@ -1174,7 +1179,7 @@ $(document).ready(function() {
         }
 
         if ($('#manage_transactions_usd_spot').val()) {
-            console.log($('#manage_transactions_usd_spot').val())
+            // console.log($('#manage_transactions_usd_spot').val())
             json_data['usd_spot'] = $('#manage_transactions_usd_spot').val()
         }
 
@@ -1238,8 +1243,6 @@ $(document).ready(function() {
                     
             },   
         });
-
-
 
     });
 

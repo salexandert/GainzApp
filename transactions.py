@@ -1566,7 +1566,6 @@ class Transactions:
         links_df = pd.DataFrame([vars(s) for s in self.links])
 
         # Write Objects to excel file
-        
         with pd.ExcelWriter(save_as_filename) as writer:
             trans_df.to_excel(writer, sheet_name="All Transactions")
             conversion_df.to_excel(writer, sheet_name="Conversions")
