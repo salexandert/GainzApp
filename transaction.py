@@ -1,7 +1,7 @@
 from typing import Optional
 from link import Link
 import itertools
-import json
+import math
 
 class Transaction:
     newid = itertools.count()

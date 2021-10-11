@@ -17,6 +17,7 @@ import sys
 import pathlib
 import dateutil
 from utils import *
+import math
 
 
 whois_timezone_info = {
@@ -1493,21 +1494,80 @@ class Transactions:
         ## Create Objects
         # Sells
         for index, row in sell_df.iterrows():
-            sells.append(Sell(symbol=row['Asset'], quantity=row['Quantity Transacted'], time_stamp=row['Timestamp'], usd_spot=row['USD Spot Price at Transaction'], source=row['Source']))
+            trans_obj = Sell(symbol=row['Asset'], quantity=row['Quantity Transacted'], time_stamp=row['Timestamp'], usd_spot=row['USD Spot Price at Transaction'], source=row['Source'])
+            duplicate_found = False
+            for trans in self.conversions:
+                if (
+                    trans.input_trans_type == trans_obj.trans_type
+                    and trans.symbol == trans_obj.symbol
+                    and trans.quantity == trans_obj.quantity
+                    and trans.usd_spot == trans_obj.usd_spot
+                    and trans.usd_total == math.floor(trans_obj.usd_total * 10 ** 10) / 10 ** 10 
+                ):
+
+                    duplicate_found = True
+
+            if duplicate_found is False:
+                sells.append(trans_obj)
 
         # Buys
         for index, row in buy_df.iterrows():
-            buys.append(Buy(symbol=row['Asset'], quantity=row['Quantity Transacted'], time_stamp=row['Timestamp'], usd_spot=row['USD Spot Price at Transaction'], source=row['Source']))
+            trans_obj = Buy(symbol=row['Asset'], quantity=row['Quantity Transacted'], time_stamp=row['Timestamp'], usd_spot=row['USD Spot Price at Transaction'], source=row['Source'])
+            duplicate_found = False
+            for trans in self.conversions:
+                if (
+                    trans.input_trans_type == trans_obj.trans_type
+                    and trans.symbol == trans_obj.symbol
+                    and trans.quantity == trans_obj.quantity
+                    and trans.usd_spot == trans_obj.usd_spot
+                    and trans.usd_total == math.floor(trans_obj.usd_total * 10 ** 10) / 10 ** 10 
+                ):
+
+                    duplicate_found = True
+
+            if duplicate_found is False:
+                buys.append(trans_obj)
 
         # Sends
         for index, row in send_df.iterrows():
-            sends.append(Send(symbol=row['Asset'], quantity=row['Quantity Transacted'], time_stamp=row['Timestamp'], usd_spot=row['USD Spot Price at Transaction'], source=row['Source']))
+            trans_obj = Send(symbol=row['Asset'], quantity=row['Quantity Transacted'], time_stamp=row['Timestamp'], usd_spot=row['USD Spot Price at Transaction'], source=row['Source'])
+            duplicate_found = False
+            for trans in self.conversions:
+                if (
+                    trans.input_trans_type == trans_obj.trans_type
+                    and trans.symbol == trans_obj.symbol
+                    and trans.quantity == trans_obj.quantity
+                    and trans.usd_spot == trans_obj.usd_spot
+                    and trans.usd_total == math.floor(trans_obj.usd_total * 10 ** 10) / 10 ** 10 
+                ):
+
+                    duplicate_found = True
+
+            if duplicate_found is False:
+                sends.append(trans_obj)
 
         # Receives
-        for index, row in receive_df.iterrows():
-            receives.append(Receive(symbol=row['Asset'], quantity=row['Quantity Transacted'], time_stamp=row['Timestamp'], usd_spot=row['USD Spot Price at Transaction'], source=row['Source']))
+        print(f"Number of Conversions {len(self.conversions)}")
 
-        
+        for index, row in receive_df.iterrows():
+            trans_obj = Receive(symbol=row['Asset'], quantity=row['Quantity Transacted'], time_stamp=row['Timestamp'], usd_spot=row['USD Spot Price at Transaction'], source=row['Source'])
+            duplicate_found = False
+            for trans in self.conversions:
+                if (
+                    trans.input_trans_type == trans_obj.trans_type
+                    and trans.symbol == trans_obj.symbol
+                    and trans.quantity == trans_obj.quantity
+                    and trans.usd_spot == trans_obj.usd_spot
+                    and trans.usd_total == math.floor(trans_obj.usd_total * 10 ** 10) / 10 ** 10 
+                ):
+
+                    duplicate_found = True
+
+            if duplicate_found is False:
+                receives.append(trans_obj)
+
+                
+
         if convert_df is not None:
             convert_df.reset_index(inplace=True)
             for index, row in convert_df.iterrows():
@@ -1550,7 +1610,6 @@ class Transactions:
             
             self.transactions = buys + sells + sends + receives
 
-        
         for asset in self.assets:
             asset_obj = Asset(symbol=asset)
             assets.append(asset_obj)
@@ -1645,8 +1704,9 @@ if __name__ == "__main__":
 
     transactions = Transactions()
 
-    print(transactions.view)
 
+    import ipdb 
+    ipdb.set_trace()
 
     
 
