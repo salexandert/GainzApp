@@ -468,15 +468,15 @@ class Transactions:
             trans.set_multi_link()
 
         
-        print(f" Num of transactions to delete {len(buys_to_delete)} ")
-        print(f" Num of transactions before delete {len(self.transactions)} ")
+        # print(f" Num of transactions to delete {len(buys_to_delete)} ")
+        # print(f" Num of transactions before delete {len(self.transactions)} ")
         
 
         for trans in buys_to_delete:
             self.transactions.remove(trans)
 
     
-        print(f" Num of transactions after delete {len(self.transactions)} ")
+        # print(f" Num of transactions after delete {len(self.transactions)} ")
         
         # what we want to calc a second time
         bought_after = 0.0
@@ -543,11 +543,11 @@ class Transactions:
                     difference = bought - if_converted_sold
                     # print(bought, if_converted_sold, difference)
                     if difference < 0.000000009:
-                        print(f"\nIn Convert Sends to Sells, Buys [{bought}] can no longer cover sells [{if_converted_sold}] difference [{difference}] @ {trans.time_stamp}")
+                        # print(f"\nIn Convert Sends to Sells, Buys [{bought}] can no longer cover sells [{if_converted_sold}] difference [{difference}] @ {trans.time_stamp}")
 
                         if received > difference:
-                            print(f"We can convert Receives {received} to Buys to cover {difference} @ {trans.time_stamp}")
-
+                            # print(f"We can convert Receives {received} to Buys to cover {difference} @ {trans.time_stamp}")
+                            pass
                         else:
                             continue
 
@@ -592,14 +592,14 @@ class Transactions:
             trans.update_linked_transactions()
             trans.set_multi_link()
         
-        print(f"\n\nSuccessfully Converted {quantity_of_sends_converted_to_sells} in Sends to Sells in {len(sends_to_delete)} transactions!!\n\n")
-        print(f" Num of transactions to delete {len(sends_to_delete)} ")
-        print(f" Num of transactions before delete {len(self.transactions)} ")
+        # print(f"\n\nSuccessfully Converted {quantity_of_sends_converted_to_sells} in Sends to Sells in {len(sends_to_delete)} transactions!!\n\n")
+        # print(f" Num of transactions to delete {len(sends_to_delete)} ")
+        # print(f" Num of transactions before delete {len(self.transactions)} ")
         
         for trans in sends_to_delete:
             self.transactions.remove(trans)
 
-        print(f" Num of transactions after delete {len(self.transactions)} ")
+        # print(f" Num of transactions after delete {len(self.transactions)} ")
         
         # what we want to calc a second time
         bought_after = 0.0
@@ -685,15 +685,15 @@ class Transactions:
             trans.set_multi_link()
 
         
-        print(f" Num of transactions to delete {len(receives_to_delete)} ")
-        print(f" Num of transactions before delete {len(self.transactions)} ")
+        # print(f" Num of transactions to delete {len(receives_to_delete)} ")
+        # print(f" Num of transactions before delete {len(self.transactions)} ")
         
 
         for trans in receives_to_delete:
             self.transactions.remove(trans)
 
     
-        print(f" Num of transactions after delete {len(self.transactions)} ")
+        # print(f" Num of transactions after delete {len(self.transactions)} ")
         
         # what we want to calc a second time
         bought_after = 0.0
@@ -1547,7 +1547,7 @@ class Transactions:
                 sends.append(trans_obj)
 
         # Receives
-        print(f"Number of Conversions {len(self.conversions)}")
+        # print(f"Number of Conversions {len(self.conversions)}")
 
         for index, row in receive_df.iterrows():
             trans_obj = Receive(symbol=row['Asset'], quantity=row['Quantity Transacted'], time_stamp=row['Timestamp'], usd_spot=row['USD Spot Price at Transaction'], source=row['Source'])
@@ -1704,6 +1704,31 @@ if __name__ == "__main__":
 
     transactions = Transactions()
 
+    asset = "BTC"
+
+    sends = [trans for trans in transactions if trans.symbol == asset and trans.trans_type == "send"]
+    receives = [trans for trans in transactions if trans.symbol == asset and trans.trans_type == "receive"]
+    sends.sort(key=lambda x: x.time_stamp)
+    receives.sort(key=lambda x: x.time_stamp)
+
+    # Used to create auto actions
+    auto_actions = []
+    for send in sends:
+        for receive in receives:
+            if receive.time_stamp > send.time_stamp:
+                if (receive.time_stamp - send.time_stamp).days <= 7:
+                    if send.quantity >= receive.quantity:
+                        difference = send.quantity - receive.quantity
+                        description = ( f"Sent {send.quantity} on {send.time_stamp} and received {receive.quantity} {(receive.time_stamp - send.time_stamp).days} days later"
+                                        f" with a difference of {difference:.9f}. Would you like to create a sell of the difference amount ({difference:.9f}) ?"
+                        )
+
+                        auto_actions.append({
+                            "description": description,
+                            "difference": difference,
+                            "send": send,
+                            "receive": receive                            
+                             })
 
     import ipdb 
     ipdb.set_trace()

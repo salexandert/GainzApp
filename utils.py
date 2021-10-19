@@ -14,8 +14,6 @@ def get_stats_table_data(transactions):
             for link in trans.links
             ])
 
-
-
     stats_table_data = []
         
     for asset in transactions.assets:
@@ -648,7 +646,6 @@ def get_sends_trans_table_data_range(transactions, asset, date_range):
     for trans in filtered_transactions:
         if trans.trans_type == "send":
             
-
             if trans.unlinked_quantity != 0.0 and trans.unlinked_quantity < 0.00000009:
                 
                 unlinked_quantity = "Less than 0.00000009"

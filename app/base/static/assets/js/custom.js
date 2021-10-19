@@ -1118,6 +1118,24 @@ $(document).ready(function() {
         },
     });
 
+    $('#add_transactions_auto_actions_datatable').DataTable({
+        "pageLength": 10,
+        "order": [[ 2, "desc" ]],
+        "columnDefs": [
+            { "width": "5%", "targets": 0 },
+            { "width": "20%", "targets": 2},
+            {
+                "targets": [ 3,4 ],
+                "visible": false,
+                "searchable": false
+            },
+          ],
+        select: {
+            style: 'multiple'
+        },
+    });
+    
+
     $('#add_transactions_stats_datatable tbody').on( 'click', 'tr', function () {
         
         $.ajax({
@@ -1145,11 +1163,37 @@ $(document).ready(function() {
                 $('#add_transactions_receive_datatable').DataTable().clear();
                 $('#add_transactions_receive_datatable').DataTable().rows.add(data['receives']).draw();
                 
-
+                $('#add_transactions_auto_actions_datatable').DataTable().clear();
+                $('#add_transactions_auto_actions_datatable').DataTable().rows.add(data['auto_actions']).draw();
+                
                     
             },   
         });
     } );
+
+    $("#auto_action_button").click(function(){
+
+        var table_data = $('#add_transactions_auto_actions_datatable').DataTable().rows( {selected:true} ).data()
+
+        for (var i = 0; i < table_data.length; i++) {
+            console.log(table_data[i])
+        
+        }
+
+        $.ajax({
+            type: "POST",
+            url: "/wizards/auto_actions",
+            data: JSON.stringify({
+                'table_data': $('#add_transactions_auto_actions_datatable').DataTable().rows( {selected:true} ).data(),
+                'asset': $('#add_transactions_stats_datatable').DataTable().row( {selected:true} ).data(),
+              }),  
+            dataType: "json",
+            contentType: 'application/json',
+            success: function (data) {
+
+            },   
+        });
+    });
 
 
     $("#sells_delete_button").click(function(){

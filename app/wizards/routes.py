@@ -137,13 +137,99 @@ def add_transactions_selected_asset():
     # Get Receives Table Data
     receives_table_data = get_receives_trans_table_data_range(transactions, asset, date_range)
 
+    # Start Auto Actions
+    buys = [trans for trans in transactions if trans.symbol == asset and trans.trans_type == "buy"]
+    sends = [trans for trans in transactions if trans.symbol == asset and trans.trans_type == "send"]
+    receives = [trans for trans in transactions if trans.symbol == asset and trans.trans_type == "receive"]
+
+    buys.sort(key=lambda x: x.time_stamp)
+    sends.sort(key=lambda x: x.time_stamp)
+    receives.sort(key=lambda x: x.time_stamp)
+
+    # print(f"len of sends, in selected asset {len(sends)}")
+    # print(f"len of receives, in selected asset {len(receives)}")
+
+    auto_actions = []
+    for send in sends:
+        for receive in receives:
+            if receive.time_stamp > send.time_stamp:
+                if (receive.time_stamp - send.time_stamp).days <= 7:
+                    if send.quantity >= receive.quantity:
+                        difference = send.quantity - receive.quantity
+                        description = ( f"Sent {send.quantity} on {send.time_stamp} and received {receive.quantity} {(receive.time_stamp - send.time_stamp).days} days later"
+                                        f" with a difference of {difference:.9f}. If the difference is a sell, confirm to create it."
+                        )
+                        send_index = sends.index(send)
+                        receive_index = receives.index(receive)
+
+                        id = f"{send_index}:{receive_index}"
+
+                        auto_actions.append([
+                            id,
+                            description,
+                            difference,
+                            send.usd_spot,
+                            receive.usd_spot
+                        
+                        ])
+
+
     data_dict = {}
     data_dict['sells'] = sells_table_data
     data_dict['buys'] = buys_table_data
     data_dict['sends'] = sends_table_data
     data_dict['receives'] = receives_table_data
 
+    
+    data_dict['auto_actions'] = auto_actions
+
+
     return jsonify(data_dict)
+
+
+@blueprint.route('/auto_actions',  methods=['POST'])
+@login_required
+def auto_actions():
+
+    transactions = current_app.config['transactions']
+
+    table_data = request.json["table_data"]
+    asset = request.json['asset'][0]
+
+
+    sends = [trans for trans in transactions if trans.symbol == asset and trans.trans_type == "send"]
+    receives = [trans for trans in transactions if trans.symbol == asset and trans.trans_type == "receive"]
+    sends.sort(key=lambda x: x.time_stamp)
+    receives.sort(key=lambda x: x.time_stamp)
+
+    # print(f"len of sends, in auto actions {len(sends)}")
+    # print(f"len of receives, in auto actions {len(receives)}")
+
+    for row_data in table_data.values():
+        if type(row_data) != list:
+            continue
+
+        if type(row_data[0]) != str:
+            continue
+
+        # Get selected Trans Object
+        id = row_data[0]
+        description = row_data[1]
+        difference = row_data[2]
+
+        send_index = int(id.split(':')[0])
+        receive_index = int(id.split(':')[1])
+
+        send = sends[send_index]
+        receive = receives[receive_index]
+
+        print(send.usd_spot)
+        print(receive.usd_spot)
+
+    
+    return jsonify({})
+
+
 
 
 @blueprint.route('/add_links_selected_asset',  methods=['POST'])
