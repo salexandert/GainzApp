@@ -1706,32 +1706,36 @@ if __name__ == "__main__":
 
     asset = "BTC"
 
+    buys = [trans for trans in transactions if trans.symbol == asset and trans.trans_type == "buy"]
+    sells = [trans for trans in transactions if trans.symbol == asset and trans.trans_type == "sell"]
     sends = [trans for trans in transactions if trans.symbol == asset and trans.trans_type == "send"]
     receives = [trans for trans in transactions if trans.symbol == asset and trans.trans_type == "receive"]
     sends.sort(key=lambda x: x.time_stamp)
     receives.sort(key=lambda x: x.time_stamp)
 
-    # Used to create auto actions
-    auto_actions = []
+
+    sent_quantity = 0.0
+    received_quantity = 0.0
+    bought_quantity = 0.0
+    sold_quantity = 0.0
+
+    for r in receives:
+        received_quantity += r.quantity
+
     for send in sends:
-        for receive in receives:
-            if receive.time_stamp > send.time_stamp:
-                if (receive.time_stamp - send.time_stamp).days <= 7:
-                    if send.quantity >= receive.quantity:
-                        difference = send.quantity - receive.quantity
-                        description = ( f"Sent {send.quantity} on {send.time_stamp} and received {receive.quantity} {(receive.time_stamp - send.time_stamp).days} days later"
-                                        f" with a difference of {difference:.9f}. Would you like to create a sell of the difference amount ({difference:.9f}) ?"
-                        )
+        sent_quantity += send.quantity
 
-                        auto_actions.append({
-                            "description": description,
-                            "difference": difference,
-                            "send": send,
-                            "receive": receive                            
-                             })
 
-    import ipdb 
-    ipdb.set_trace()
+    for b in buys:
+        bought_quantity += b.quantity
+
+    for s in sells:
+        sold_quantity += s.quantity
+
+
+    print(f" bought {bought_quantity} \n sent {sent_quantity} \n received {received_quantity} \n sold {sold_quantity}")
+
+
 
     
 

@@ -137,42 +137,6 @@ def add_transactions_selected_asset():
     # Get Receives Table Data
     receives_table_data = get_receives_trans_table_data_range(transactions, asset, date_range)
 
-    # Start Auto Actions
-    buys = [trans for trans in transactions if trans.symbol == asset and trans.trans_type == "buy"]
-    sends = [trans for trans in transactions if trans.symbol == asset and trans.trans_type == "send"]
-    receives = [trans for trans in transactions if trans.symbol == asset and trans.trans_type == "receive"]
-
-    buys.sort(key=lambda x: x.time_stamp)
-    sends.sort(key=lambda x: x.time_stamp)
-    receives.sort(key=lambda x: x.time_stamp)
-
-    # print(f"len of sends, in selected asset {len(sends)}")
-    # print(f"len of receives, in selected asset {len(receives)}")
-
-    auto_actions = []
-    for send in sends:
-        for receive in receives:
-            if receive.time_stamp > send.time_stamp:
-                if (receive.time_stamp - send.time_stamp).days <= 7:
-                    if send.quantity >= receive.quantity:
-                        difference = send.quantity - receive.quantity
-                        description = ( f"Sent {send.quantity} on {send.time_stamp} and received {receive.quantity} {(receive.time_stamp - send.time_stamp).days} days later"
-                                        f" with a difference of {difference:.9f}. If the difference is a sell, confirm to create it."
-                        )
-                        send_index = sends.index(send)
-                        receive_index = receives.index(receive)
-
-                        id = f"{send_index}:{receive_index}"
-
-                        auto_actions.append([
-                            id,
-                            description,
-                            difference,
-                            send.usd_spot,
-                            receive.usd_spot
-                        
-                        ])
-
 
     data_dict = {}
     data_dict['sells'] = sells_table_data
@@ -181,7 +145,6 @@ def add_transactions_selected_asset():
     data_dict['receives'] = receives_table_data
 
     
-    data_dict['auto_actions'] = auto_actions
 
 
     return jsonify(data_dict)
@@ -205,6 +168,8 @@ def auto_actions():
     # print(f"len of sends, in auto actions {len(sends)}")
     # print(f"len of receives, in auto actions {len(receives)}")
 
+    data = []
+
     for row_data in table_data.values():
         if type(row_data) != list:
             continue
@@ -226,8 +191,18 @@ def auto_actions():
         print(send.usd_spot)
         print(receive.usd_spot)
 
-    
-    return jsonify({})
+        send_usd_spot = send.usd_spot
+        receive_usd_spot = receive.usd_spot
+
+        
+        data.append({
+            'send_usd_spot': send_usd_spot,
+            'receive_usd_spot': receive_usd_spot,
+            'quantity': difference
+        })
+
+
+    return jsonify(data)
 
 
 
@@ -1086,6 +1061,8 @@ def hodl_accounting():
         transactions.save(description="Converted Sends to Sells")
 
         return jsonify("Converted Sends to Sells!")
+
+    
     
     return render_template('hodl_accounting.html', stats_table_data=stats_table_data)
 
@@ -1220,8 +1197,49 @@ def auto_link_pre_check():
     else:
         message += "Check Failed: More Sells than buys"
 
+    # Start Auto Actions
+    buys = [trans for trans in transactions if trans.symbol == asset and trans.trans_type == "buy"]
+    sends = [trans for trans in transactions if trans.symbol == asset and trans.trans_type == "send"]
+    receives = [trans for trans in transactions if trans.symbol == asset and trans.trans_type == "receive"]
+
+    buys.sort(key=lambda x: x.time_stamp)
+    sends.sort(key=lambda x: x.time_stamp)
+    receives.sort(key=lambda x: x.time_stamp)
+
+    # print(f"len of sends, in selected asset {len(sends)}")
+    # print(f"len of receives, in selected asset {len(receives)}")
+
+    auto_actions = []
+
+    for send in sends:
+        for receive in receives:
+            if receive.time_stamp > send.time_stamp:
+                if (receive.time_stamp - send.time_stamp).days <= 7:
+                    if send.quantity >= receive.quantity:
+                        difference = send.quantity - receive.quantity
+                        if difference < 0.0000001:
+                            continue
+                        description = (
+                            f"Sent {send.quantity} on {send.time_stamp} and received {receive.quantity} {(receive.time_stamp - send.time_stamp).days} days later"
+                            f" with a difference of {difference:.9f}. If the difference is a sell create it on the Add and Manage Transactions page."
+                        )
+                        send_index = sends.index(send)
+                        receive_index = receives.index(receive)
+
+                        id = f"{send_index}:{receive_index}"
+
+                        auto_actions.append([
+                            id,
+                            description,
+                            difference,
+                            send.usd_spot,
+                            receive.usd_spot
+                        
+                        ])
         
     data['message'] = message
+    data['auto_actions'] = auto_actions
+
 
     return jsonify(data)
 

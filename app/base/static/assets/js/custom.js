@@ -2,6 +2,23 @@
 // HODL Accounting 
 $(document).ready(function() {
 
+    $('#auto_actions_datatable').DataTable({
+        "pageLength": 10,
+        "order": [[ 2, "desc" ]],
+        "columnDefs": [
+            { "width": "5%", "targets": 0 },
+            { "width": "20%", "targets": 2},
+            {
+                "targets": [ 3,4 ],
+                "visible": false,
+                "searchable": false
+            },
+          ],
+        select: {
+            style: 'multiple'
+        },
+    });
+
     var table = $('#eh_stats_datatable').DataTable({
         "pageLength": 50,
         select: {
@@ -68,12 +85,40 @@ $(document).ready(function() {
             dataType: "json",
             contentType: 'application/json',
             success: function (data) {
-                $('#hodl_pre_check_text').html(data['message'])
+                $('#hodl_pre_check_text').html(data['message']);
+                
+                $('#auto_actions_datatable').DataTable().clear();
+                $('#auto_actions_datatable').DataTable().rows.add(data['auto_actions']).draw();
             },   
         });
 
+    });
+
+    $("#auto_action_button").click(function(){
+
+        var table_data = $('#auto_actions_datatable').DataTable().rows( {selected:true} ).data()
 
 
+
+        $.ajax({
+            type: "POST",
+            url: "/wizards/auto_actions",
+            data: JSON.stringify({
+                'table_data': $('#auto_actions_datatable').DataTable().rows( {selected:true} ).data(),
+                'asset': $('#add_transactions_stats_datatable').DataTable().row( {selected:true} ).data(),
+              }),  
+            dataType: "json",
+            contentType: 'application/json',
+            success: function (data) {
+                // console.log(data)
+                for (var i = 0; i < data.length; i++) {
+
+                    showSwal('warning-message-and-confirmation', 'Creating Sell' + data[i]['quantity'], 'Use ')
+
+                }
+
+            },   
+        });
     });
 
 
@@ -169,7 +214,7 @@ $(document).ready(function() {
 
             contentType: 'application/json',
             success: function (data) {
-                console.log(data)
+                // console.log(data)
 
                 $('#al_options').html(data['message'])
             
@@ -242,7 +287,7 @@ $(document).ready(function() {
 
     // on start_date change
     $("#start_date").datetimepicker().on('dp.change', function(ev){
-        console.log($("#start_date").datetimepicker().val())
+        // console.log($("#start_date").datetimepicker().val())
 
         $.ajax({
             type: "POST",
@@ -254,7 +299,7 @@ $(document).ready(function() {
 
             contentType: 'application/json',
             success: function (data) {
-                console.log(data)
+                // console.log(data)
                 
                 $('#statspage_stats_datatable').DataTable().clear();
                 $('#statspage_stats_datatable').DataTable().rows.add(data['stats_table_rows']).draw();
@@ -340,7 +385,7 @@ $(document).ready(function() {
             contentType: 'application/json',
             success: function (return_data) {
 
-                console.log(return_data)
+                // console.log(return_data)
                 
                 $('#statspage_detailed_datatable').DataTable().clear();
                 $('#statspage_detailed_datatable').DataTable().rows.add(return_data['detailed_stats']).draw();
@@ -485,7 +530,7 @@ $(document).ready(function() {
             contentType: 'application/json',
             success: function (return_data) {
 
-                console.log(return_data)
+                // console.log(return_data)
                 
                 $('#statspage_detailed_datatable').DataTable().clear();
                 $('#statspage_detailed_datatable').DataTable().rows.add(return_data['detailed_stats']).draw();
@@ -786,7 +831,7 @@ $(document).ready(function() {
                 contentType: 'application/json',
                 success: function (data) {
 
-                    console.log(data)
+                    // console.log(data)
                     
                     
                     $('#addlinks_sells_datatable').DataTable().clear();
@@ -803,7 +848,7 @@ $(document).ready(function() {
     });
 
     $('#addlinks_stats_datatable tbody').on( 'click', 'tr', function () {
-        console.log( $('#addlinks_stats_datatable').DataTable().row( this ).data() );
+        // console.log( $('#addlinks_stats_datatable').DataTable().row( this ).data() );
 
         $.ajax({
             type: "POST",
@@ -818,7 +863,7 @@ $(document).ready(function() {
             contentType: 'application/json',
             success: function (data) {
 
-                console.log(data)
+                // console.log(data)
                 
                 
                 $('#addlinks_sells_datatable').DataTable().clear();
@@ -847,7 +892,7 @@ $(document).ready(function() {
 
             contentType: 'application/json',
             success: function (data) {
-                console.log(data)
+                // console.log(data)
 
                 batch_data = data
                 
@@ -986,7 +1031,7 @@ $(document).ready(function() {
 
     $("#addlinks_linked_delete_link").click(function(){
 
-        console.log( $('#linked_datatable').DataTable().rows( {selected:true} ).data() )
+        // console.log( $('#linked_datatable').DataTable().rows( {selected:true} ).data() )
 
 
         $.ajax({
@@ -1010,7 +1055,7 @@ $(document).ready(function() {
 
     $("#addlinks_alllinks_delete_link").click(function(){
 
-        console.log( $('#add_links_all_links_datatable').DataTable().rows( {selected:true} ).data() )
+        // console.log( $('#add_links_all_links_datatable').DataTable().rows( {selected:true} ).data() )
 
 
         $.ajax({
@@ -1053,7 +1098,8 @@ $(document).ready(function() {
 function showSwal(type, title, text) {
     if (type == 'basic') {
       Swal.fire({
-        title: 'Here is a message!',
+        title: "Message Title",
+        text: text,
         customClass: {
           confirmButton: 'btn btn-success'
         },
@@ -1061,7 +1107,7 @@ function showSwal(type, title, text) {
 
       })
 
-    } else if (type == 'title-and-text') {
+    } else if (type == 'question') {
 
       Swal.fire({
         title: title,
@@ -1072,8 +1118,44 @@ function showSwal(type, title, text) {
         },
         buttonsStyling: false,
       })
-    
     }
+
+    else if (type == 'warning-message-and-confirmation') {
+        const swalWithBootstrapButtons = Swal.mixin({
+          customClass: {
+            confirmButton: 'btn btn-success',
+            cancelButton: 'btn btn-danger'
+          },
+          buttonsStyling: false
+        })
+  
+        swalWithBootstrapButtons.fire({
+          title: title,
+          text: text,
+          type: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Yes, create it',
+          cancelButtonText: 'No, cancel!',
+          reverseButtons: true
+        }).then((result) => {
+          if (result.value) {
+            swalWithBootstrapButtons.fire(
+              'Deleted!',
+              'Your file has been deleted.',
+              'success'
+            )
+          } else if (
+            /* Read more about handling dismissals below */
+            result.dismiss === Swal.DismissReason.cancel
+          ) {
+            swalWithBootstrapButtons.fire(
+              'Cancelled',
+              'Your imaginary file is safe :)',
+              'error'
+            )
+          }
+        })
+      }
 }
 
     
@@ -1118,22 +1200,7 @@ $(document).ready(function() {
         },
     });
 
-    $('#add_transactions_auto_actions_datatable').DataTable({
-        "pageLength": 10,
-        "order": [[ 2, "desc" ]],
-        "columnDefs": [
-            { "width": "5%", "targets": 0 },
-            { "width": "20%", "targets": 2},
-            {
-                "targets": [ 3,4 ],
-                "visible": false,
-                "searchable": false
-            },
-          ],
-        select: {
-            style: 'multiple'
-        },
-    });
+
     
 
     $('#add_transactions_stats_datatable tbody').on( 'click', 'tr', function () {
@@ -1149,7 +1216,7 @@ $(document).ready(function() {
             contentType: 'application/json',
             success: function (data) {
 
-                console.log(data)
+                // console.log(data)
                
                 $('#add_transactions_sells_datatable').DataTable().clear();
                 $('#add_transactions_sells_datatable').DataTable().rows.add(data['sells']).draw();
@@ -1163,37 +1230,13 @@ $(document).ready(function() {
                 $('#add_transactions_receive_datatable').DataTable().clear();
                 $('#add_transactions_receive_datatable').DataTable().rows.add(data['receives']).draw();
                 
-                $('#add_transactions_auto_actions_datatable').DataTable().clear();
-                $('#add_transactions_auto_actions_datatable').DataTable().rows.add(data['auto_actions']).draw();
+
                 
                     
             },   
         });
     } );
 
-    $("#auto_action_button").click(function(){
-
-        var table_data = $('#add_transactions_auto_actions_datatable').DataTable().rows( {selected:true} ).data()
-
-        for (var i = 0; i < table_data.length; i++) {
-            console.log(table_data[i])
-        
-        }
-
-        $.ajax({
-            type: "POST",
-            url: "/wizards/auto_actions",
-            data: JSON.stringify({
-                'table_data': $('#add_transactions_auto_actions_datatable').DataTable().rows( {selected:true} ).data(),
-                'asset': $('#add_transactions_stats_datatable').DataTable().row( {selected:true} ).data(),
-              }),  
-            dataType: "json",
-            contentType: 'application/json',
-            success: function (data) {
-
-            },   
-        });
-    });
 
 
     $("#sells_delete_button").click(function(){
@@ -1208,7 +1251,6 @@ $(document).ready(function() {
             dataType: "json",
             contentType: 'application/json',
             success: function (data) {
-                // showSwal('title-and-text', 'Deleting Sell', data);
                 alert(data)
                 location.reload()
             },   
