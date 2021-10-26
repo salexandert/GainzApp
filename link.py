@@ -12,18 +12,26 @@ class Link:
         self.trans1 = self.transactions[0]
         self.trans2 = self.transactions[1]
 
-        if self.transactions[0].trans_type == 'buy':
+        if self.transactions[0].trans_type == 'buy' and self.transactions[1].trans_type == 'sell':
             self.buy = self.trans1
             self.sell = self.trans2
         
-        elif self.transactions[0].trans_type == 'sell':
+        elif self.transactions[0].trans_type == 'sell' and self.transactions[1].trans_type == 'buy':
             self.buy = self.trans2
             self.sell = self.trans1
 
-        self.symbol = self.sell.symbol
+        elif self.transactions[0].trans_type == 'receive' and self.transactions[1].trans_type == 'buy':
+            self.buy = self.trans2
+            self.receive = self.trans1
 
-        if self.buy.unlinked_quantity < 0 or self.sell.unlinked_quantity < 0:
-            print(f"Cannot link because quantity unlinked is less than 0")
+        elif self.transactions[0].trans_type == 'buy' and self.transactions[1].trans_type == 'receive':
+            self.receive = self.trans2
+            self.buy = self.trans1
+
+        self.symbol = self.buy.symbol
+
+    
+
 
         self.link_buy_price = (quantity * self.trans1.usd_spot)
         self.link_sell_price = (quantity * self.trans2.usd_spot)
@@ -41,7 +49,7 @@ class Link:
         Name: [{self.transactions[1].name}] Trans Type [{self.transactions[1].trans_type}] Quantity [{self.transactions[1].quantity:.2f}]"
 
     def __repr__(self):
-        return f"Link ID: {self.id} Link Quantity: {self.quantity}"
+        return f"Link ID: {self.id} Link Quantity: {self.quantity} Link Type: {self.symbol}"
 
 
     @property

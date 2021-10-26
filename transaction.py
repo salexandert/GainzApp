@@ -38,24 +38,43 @@ class Transaction:
         self.multi_link = self.calc_multi_link()
 
     def link_transaction(self, other, link_quantity):
+
+        receive = None
+        sell = None
        
         if self.symbol == other.symbol:
 
-            if self.trans_type.lower() == 'sell':
+            if self.trans_type.lower() == 'sell' and other.trans_type.lower() == 'buy':
 
                 buy = other
                 sell = self
                 
-            elif self.trans_type.lower() == 'buy':
+            elif self.trans_type.lower() == 'buy' and other.trans_type.lower() == 'sell':
 
                 buy = self
                 sell = other
+
+            elif self.trans_type.lower() == 'receive' and other.trans_type.lower() == 'buy':
+
+                receive = self
+                buy = other
+
+            elif self.trans_type.lower() == 'buy' and other.trans_type.lower() == 'receive':
+
+                receive = other
+                buy = self   
             
+            if receive is not None:
+                link = Link(transactions=[receive, buy], quantity=link_quantity)
+            else:
+                link = Link(transactions=[sell, buy], quantity=link_quantity)
 
-            link = Link(transactions=[sell, buy], quantity=link_quantity)
 
-            if link not in sell.links:
+            if sell is not None and link not in sell.links:
                 sell.links.append(link)
+
+            if receive is not None and link not in receive.links:
+                receive.links.append(link)
 
             if link not in buy.links:
                 buy.links.append(link)
@@ -68,8 +87,11 @@ class Transaction:
             print(f"{self.symbol} <-CANNOT LINK-> {other.symbol}")
 
         # Update Linked Transactions
+
         buy.update_linked_transactions()
-        sell.update_linked_transactions()
+
+        if sell is not None:
+            sell.update_linked_transactions()
 
         return link
 
@@ -77,10 +99,14 @@ class Transaction:
     @property
     def unlinked_quantity(self):
         self.update_linked_transactions()
-        
+
         unlinked_quantity = self.quantity        
         
         for link in self.links:
+
+            if (self.trans_type == 'buy') and (link.trans1.trans_type == 'receive' or link.trans2.trans_type == 'receive'):
+                continue
+            
             unlinked_quantity -= link.quantity
                        
         return unlinked_quantity

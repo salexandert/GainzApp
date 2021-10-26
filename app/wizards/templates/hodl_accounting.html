@@ -25,24 +25,25 @@
             <div id="collapse_1" class="collapse show" role="tabpanel" aria-labelledby="headingOne">
               <div class="card-body">
                 Use this page to find and resolve common discrepencies in your data.
-                <br><br><b>Exchange Data and HODL true up. </b>
-                <br>For example you have 10 BTC in buys but only 5 BTC in your posession we have a few way to account for this.
+                <br>
+                <br><b>Sold True-Up</b>
+                <br>For example you have 10 BTC in buys but only 5 BTC in your posession indicating 5 BTC sold or lost not accounted for.
                 <br>Why should you care? If you do nothing you may link sells to buys that were previously sold, lost in boating accidents, stolen, ect. 
-                <br>The two options available are to convert sends into sells or convert buys into lost (future feature will track buy -> send -> lost for greater verbosity)
-                <br> Receives should be fully linked to buys. Buys should be unlinked or linked to sells or linked receives, receives linked to buys should not be counted against quantity unlinked.
-                <br>If HODL information provided:
+                <br>The two auto options available are to convert sends into sells or convert buys into lost (future feature will track buy -> send -> lost for greater verbosity)
                 <br>
-                <br> Buys - HODL = Sold_or_Lost 
-                <br> Sold_or_Lost - Sells = Needs_Classification
+                <br><b>Maths</b>
+                <br> Buys - Sells = Sold_Lost_or_HODL 
+                <br> If HODL information provided:
+                <br> Sold_Lost_or_HODL - HODL = Sold_or_Lost
                 <br>
-                <br> Else:
+                <br><b>Bought True-up</b>
+                <br>For example you have 10 BTC in sells on 1/1/21 but all the buys prior to that date only add up to 5 BTC indicating 5 BTC in buys not accounted for.
+                <br>Why should you care? If you continue to convert sends to sells, sends that create the above situation will be skipped, but cost basis for those buys that are not accounted for will be missing.   
+                <br>You can manually add buys or convert receives to buys where applicable.
                 <br>
-                <br> Buys - Sells = Needs_Classification
+                <br>Select an Asset to populate pre-check information.
                 <br>
                 <br>All conversion operations are saved for reference and exportation.
-                <br><br><b>Linking pre-check and true up. </b>
-                <br>For example you have 10 BTC in sells but all the buys prior to that date only add up to 5 BTC. 
-                <br>In this situation we will run out of buys to link sells to. In this case we can convert receives to buys or add buys manually. 
               </div>
             </div>
           </div>
@@ -129,7 +130,7 @@
     <div class="card">
       <div class="card-body">
         <div id="accordion" role="tablist" aria-multiselectable="true" class="card-collapse">
-          <h4 class="card-title">Auto Suggestions.</h4>
+          <h4 class="card-title">Accomplishments & Suggestions</h4>
           <div class="card card-plain">
             <div class="card-header" role="tab" id="headingOne">
               <a data-toggle="collapse" data-parent="#accordion" href="#collapse_7" aria-expanded="true" aria-controls="collapseOne">
@@ -148,9 +149,7 @@
                     <tr>
                       <th>ID</th>
                       <th>Description</th>
-                      <th>Difference</th>
-                      <th>Send_USD_Spot</th>
-                      <th>Receive_USD_Spot</th>
+                      <th>Status</th>
 
                     </tr>
                   </thead>
@@ -188,7 +187,7 @@
               
               <!-- Card Body -->
               <div class="card-body ">
-                <b>Exchange Data and HODL true up. </b>
+                <b>Sold True-Up</b>
                 <p id='eh_options'> Select a row from Stats Table to Populate </p>
                 <input type="number" id='hodl_quantity' placeholder="Current HODL">
                 <button type="button" id="submit_hodl_button" class="btn btn-success">Submit HODL</button> <br>
@@ -203,7 +202,7 @@
                 
                 <br><br>
 
-                <b>Linking pre-check and true up. </b>
+                <b>Bought True-Up </b>
                 <p class="welcome-text" id='hodl_pre_check_text'> Select a row from Stats Table to Populate </p>
 
               

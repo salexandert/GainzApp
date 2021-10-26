@@ -3,16 +3,16 @@
 $(document).ready(function() {
 
     $('#auto_actions_datatable').DataTable({
-        "pageLength": 10,
+        "pageLength": 25,
         "order": [[ 2, "desc" ]],
         "columnDefs": [
             { "width": "5%", "targets": 0 },
             { "width": "20%", "targets": 2},
-            {
-                "targets": [ 3,4 ],
-                "visible": false,
-                "searchable": false
-            },
+            // {
+            //     "targets": [ 3,4 ],
+            //     "visible": false,
+            //     "searchable": false
+            // },
           ],
         select: {
             style: 'multiple'
@@ -88,7 +88,7 @@ $(document).ready(function() {
                 $('#hodl_pre_check_text').html(data['message']);
                 
                 $('#auto_actions_datatable').DataTable().clear();
-                $('#auto_actions_datatable').DataTable().rows.add(data['auto_actions']).draw();
+                $('#auto_actions_datatable').DataTable().rows.add(data['auto_suggestions']).draw();
             },   
         });
 

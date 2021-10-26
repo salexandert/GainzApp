@@ -51,8 +51,7 @@ def selected_asset():
     for asset in stats_table_data:
         if asset['symbol'] == request.json['row_data'][0]:
             asset_stats = asset
-            break
-        
+            break 
     asset = asset_stats['symbol']
 
     # print(asset_stats)
@@ -71,6 +70,8 @@ def selected_asset():
         ["Quantity Purchased in USD", asset_stats['total_purchased_usd']],
         ["Quantity Sold in USD", asset_stats['total_sold_usd']],
         ["Profit / Loss in USD", asset_stats['total_profit_loss']],
+        ["Quantity Sent", asset_stats['total_sent_quantity']],
+        ["Quantity Received", asset_stats['total_received_quantity']],
     ]
 
     # Get Linked Table Data

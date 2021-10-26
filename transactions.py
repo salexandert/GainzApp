@@ -532,8 +532,6 @@ class Transactions:
                     continue
 
                 if amount_to_convert > 0 and trans.quantity <= amount_to_convert:
-                    # Convert Send to Sell
-                    # print(f"converting Send {trans.time_stamp} {trans.quantity} to sell")
 
                     if type(trans.usd_spot) != float:
                         print(f"skipping transaction {trans.name} because no usd_spot")
@@ -541,14 +539,10 @@ class Transactions:
                     
                     if_converted_sold = sold + trans.quantity
                     difference = bought - if_converted_sold
-                    # print(bought, if_converted_sold, difference)
-                    if difference < 0.000000009:
-                        # print(f"\nIn Convert Sends to Sells, Buys [{bought}] can no longer cover sells [{if_converted_sold}] difference [{difference}] @ {trans.time_stamp}")
 
-                        if received > difference:
-                            # print(f"We can convert Receives {received} to Buys to cover {difference} @ {trans.time_stamp}")
-                            pass
-                        else:
+                    
+                    if difference < 0.000000009:
+                        if received < difference:
                             continue
 
                     sell = Sell(symbol=trans.symbol, quantity=trans.quantity, time_stamp=trans.time_stamp, usd_spot=trans.usd_spot, linked_transactions=trans.linked_transactions, source="Gainz App Send to Sale")
@@ -556,11 +550,10 @@ class Transactions:
                     self.transactions.append(sell)
 
                     auto_link_failures = self.auto_link(asset=asset, algo='fifo', pre_check=True)
+                    
                     if len(auto_link_failures) == 1:
-                        # print(f"Delete this bih {auto_link_failures[0]}")
                         self.transactions.remove(sell)
                         del(sell)
-                        # print('Deleted that bih')
                         continue
 
                     # elif len(auto_link_failures) > 1:
@@ -1710,6 +1703,8 @@ if __name__ == "__main__":
     sells = [trans for trans in transactions if trans.symbol == asset and trans.trans_type == "sell"]
     sends = [trans for trans in transactions if trans.symbol == asset and trans.trans_type == "send"]
     receives = [trans for trans in transactions if trans.symbol == asset and trans.trans_type == "receive"]
+
+    buys.sort(key=lambda x: x.time_stamp)
     sends.sort(key=lambda x: x.time_stamp)
     receives.sort(key=lambda x: x.time_stamp)
 
@@ -1725,7 +1720,6 @@ if __name__ == "__main__":
     for send in sends:
         sent_quantity += send.quantity
 
-
     for b in buys:
         bought_quantity += b.quantity
 
@@ -1734,6 +1728,18 @@ if __name__ == "__main__":
 
 
     print(f" bought {bought_quantity} \n sent {sent_quantity} \n received {received_quantity} \n sold {sold_quantity}")
+
+
+
+    receives[0].link_transaction(buys[0], link_quantity=0.5)
+
+    print(buys[0].quantity)
+    print(buys[0].unlinked_quantity)
+    
+
+
+    import ipdb
+    ipdb.set_trace()
 
 
 

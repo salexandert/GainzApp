@@ -284,7 +284,6 @@ def get_linkable_table_data(transactions, trans1_obj):
 def get_stats_table_data_range(transactions, date_range=None):
     # Stats Table Generation with date range
 
-    
     if date_range:
 
         start_date = date_range['start_date']
@@ -328,6 +327,7 @@ def get_stats_table_data_range(transactions, date_range=None):
             total_sold_usd = 0.0
 
             total_sent_quantity = 0.0
+            total_received_quantity = 0.0
 
             profit_loss = 0.0
 
@@ -339,6 +339,7 @@ def get_stats_table_data_range(transactions, date_range=None):
             num_buys = 0
             num_sells = 0
             num_sends = 0
+            num_receives = 0
 
             num_links = 0
 
@@ -373,6 +374,10 @@ def get_stats_table_data_range(transactions, date_range=None):
                     elif trans.trans_type.lower() == "send":
                         num_sends += 1
                         total_sent_quantity += trans.quantity
+
+                    elif trans.trans_type.lower() == "receive":
+                        num_receives += 1
+                        total_received_quantity += trans.quantity
             
             if len(buy_prices) > 0:
                 average_buy_price = total_purchased_usd / total_purchased_quantity
@@ -413,6 +418,7 @@ def get_stats_table_data_range(transactions, date_range=None):
                     "total_sold_usd": "${:,.2f}".format(total_sold_usd),
                     "total_profit_loss": "${:,.2f}".format(profit_loss),
                     "total_sent_quantity": total_sent_quantity,
+                    "total_received_quantity": total_received_quantity,
 
                     "num_buys": num_buys,
                     "num_sells": num_sells,

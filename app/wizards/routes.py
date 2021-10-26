@@ -150,9 +150,9 @@ def add_transactions_selected_asset():
     return jsonify(data_dict)
 
 
-@blueprint.route('/auto_actions',  methods=['POST'])
+@blueprint.route('/auto_suggestions',  methods=['POST'])
 @login_required
-def auto_actions():
+def auto_suggestions():
 
     transactions = current_app.config['transactions']
 
@@ -1111,8 +1111,6 @@ def auto_link_pre_check():
     
     # print(request.json)
     
-    data = {}
-    
     asset = request.json['row_data'][0]
 
     transactions = current_app.config['transactions']
@@ -1125,38 +1123,40 @@ def auto_link_pre_check():
 
     if len(auto_link_failures) > 0:
         for i in auto_link_failures:
-            if i['unlinkable'] > 0.00009:
+            if i['unlinkable'] > 0.000009:
                 auto_link_check_failed = True
 
+    buys = [trans for trans in transactions if trans.symbol == asset and trans.trans_type == "buy"]
+    sends = [trans for trans in transactions if trans.symbol == asset and trans.trans_type == "send"]
+    receives = [trans for trans in transactions if trans.symbol == asset and trans.trans_type == "receive"]
+    sells = [trans for trans in transactions if trans.symbol == asset and trans.trans_type == "sell"]
 
-    sells = []
-    buys = []
+    buys.sort(key=lambda x: x.time_stamp)
+    sends.sort(key=lambda x: x.time_stamp)
+    receives.sort(key=lambda x: x.time_stamp)
+    sells.sort(key=lambda x: x.time_stamp)
     
     sold = 0.0
     bought = 0.0
     
-
     for trans in transactions:
         if trans.symbol != asset:
             continue
 
         if trans.trans_type == "sell":
-            sells.append(trans)
             sold += trans.quantity
         
         elif trans.trans_type == "buy":
-            buys.append(trans)
             bought += trans.quantity
 
-    # print(asset)
-    # print(bought, sold)
 
-    sells.sort(key=lambda x: x.time_stamp)
-    buys.sort(key=lambda x: x.time_stamp)
     sold_to_date = 0.0
     latest_sell_time_stamp = None
     is_greater = False
     
+    auto_suggestions = {}
+    auto_suggestions['pre-check'] = []
+
     for sell in sells:
         if is_greater is True:
             break
@@ -1176,69 +1176,157 @@ def auto_link_pre_check():
             else:
                 bought_to_date += buy.quantity
 
+    
     message = ""
     if bought >= sold:
-        message += "Check Passed: More Buys than Sells"
+        id = f"ALP:1"
+        description = "Auto-Link Pre-Check: More Buys than Sells"
+        status = "Passed"
+        auto_suggestions['pre-check'].append([id, description, status])
+        message += description
         
         if is_greater is True:
-            message += f"<br> Check Failed: At sell timestamp [{latest_sell_time_stamp}] Buy Quantity [{bought_to_date}] can no longer cover Sell Quantity [{sold_to_date}] "
-            message += f"<br> You can track down the discrepency and add [{sold_to_date - bought_to_date}] in buys manually or by converting receives to buys before [{latest_sell_time_stamp}]."
-            message += "<br> If you continue you will have sells not fully linked (unlinked quantity) to buys. Full proceeds on quantity unlinked of sell will be used for Gain/Loss."
+            id = f"ALP:2"
+            description = (f"<br> Auto-Link Pre-Check: Individual sells can be covered by an earlier buy: At sell timestamp [{latest_sell_time_stamp}] Buy Quantity [{bought_to_date}] can no longer cover Sell Quantity [{sold_to_date}] "
+             f"<br> You can track down the discrepency and add [{sold_to_date - bought_to_date}] in buys manually or by converting receives to buys before [{latest_sell_time_stamp}]."
+             "<br> If you continue you will have sells not fully linked (unlinked quantity) to buys. Full proceeds on quantity unlinked of sell will be used for Gain/Loss.")
+            status = "Failed"
+            auto_suggestions['pre-check'].append([id, description, status])
+            message += description
        
         else:
-            message += "<br> Check Passed: Individual sells can be covered by an earlier buy"
+
+            id = f"ALP:2"
+            description = "<br> Auto-Link Pre-Check: Individual sells can be covered by an earlier buy"
+            status = "Passed"
+            auto_suggestions['pre-check'].append([id, description, status])
+            message += description
 
             if auto_link_check_failed is True:
-                message += "<br> Check Failed: Sell will not be fully linked using Auto Link"
+                id = f"ALP:3"
+                description = "Auto-Link Pre-Check: Sell's will be fully linked using Auto Link"
+                status = "Failed"
                 for i in auto_link_failures:
-
                     message += f"<br> {i}"
+            
+            else:
+                id = f"ALP:3"
+                description = "Auto-Link Pre-Check: Sell's will be fully linked using Auto Link"
+                status = "Passed"
+            
+            auto_suggestions['pre-check'].append([id, description, status])
+
     
     else:
-        message += "Check Failed: More Sells than buys"
+        id = f"ALP:1"
+        description = "Auto-Link Pre-Check: More Buys than Sells"
+        status = "Failed"
+        message += description
+        auto_suggestions['pre-check'].append([id, description, status])
 
-    # Start Auto Actions
-    buys = [trans for trans in transactions if trans.symbol == asset and trans.trans_type == "buy"]
-    sends = [trans for trans in transactions if trans.symbol == asset and trans.trans_type == "send"]
-    receives = [trans for trans in transactions if trans.symbol == asset and trans.trans_type == "receive"]
+ 
+    auto_suggestions['received_fully_linked'] = []
+    receives_fully_linked = True
+    for receive in receives:
+        receive_index = receives.index(receive)
+        if receive.unlinked_quantity > 0.00000001:
+            receives_fully_linked = False
+            # id = f"R:{receive_index}"
 
-    buys.sort(key=lambda x: x.time_stamp)
-    sends.sort(key=lambda x: x.time_stamp)
-    receives.sort(key=lambda x: x.time_stamp)
+            # description = f" Received {receive.quantity} on {receive.time_stamp} this has remaining {receive.unlinked_quantity} quantity unlinked to a buy, where did it come from? \nLink to a buy to clarify"
+                    
+            # status = "Not Complete"
+            # auto_suggestions['received_fully_linked'].append([
+            #     id,
+            #     description,
+            #     status
+            # ])
+    
+    if receives_fully_linked is True:
+        id = f"RFL:{1}"
+        description = f"Receives are fully linked to buys."
+        status = "Passed"
+    else:
+        id = f"RFL:{1}"
+        description = f"Receives are fully linked to buys. Where did it come from?"
+        status = "Failed"
+    
+    auto_suggestions['received_fully_linked'].append([
+                id,
+                description,
+                status
+            ])      
 
-    # print(f"len of sends, in selected asset {len(sends)}")
-    # print(f"len of receives, in selected asset {len(receives)}")
-
-    auto_actions = []
-
+    auto_suggestions['sent_received'] = []
     for send in sends:
+        send_index = sends.index(send)
+                        
         for receive in receives:
+            receive_index = receives.index(receive)
+            
             if receive.time_stamp > send.time_stamp:
                 if (receive.time_stamp - send.time_stamp).days <= 7:
                     if send.quantity >= receive.quantity:
                         difference = send.quantity - receive.quantity
                         if difference < 0.0000001:
                             continue
+                        
                         description = (
                             f"Sent {send.quantity} on {send.time_stamp} and received {receive.quantity} {(receive.time_stamp - send.time_stamp).days} days later"
                             f" with a difference of {difference:.9f}. If the difference is a sell create it on the Add and Manage Transactions page."
                         )
-                        send_index = sends.index(send)
-                        receive_index = receives.index(receive)
 
-                        id = f"{send_index}:{receive_index}"
+                        id = f"DIF:{send_index}:{receive_index}"
+                        status = "Not Complete"
 
-                        auto_actions.append([
+                        auto_suggestions['sent_received'].append([
                             id,
                             description,
-                            difference,
-                            send.usd_spot,
-                            receive.usd_spot
-                        
+                            status   
                         ])
-        
+    
+    post_check = []
+    auto_suggestions['post_check'] = post_check
+
+    unlinked_total = 0
+    for sell in sells:
+        unlinked_total += sell.unlinked_quantity
+
+    if unlinked_total > .000001:
+        post_check.append([f"PC:1", f"Auto-Link Post-Check: Sells are Fully Linked to Buys", "Failed"])
+    else:
+        post_check.append([f"PC:1", f"Auto-Link Post-Check: Sells are Fully Linked to Buys", "Passed"])
+
+
+    # all sells linked to buys. Buys unlinked Quantity = HODL
+
+    data = {}
     data['message'] = message
-    data['auto_actions'] = auto_actions
+    data['auto_suggestions'] = auto_suggestions['sent_received'] + auto_suggestions['pre-check'] +  auto_suggestions['received_fully_linked'] + auto_suggestions['post_check']
+    
+    hodl = "N/A"
+        
+    for a in transactions.asset_objects:
+        if a.symbol != asset:
+            continue
+        
+        # print(f"Asset Object symbol {a.symbol} Asset {asset} HODL {a.hodl}")
+        if a.hodl is not None:
+
+            hodl = a.hodl
+    
+    if hodl == "N/A":
+        data['auto_suggestions'].append([f"H:1", f"HODL Provided {hodl}", "Not Complete"])
+    else:
+        data['auto_suggestions'].append([f"H:1", f"HODL Provided {hodl}", "Complete"])
+
+        sold_or_Lost = bought - hodl
+        needs_classification_hodl = sold_or_Lost - sold
+
+        if needs_classification_hodl > 0.0001:
+            data['auto_suggestions'].append([f"H:2", f"Buys ({bought}) - HODL ({hodl}) = Sold or Lost ({sold_or_Lost }). Sold or Lost - Sells ({sold}) = Needs Classification ({needs_classification_hodl})", "Failed"])
+        else:
+            data['auto_suggestions'].append([f"H:2", f"Buys ({bought}) - HODL ({hodl}) = Sold or Lost ({sold_or_Lost }). Sold or Lost - Sells ({sold}) = Needs Classification (Less than 0.0001)", "Passed"])
 
 
     return jsonify(data)
@@ -1294,8 +1382,6 @@ def hodl_info():
 def sends_to_sells():
     
     transactions = current_app.config['transactions']
-    
-
     asset = request.json['asset'][0]
     amount_to_convert = float(request.json['quantity'])
 
