@@ -1225,12 +1225,12 @@ def auto_link_pre_check():
         auto_suggestions['pre-check'].append([id, description, status])
 
  
-    auto_suggestions['received_fully_linked'] = []
-    receives_fully_linked = True
-    for receive in receives:
-        receive_index = receives.index(receive)
-        if receive.unlinked_quantity > 0.00000001:
-            receives_fully_linked = False
+    # auto_suggestions['received_fully_linked'] = []
+    # receives_fully_linked = True
+    # for receive in receives:
+    #     receive_index = receives.index(receive)
+    #     if receive.unlinked_quantity > 0.00000001:
+    #         receives_fully_linked = False
             # id = f"R:{receive_index}"
 
             # description = f" Received {receive.quantity} on {receive.time_stamp} this has remaining {receive.unlinked_quantity} quantity unlinked to a buy, where did it come from? \nLink to a buy to clarify"
@@ -1242,20 +1242,20 @@ def auto_link_pre_check():
             #     status
             # ])
     
-    if receives_fully_linked is True:
-        id = f"RFL:{1}"
-        description = f"Receives are fully linked to buys."
-        status = "Passed"
-    else:
-        id = f"RFL:{1}"
-        description = f"Receives are fully linked to buys. Where did it come from?"
-        status = "Failed"
+    # if receives_fully_linked is True:
+    #     id = f"RFL:{1}"
+    #     description = f"Receives are fully linked to buys."
+    #     status = "Passed"
+    # else:
+    #     id = f"RFL:{1}"
+    #     description = f"Receives are fully linked to buys. Where did it come from?"
+    #     status = "Failed"
     
-    auto_suggestions['received_fully_linked'].append([
-                id,
-                description,
-                status
-            ])      
+    # auto_suggestions['received_fully_linked'].append([
+    #             id,
+    #             description,
+    #             status
+    #         ])      
 
     auto_suggestions['sent_received'] = []
     for send in sends:
@@ -1285,24 +1285,24 @@ def auto_link_pre_check():
                             status   
                         ])
     
-    post_check = []
-    auto_suggestions['post_check'] = post_check
+    # post_check = []
+    # auto_suggestions['post_check'] = post_check
 
-    unlinked_total = 0
-    for sell in sells:
-        unlinked_total += sell.unlinked_quantity
+    # unlinked_total = 0
+    # for sell in sells:
+    #     unlinked_total += sell.unlinked_quantity
 
-    if unlinked_total > .000001:
-        post_check.append([f"PC:1", f"Auto-Link Post-Check: Sells are Fully Linked to Buys", "Failed"])
-    else:
-        post_check.append([f"PC:1", f"Auto-Link Post-Check: Sells are Fully Linked to Buys", "Passed"])
+    # if unlinked_total > .000001:
+    #     post_check.append([f"PC:1", f"Auto-Link Post-Check: Sells are Fully Linked to Buys", "Failed"])
+    # else:
+    #     post_check.append([f"PC:1", f"Auto-Link Post-Check: Sells are Fully Linked to Buys", "Passed"])
 
 
     # all sells linked to buys. Buys unlinked Quantity = HODL
 
     data = {}
     data['message'] = message
-    data['auto_suggestions'] = auto_suggestions['sent_received'] + auto_suggestions['pre-check'] +  auto_suggestions['received_fully_linked'] + auto_suggestions['post_check']
+    data['auto_suggestions'] = auto_suggestions['sent_received'] + auto_suggestions['pre-check']
     
     hodl = "N/A"
         

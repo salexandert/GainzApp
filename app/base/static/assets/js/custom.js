@@ -85,7 +85,6 @@ $(document).ready(function() {
             dataType: "json",
             contentType: 'application/json',
             success: function (data) {
-                $('#hodl_pre_check_text').html(data['message']);
                 
                 $('#auto_actions_datatable').DataTable().clear();
                 $('#auto_actions_datatable').DataTable().rows.add(data['auto_suggestions']).draw();

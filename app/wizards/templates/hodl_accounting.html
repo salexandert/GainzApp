@@ -14,7 +14,7 @@
     <div class="card">
       <div class="card-body">      
         <div id="accordion" role="tablist" aria-multiselectable="true" class="card-collapse">
-          <h4 class="card-title">HODL and Accounting</h4>
+          <h4 class="card-title">Step 4: HODL and Accounting</h4>
           <div class="card card-plain">
             <div class="card-header" role="tab" id="headingOne">
               <a data-toggle="collapse" data-parent="#accordion" href="#collapse_1" aria-expanded="true" aria-controls="collapseOne">
@@ -26,20 +26,15 @@
               <div class="card-body">
                 Use this page to find and resolve common discrepencies in your data.
                 <br>
-                <br><b>Sold True-Up</b>
-                <br>For example you have 10 BTC in buys but only 5 BTC in your posession indicating 5 BTC sold or lost not accounted for.
+                <br><b>Sells True-Up</b>
+                <br>For example you have 10 BTC in buys but only 5 BTC in your posession indicating 5 BTC sold, lost, or not accounted for.
                 <br>Why should you care? If you do nothing you may link sells to buys that were previously sold, lost in boating accidents, stolen, ect. 
-                <br>The two auto options available are to convert sends into sells or convert buys into lost (future feature will track buy -> send -> lost for greater verbosity)
+                <br>The two auto options available are to convert sends into sells or convert buys into lost using the earliest sends/buys possible. 
                 <br>
                 <br><b>Maths</b>
                 <br> Buys - Sells = Sold_Lost_or_HODL 
                 <br> If HODL information provided:
                 <br> Sold_Lost_or_HODL - HODL = Sold_or_Lost
-                <br>
-                <br><b>Bought True-up</b>
-                <br>For example you have 10 BTC in sells on 1/1/21 but all the buys prior to that date only add up to 5 BTC indicating 5 BTC in buys not accounted for.
-                <br>Why should you care? If you continue to convert sends to sells, sends that create the above situation will be skipped, but cost basis for those buys that are not accounted for will be missing.   
-                <br>You can manually add buys or convert receives to buys where applicable.
                 <br>
                 <br>Select an Asset to populate pre-check information.
                 <br>
@@ -54,8 +49,7 @@
 </div>
 <!-- /Page Description and Instructions -->
   
-
-            
+     
 <!-- Stats Table -->
 <div class="row">
   <div class="col-md-12">
@@ -144,16 +138,13 @@
               <div class="card-body ">
               
                 <table id="auto_actions_datatable" class="table table-striped table-bordered" style="width:100%">
-                  
                   <thead>
                     <tr>
                       <th>ID</th>
                       <th>Description</th>
                       <th>Status</th>
-
                     </tr>
                   </thead>
-
                 </table>
 
                 <!-- <button type="button" id="auto_action_button" class="btn btn-success">Confirm Selected</button> -->
@@ -201,10 +192,6 @@
                 <button type="button" id="buys_to_lost_button" class="btn btn-warning">Convert Buys to Lost</button>
                 
                 <br><br>
-
-                <b>Bought True-Up </b>
-                <p class="welcome-text" id='hodl_pre_check_text'> Select a row from Stats Table to Populate </p>
-
               
               </div>
               <!-- /Card Body -->

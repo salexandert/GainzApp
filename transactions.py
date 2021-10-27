@@ -330,17 +330,20 @@ class Transactions:
 
                 sells[trans.symbol].append(trans)
         
-        # Sort By Time Stamp
-        for key in buys.keys():
-
-            if algo == 'fifo':
+        
+        if algo == 'fifo':
+            for key in buys.keys():
                 buys[key].sort(key=lambda x: x.time_stamp)
-            elif algo == 'filo':
+            for key in sells.keys():
+                sells[key].sort(key=lambda x: x.time_stamp)
+        
+        elif algo == 'filo':
+            for key in buys.keys():
                 buys[key].sort(key=lambda x: x.time_stamp, reverse=True)
+            for key in sells.keys():
+                sells[key].sort(key=lambda x: x.time_stamp)
 
-        for key in sells.keys():
-            sells[key].sort(key=lambda x: x.time_stamp)
-
+        
         # Start the Algo
         keys = list(sells.keys())
         keys.sort()
@@ -395,7 +398,7 @@ class Transactions:
                         # if sell.unlinked_quantity <= min_link:
                         #     print(f"    [{sell.unlinked_quantity}] <=  [{min_link}] MIN LINK SURPASSED AFTER LINK  {link_quantity}  !!!!!")
                     
-                    if sell.unlinked_quantity > 0.0000009:
+                    if (sell.unlinked_quantity * sell.usd_spot) > 5.0:
                         # print(f"Sell Unlinkable when using [{algo}] symbol [{sell.symbol}] unlinkable_quantity [{sell.unlinked_quantity}]")
                         failures.append({
                             'asset': sell.symbol, 
@@ -550,8 +553,9 @@ class Transactions:
                     self.transactions.append(sell)
 
                     auto_link_failures = self.auto_link(asset=asset, algo='fifo', pre_check=True)
+                    auto_link_failures.extend(self.auto_link(asset=asset, algo='filo', pre_check=True))
                     
-                    if len(auto_link_failures) == 1:
+                    if len(auto_link_failures) > 0:
                         self.transactions.remove(sell)
                         del(sell)
                         continue
