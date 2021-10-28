@@ -1323,10 +1323,10 @@ def auto_link_pre_check():
         sold_or_Lost = bought - hodl
         needs_classification_hodl = sold_or_Lost - sold
 
-        if needs_classification_hodl > 0.0001:
+        if needs_classification_hodl > 0.001:
             data['auto_suggestions'].append([f"H:2", f"Buys ({bought}) - HODL ({hodl}) = Sold or Lost ({sold_or_Lost }). Sold or Lost - Sells ({sold}) = Needs Classification ({needs_classification_hodl})", "Failed"])
         else:
-            data['auto_suggestions'].append([f"H:2", f"Buys ({bought}) - HODL ({hodl}) = Sold or Lost ({sold_or_Lost }). Sold or Lost - Sells ({sold}) = Needs Classification (Less than 0.0001)", "Passed"])
+            data['auto_suggestions'].append([f"H:2", f"Buys ({bought}) - HODL ({hodl}) = Sold or Lost ({sold_or_Lost }). Sold or Lost - Sells ({sold}) = Needs Classification (Less than 0.001)", "Passed"])
 
 
     return jsonify(data)
