@@ -3,6 +3,15 @@ import datetime
 from transaction import Transaction
 from dateutil.tz import tzutc
 
+def less_than_one_cent(quantity, usd_spot):
+
+    if quantity * usd_spot > .01:
+        return False
+    else:
+        return True
+
+
+
 
 def get_stats_table_data(transactions):
     # Stats Table Generation

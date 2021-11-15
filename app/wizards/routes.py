@@ -1268,8 +1268,13 @@ def auto_link_pre_check():
                 if (receive.time_stamp - send.time_stamp).days <= 7:
                     if send.quantity >= receive.quantity:
                         difference = send.quantity - receive.quantity
-                        if difference < 0.0000001:
+
+                        if send.quantity * send.usd_spot < 10:
                             continue
+
+                        if receive.quantity * receive.usd_spot < 10:
+                            continue
+
                         
                         description = (
                             f"Sent {send.quantity} on {send.time_stamp} and received {receive.quantity} {(receive.time_stamp - send.time_stamp).days} days later"
@@ -1302,7 +1307,7 @@ def auto_link_pre_check():
 
     data = {}
     data['message'] = message
-    data['auto_suggestions'] = auto_suggestions['sent_received'] + auto_suggestions['pre-check']
+    data['auto_suggestions'] =  auto_suggestions['pre-check']
     
     hodl = "N/A"
         

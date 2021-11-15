@@ -1404,6 +1404,8 @@ class Transactions:
                         df = pd.read_csv(contents, on_bad_lines='skip')
                     elif 'coinbase' in filename.lower():
                         df = pd.read_csv(contents, on_bad_lines='skip', skip_blank_lines=False, header=7)
+                    else:
+                        df = pd.read_csv(contents, on_bad_lines='skip')
                 elif 'xls' in filename or 'xlsx' in filename:
                     # Assume that the user uploaded an excel file
                     df = pd.read_excel(io.BytesIO(decoded))
@@ -1420,6 +1422,8 @@ class Transactions:
                 elif 'xls' in filename or 'xlsx' in filename:
                     # Assume that the user uploaded an excel file
                     df = pd.read_excel(contents)
+                else:
+                    df = pd.read_csv(contents, on_bad_lines='skip')
             
             except Exception as e:
                 print(e)
@@ -1436,7 +1440,7 @@ class Transactions:
         convert_df = None
 
         # Import from cashapp csv
-        if 'Date' in trans_df.columns:
+        if 'coinbasetransactions' in filename.lower():
 
             # print("Date Found in columns")
             trans_df.rename(columns={'Date': 'Timestamp', 'Asset Type': 'Asset', 'Asset Amount': 'Quantity Transacted', 'Asset Price': 'USD Spot Price at Transaction'}, inplace=True)
@@ -1456,7 +1460,7 @@ class Transactions:
             
 
         #import from coinbase csv
-        else:
+        elif 'coinbasetransactions' in filename.lower:
             
             # print(trans_df.columns)
             trans_df['Timestamp'] = pd.to_datetime(trans_df['Timestamp']) 
@@ -1468,6 +1472,16 @@ class Transactions:
             send_df = trans_df[trans_df['Transaction Type'] == 'Send'].copy()
             receive_df = trans_df[trans_df['Transaction Type'] == 'Receive'].copy()
             convert_df = trans_df[trans_df['Transaction Type'] == 'Convert'].copy()
+        
+        elif 'coinbase' in filename.lower() and 'pro' in filename.lower():
+            trans_df['Timestamp'] = pd.to_datetime(trans_df['time']) 
+            trans_df['Timestamp'] = trans_df['Timestamp'].dt.tz_localize(None)
+            trans_df['Source'] = filename
+
+            
+
+
+
 
         sell_df.reset_index(inplace=True)
         buy_df.reset_index(inplace=True)
