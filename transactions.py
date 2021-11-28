@@ -9,7 +9,6 @@ import base64
 import datetime
 import io
 import pandas as pd
-from time import strftime
 import os
 from ast import literal_eval
 from assets import Asset
@@ -18,6 +17,8 @@ import pathlib
 import dateutil
 from utils import *
 import math
+import time
+import threading
 
 
 whois_timezone_info = {
@@ -796,12 +797,12 @@ class Transactions:
         
         # Load Sends
         for index, row in send_df.iterrows():
-            # buys.append(Buy(symbol='BTC', quantity=row['Quantity Transacted'], time_stamp=row['Timestamp'], usd_spot=row['USD Spot Price at Transaction']))
+            # buys.append(Buy(symbol='BTC', quantity=row['Quantity Transacted'], time_stamp=row['Timestamp'], usd_spot=row['Spot Price at Transaction']))
             sends.append(Send(symbol=row['symbol'], quantity=row['quantity'], time_stamp=row['time_stamp'], usd_spot=row['usd_spot'], linked_transactions=row['linked_transactions'], source=row['source']))
 
         # Load Receives
         for index, row in receive_df.iterrows():
-            # buys.append(Buy(symbol='BTC', quantity=row['Quantity Transacted'], time_stamp=row['Timestamp'], usd_spot=row['USD Spot Price at Transaction']))
+            # buys.append(Buy(symbol='BTC', quantity=row['Quantity Transacted'], time_stamp=row['Timestamp'], usd_spot=row['Spot Price at Transaction']))
             receives.append(Receive(symbol=row['symbol'], quantity=row['quantity'], time_stamp=row['time_stamp'], usd_spot=row['usd_spot'], linked_transactions=row['linked_transactions'], source=row['source']))
         
         # Load Conversions
@@ -1402,9 +1403,9 @@ class Transactions:
                 if 'csv' in filename:
                     if 'cash_app' in filename.lower():
                         df = pd.read_csv(contents, on_bad_lines='skip')
-                    elif 'coinbase' in filename.lower():
+                    elif 'coinbasetransactions' in filename.lower():
                         df = pd.read_csv(contents, on_bad_lines='skip', skip_blank_lines=False, header=7)
-                    else:
+                    elif 'coinbase' in filename.lower() and 'pro' in filename.lower():
                         df = pd.read_csv(contents, on_bad_lines='skip')
                 elif 'xls' in filename or 'xlsx' in filename:
                     # Assume that the user uploaded an excel file
@@ -1417,8 +1418,10 @@ class Transactions:
                 if 'csv' in filename:
                     if 'cash_app' in filename.lower():
                         df = pd.read_csv(contents, on_bad_lines='skip')
-                    elif 'coinbase' in filename.lower():
+                    elif 'coinbasetransactions' in filename.lower():
                         df = pd.read_csv(contents, on_bad_lines='skip', skip_blank_lines=False, header=7)
+                    elif 'coinbase' in filename.lower() and 'pro' in filename.lower():
+                        df = pd.read_csv(contents, on_bad_lines='skip')
                 elif 'xls' in filename or 'xlsx' in filename:
                     # Assume that the user uploaded an excel file
                     df = pd.read_excel(contents)
@@ -1433,23 +1436,22 @@ class Transactions:
 
         save_as_filename = os.path.join(basedir, "saves", f"saved_{strftime('Y%Y-M%m-D%d_H%H-M%M-S%S')}.xlsx")
         
-
-        # trans_df = pd.read_csv(filename, header=3)
         trans_df = df
-
         convert_df = None
 
+        csv_is_coinbase_pro = False
+
         # Import from cashapp csv
-        if 'coinbasetransactions' in filename.lower():
+        if 'cash_app' in filename.lower():
 
             # print("Date Found in columns")
-            trans_df.rename(columns={'Date': 'Timestamp', 'Asset Type': 'Asset', 'Asset Amount': 'Quantity Transacted', 'Asset Price': 'USD Spot Price at Transaction'}, inplace=True)
+            trans_df.rename(columns={'Date': 'Timestamp', 'Asset Type': 'Asset', 'Asset Amount': 'Quantity Transacted', 'Asset Price': 'Spot Price at Transaction'}, inplace=True)
 
             trans_df['Timestamp'] = trans_df['Timestamp'].apply(dateutil.parser.parse, tzinfos=whois_timezone_info)
             trans_df['Timestamp'] = pd.to_datetime(trans_df['Timestamp'], infer_datetime_format=True, utc=True) 
             trans_df['Timestamp'] = trans_df['Timestamp'].dt.tz_localize(None)
 
-            trans_df['USD Spot Price at Transaction'] = trans_df['USD Spot Price at Transaction'].replace('[\$,]', '', regex=True).astype(float)
+            trans_df['Spot Price at Transaction'] = trans_df['Spot Price at Transaction'].replace('[\$,]', '', regex=True).astype(float)
             trans_df['Source'] = filename
 
             sell_df = trans_df[trans_df['Transaction Type'] == 'Bitcoin Sale'].copy()
@@ -1460,7 +1462,7 @@ class Transactions:
             
 
         #import from coinbase csv
-        elif 'coinbasetransactions' in filename.lower:
+        elif 'coinbasetransactions' in filename.lower():
             
             # print(trans_df.columns)
             trans_df['Timestamp'] = pd.to_datetime(trans_df['Timestamp']) 
@@ -1473,26 +1475,148 @@ class Transactions:
             receive_df = trans_df[trans_df['Transaction Type'] == 'Receive'].copy()
             convert_df = trans_df[trans_df['Transaction Type'] == 'Convert'].copy()
         
+        # Import from coinbase pro fills
         elif 'coinbase' in filename.lower() and 'pro' in filename.lower():
-            trans_df['Timestamp'] = pd.to_datetime(trans_df['time']) 
-            trans_df['Timestamp'] = trans_df['Timestamp'].dt.tz_localize(None)
-            trans_df['Source'] = filename
+            import time
+
+            start = time.time()
+            print("Starting Coinbase pro Import")
 
             
+            csv_is_coinbase_pro = True
+
+            pro_sells = []
+            pro_buys = []
+
+            threads = list()
+
+            highest_index = 0
+
+            # print(trans_df.columns)
+            for index,row in trans_df.iterrows():
+
+                if index <= highest_index:
+                    continue
+
+                if index == 0:
+                    continue
+                
+                quantity = None
+                amount_in_usd = None
+                symbol = None
+                fee = None
+                timestamp = None
+                buy = None
+                sell = None
+                
+                pair_one_is_crypto = False
+                pair_two_is_crypto = False
+                sell_symbol = None
+
+                trade_id = str(row['trade id'])
+                pre_trans_type = row['type']
+                
+                if pre_trans_type != 'match':
+                    continue
+
+                timestamp = dateutil.parser.parse(row['time'])
+                timestamp = timestamp.replace(tzinfo=None)
+
+                # Row is buy with USD
+                if row['amount/balance unit'] == 'USD' and row['type'] == 'match' and row['amount'] < 0:
+                    amount_in_usd = row['amount']
 
 
+                # Row is Sell for USD
+                elif row['amount/balance unit'] == 'USD' and row['type'] == 'match' and row['amount'] > 0:
+                    amount_in_usd = row['amount']
 
 
-        sell_df.reset_index(inplace=True)
-        buy_df.reset_index(inplace=True)
-        send_df.reset_index(inplace=True)
-        receive_df.reset_index(inplace=True)
+                # Row is crypto sold 
+                elif row['amount/balance unit'] != 'USD' and row['type'] == 'match' and row['amount'] < 0:
+                    symbol = row['amount/balance unit']
+                    quantity = row['amount']
+                    
+                    # usd_spot = fetch_crypto_price(symbol=f"{symbol.upper()}/USD", timestamp=row['time'])
+                    sell_symbol = symbol
+                    # amount_in_usd = usd_spot * quantity
+                    pair_one_is_crypto = True
+                
+                # Row is Crypto Bought
+                elif row['amount/balance unit'] != 'USD' and row['type'] == 'match' and row['amount'] > 0:
+                    quantity = row['amount']
+                    symbol = row['amount/balance unit']
+                    pair_one_is_crypto = True
+
+                
+                i = 1
+                while (index + i <= df.index[-1]) and str(df.loc[index + i]['trade id']) == trade_id:
+                    
+                    highest_index = index + i
+                    # print(f'sub looping {highest_index}')
+                    
+                    # Row is buy with USD
+                    if df.loc[index + i]['amount/balance unit'] == 'USD' and df.loc[index + i]['type'] == 'match' and df.loc[index + i]['amount'] < 0:
+                        amount_in_usd =  df.loc[index + i]['amount']
+
+                        
+                    # Row is Sell for USD
+                    elif df.loc[index + i]['amount/balance unit'] == 'USD' and df.loc[index + i]['type'] == 'match' and df.loc[index + i]['amount'] > 0:
+                        amount_in_usd =  df.loc[index + i]['amount']
+
+                    
+                    # Row is crypto sold
+                    elif df.loc[index + i]['amount/balance unit'] != 'USD' and  df.loc[index + i]['type'] == 'match' and  df.loc[index + i]['amount'] < 0:
+                        quantity = df.loc[index + i]['amount']
+                        symbol = df.loc[index + i]['amount/balance unit']
+                        # usd_spot = fetch_crypto_price(symbol=f'{symbol.upper()}/USD', timestamp=df.loc[index + i]['time'])
+                        sell_symbol = symbol
+                        
+                        # amount_in_usd = usd_spot * quantity
+                        pair_two_is_crypto = True
 
 
-        sell_df.sort_values(by='Timestamp', inplace=True)
-        buy_df.sort_values(by='Timestamp', inplace=True)
-        send_df.sort_values(by='Timestamp', inplace=True)
-        receive_df.sort_values(by='Timestamp', inplace=True)
+                    
+                    # Row is Crypto Bought
+                    elif df.loc[index + i]['amount/balance unit'] != 'USD' and  df.loc[index + i]['type'] == 'match' and  df.loc[index + i]['amount'] > 0:
+                        quantity = df.loc[index + i]['amount']
+                        symbol = df.loc[index + i]['amount/balance unit']
+                        pair_two_is_crypto = True
+
+                    i += 1
+
+                    if quantity is not None and symbol is not None:
+
+                        # This is a Conversion
+                        if pair_one_is_crypto and pair_two_is_crypto and sell_symbol is not None:
+                            print(f"Found a conversion! {sell_symbol}")
+                            
+                        else:
+                            # print(f"Found a buy or Sell")
+                            if amount_in_usd > 0:
+                                # print(f"Found a Sell")
+                                # usd_spot = abs(quantity) * abs(amount_in_usd)
+                                sell = Sell(symbol=symbol, quantity=abs(quantity), time_stamp=dateutil.parser.parse(row['time']), usd_spot=0.0, source=filename)
+                                pro_sells.append(sell)
+                                
+                            else:
+                                # print(f"Found a Buy")
+                                # usd_spot = abs(quantity) * abs(amount_in_usd)
+                                buy = Buy(symbol=symbol, quantity=abs(quantity), time_stamp=dateutil.parser.parse(row['time']), usd_spot=0.0, source=filename)
+                                pro_buys.append(buy)
+                        
+                        break
+        
+        for trans in pro_sells + pro_buys:
+            t = threading.Thread(target=fetch_crypto_price, args=(trans,))
+            threads.append(t)
+        
+        for t in threads:
+            time.sleep(.2)
+            t.start()
+        
+        for t in threads:
+            t.join()
 
         # Objects >
         sells = []
@@ -1501,112 +1625,128 @@ class Transactions:
         receives = []
         assets = []
 
+        if csv_is_coinbase_pro:
+            print('number of pro sells', len(pro_sells))
+            print('number of pro buys', len(pro_buys))
+            end = time.time()
+            print(f"Ending Coinbase Pro Import {end - start}")
+            
+            sells = pro_sells
+            buy = pro_buys
 
-        ## Create Objects
-        # Sells
-        for index, row in sell_df.iterrows():
-            trans_obj = Sell(symbol=row['Asset'], quantity=row['Quantity Transacted'], time_stamp=row['Timestamp'], usd_spot=row['USD Spot Price at Transaction'], source=row['Source'])
-            duplicate_found = False
-            for trans in self.conversions:
-                if (
-                    trans.input_trans_type == trans_obj.trans_type
-                    and trans.symbol == trans_obj.symbol
-                    and trans.quantity == trans_obj.quantity
-                    and trans.usd_spot == trans_obj.usd_spot
-                    and trans.usd_total == math.floor(trans_obj.usd_total * 10 ** 10) / 10 ** 10 
-                ):
+        else:
+            sell_df.reset_index(inplace=True)
+            buy_df.reset_index(inplace=True)
+            send_df.reset_index(inplace=True)
+            receive_df.reset_index(inplace=True)
+            sell_df.sort_values(by='Timestamp', inplace=True)
+            buy_df.sort_values(by='Timestamp', inplace=True)
+            send_df.sort_values(by='Timestamp', inplace=True)
+            receive_df.sort_values(by='Timestamp', inplace=True)
+            
+            print('Number of Sells', len(sells))
+            print('Number of Buys', len(buys))
 
-                    duplicate_found = True
+            ## Create Objects
+            # Sells
+            for index, row in sell_df.iterrows():
+                trans_obj = Sell(symbol=row['Asset'], quantity=row['Quantity Transacted'], time_stamp=row['Timestamp'], usd_spot=row['Spot Price at Transaction'], source=row['Source'])
+                duplicate_found = False
+                for trans in self.conversions:
+                    if (
+                        trans.input_trans_type == trans_obj.trans_type
+                        and trans.symbol == trans_obj.symbol
+                        and trans.quantity == trans_obj.quantity
+                        and trans.usd_spot == trans_obj.usd_spot
+                        and trans.usd_total == math.floor(trans_obj.usd_total * 10 ** 10) / 10 ** 10 
+                    ):
 
-            if duplicate_found is False:
-                sells.append(trans_obj)
+                        duplicate_found = True
 
-        # Buys
-        for index, row in buy_df.iterrows():
-            trans_obj = Buy(symbol=row['Asset'], quantity=row['Quantity Transacted'], time_stamp=row['Timestamp'], usd_spot=row['USD Spot Price at Transaction'], source=row['Source'])
-            duplicate_found = False
-            for trans in self.conversions:
-                if (
-                    trans.input_trans_type == trans_obj.trans_type
-                    and trans.symbol == trans_obj.symbol
-                    and trans.quantity == trans_obj.quantity
-                    and trans.usd_spot == trans_obj.usd_spot
-                    and trans.usd_total == math.floor(trans_obj.usd_total * 10 ** 10) / 10 ** 10 
-                ):
+                if duplicate_found is False:
+                    sells.append(trans_obj)
 
-                    duplicate_found = True
+            # Buys
+            for index, row in buy_df.iterrows():
+                trans_obj = Buy(symbol=row['Asset'], quantity=row['Quantity Transacted'], time_stamp=row['Timestamp'], usd_spot=row['Spot Price at Transaction'], source=row['Source'])
+                duplicate_found = False
+                for trans in self.conversions:
+                    if (
+                        trans.input_trans_type == trans_obj.trans_type
+                        and trans.symbol == trans_obj.symbol
+                        and trans.quantity == trans_obj.quantity
+                        and trans.usd_spot == trans_obj.usd_spot
+                        and trans.usd_total == math.floor(trans_obj.usd_total * 10 ** 10) / 10 ** 10 
+                    ):
 
-            if duplicate_found is False:
-                buys.append(trans_obj)
+                        duplicate_found = True
 
-        # Sends
-        for index, row in send_df.iterrows():
-            trans_obj = Send(symbol=row['Asset'], quantity=row['Quantity Transacted'], time_stamp=row['Timestamp'], usd_spot=row['USD Spot Price at Transaction'], source=row['Source'])
-            duplicate_found = False
-            for trans in self.conversions:
-                if (
-                    trans.input_trans_type == trans_obj.trans_type
-                    and trans.symbol == trans_obj.symbol
-                    and trans.quantity == trans_obj.quantity
-                    and trans.usd_spot == trans_obj.usd_spot
-                    and trans.usd_total == math.floor(trans_obj.usd_total * 10 ** 10) / 10 ** 10 
-                ):
+                if duplicate_found is False:
+                    buys.append(trans_obj)
 
-                    duplicate_found = True
+            # Sends
+            for index, row in send_df.iterrows():
+                trans_obj = Send(symbol=row['Asset'], quantity=row['Quantity Transacted'], time_stamp=row['Timestamp'], usd_spot=row['Spot Price at Transaction'], source=row['Source'])
+                duplicate_found = False
+                for trans in self.conversions:
+                    if (
+                        trans.input_trans_type == trans_obj.trans_type
+                        and trans.symbol == trans_obj.symbol
+                        and trans.quantity == trans_obj.quantity
+                        and trans.usd_spot == trans_obj.usd_spot
+                        and trans.usd_total == math.floor(trans_obj.usd_total * 10 ** 10) / 10 ** 10 
+                    ):
 
-            if duplicate_found is False:
-                sends.append(trans_obj)
+                        duplicate_found = True
 
-        # Receives
-        # print(f"Number of Conversions {len(self.conversions)}")
+                if duplicate_found is False:
+                    sends.append(trans_obj)
 
-        for index, row in receive_df.iterrows():
-            trans_obj = Receive(symbol=row['Asset'], quantity=row['Quantity Transacted'], time_stamp=row['Timestamp'], usd_spot=row['USD Spot Price at Transaction'], source=row['Source'])
-            duplicate_found = False
-            for trans in self.conversions:
-                if (
-                    trans.input_trans_type == trans_obj.trans_type
-                    and trans.symbol == trans_obj.symbol
-                    and trans.quantity == trans_obj.quantity
-                    and trans.usd_spot == trans_obj.usd_spot
-                    and trans.usd_total == math.floor(trans_obj.usd_total * 10 ** 10) / 10 ** 10 
-                ):
+            # Receives
+            # print(f"Number of Conversions {len(self.conversions)}")
+            for index, row in receive_df.iterrows():
+                trans_obj = Receive(symbol=row['Asset'], quantity=row['Quantity Transacted'], time_stamp=row['Timestamp'], usd_spot=row['Spot Price at Transaction'], source=row['Source'])
+                duplicate_found = False
+                for trans in self.conversions:
+                    if (
+                        trans.input_trans_type == trans_obj.trans_type
+                        and trans.symbol == trans_obj.symbol
+                        and trans.quantity == trans_obj.quantity
+                        and trans.usd_spot == trans_obj.usd_spot
+                        and trans.usd_total == math.floor(trans_obj.usd_total * 10 ** 10) / 10 ** 10 
+                    ):
 
-                    duplicate_found = True
+                        duplicate_found = True
 
-            if duplicate_found is False:
-                receives.append(trans_obj)
+                if duplicate_found is False:
+                    receives.append(trans_obj)
 
-                
+                    
+            if convert_df is not None:
+                convert_df.reset_index(inplace=True)
+                for index, row in convert_df.iterrows():
 
-        if convert_df is not None:
-            convert_df.reset_index(inplace=True)
-            for index, row in convert_df.iterrows():
+                    symbol=row['Asset']
+                    quantity=row['Quantity Transacted']
+                    time_stamp=row['Timestamp']
+                    usd_spot=row['Spot Price at Transaction']
+                    source=row['Source']
 
-                symbol=row['Asset']
-                quantity=row['Quantity Transacted']
-                time_stamp=row['Timestamp']
-                usd_spot=row['USD Spot Price at Transaction']
-                source=row['Source']
+                    sells.append(Sell(symbol=row['Asset'], quantity=row['Quantity Transacted'], time_stamp=row['Timestamp'], usd_spot=row['Spot Price at Transaction'], source=f"{row['Source']} - Convert Sell"))
 
-                sells.append(Sell(symbol=row['Asset'], quantity=row['Quantity Transacted'], time_stamp=row['Timestamp'], usd_spot=row['USD Spot Price at Transaction'], source=f"{row['Source']} - Convert Sell"))
+                    usd_total = row['Total (inclusive of fees)']
 
-                usd_total = row['USD Total (inclusive of fees)']
+                    notes = row['Notes']
 
-        
-                notes = row['Notes']
+                    buy_quantity = float(notes.split()[4])
+                    buy_asset = notes.split()[5]
 
-                buy_quantity = float(notes.split()[4])
-                buy_asset = notes.split()[5]
+                    buy_usd_spot = usd_total / buy_quantity
 
-                buy_usd_spot = usd_total / buy_quantity
-
-                buys.append(Buy(symbol=buy_asset, quantity=buy_quantity, time_stamp=row['Timestamp'], usd_spot=buy_usd_spot, source=f"{row['Source']} - Convert Buy" ))
+                    buys.append(Buy(symbol=buy_asset, quantity=buy_quantity, time_stamp=row['Timestamp'], usd_spot=buy_usd_spot, source=f"{row['Source']} - Convert Buy" ))
 
         if self.transactions:
-            
             deduped_transactions = set()
-
             imported_transactions =  buys + sells + sends + receives
 
             for trans in self.transactions:
@@ -1618,7 +1758,6 @@ class Transactions:
             self.transactions = list(deduped_transactions)
         
         else:
-            
             self.transactions = buys + sells + sends + receives
 
         for asset in self.assets:

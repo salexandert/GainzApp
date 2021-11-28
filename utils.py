@@ -2,6 +2,56 @@
 import datetime
 from transaction import Transaction
 from dateutil.tz import tzutc
+import dateutil
+import requests
+import datetime
+
+
+def fetch_crypto_price(trans):
+    # pair_split = symbol.split('/')  # symbol must be in format XXX/XXX ie. BTC/EUR
+    # symbol = pair_split[0] + '-' + pair_split[1]
+
+    symbol = f"{trans.symbol}-USD"
+    start_time_obj = trans.time_stamp
+    start_time_formatted = start_time_obj.isoformat()[:-9] + 'Z'
+    
+    end_time_obj = start_time_obj + datetime.timedelta(minutes=2)
+    end_time_formatted = end_time_obj.isoformat()[:-9] + 'Z'
+    
+
+    # print('starting_timestamp', timestamp)
+    # print('ending timestamp', end_timestamp)
+    
+    url = f"https://api.exchange.coinbase.com/products/{symbol}/candles?granularity=60&start={start_time_formatted}&end={end_time_formatted}"
+    headers = {"Accept": "application/json"}
+    response =  requests.request("GET", url, headers=headers, timeout=1)
+
+    if response.status_code == 200:  # check to make sure the response from server is good
+        # print(f'API Response Status Code 200 ')
+        # print(response.text)
+        # print(response.json()[0][4])
+        price = response.json()[0][4]
+        
+        # timestampnum = response.json()[0][0]
+        # response_time_obj = datetime.datetime.utcfromtimestamp(timestampnum)
+        # input_time_obj = dateutil.parser.parse(timestamp)
+        
+        # print(f"The Price of {symbol} was looked up using coinbase api {price} @ {start_time_obj}")
+        # print(symbol)
+        # print('timestamp on api input', input_time_obj)
+        # print('timestamp on api response', response_time_obj)
+
+        trans.usd_spot = price
+
+    else:
+        print("Did not receieve OK response from Coinbase API")
+        # print(symbol)
+        print('2017-09-24T11:59:17.404Z is a valid example timestamp')
+        print('Start Time: ', start_time_formatted)
+        print('End Time: ', end_time_formatted)
+        print(url)
+        print(response)
+
 
 def less_than_one_cent(quantity, usd_spot):
 
@@ -9,8 +59,6 @@ def less_than_one_cent(quantity, usd_spot):
         return False
     else:
         return True
-
-
 
 
 def get_stats_table_data(transactions):
