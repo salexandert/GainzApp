@@ -8,8 +8,6 @@ import datetime
 
 
 def fetch_crypto_price(trans):
-    # pair_split = symbol.split('/')  # symbol must be in format XXX/XXX ie. BTC/EUR
-    # symbol = pair_split[0] + '-' + pair_split[1]
 
     symbol = f"{trans.symbol}-USD"
     start_time_obj = trans.time_stamp

@@ -95,7 +95,10 @@ class Transaction:
 
         return link
 
-    
+    @property
+    def usd_total(self):
+        return self.usd_spot * float(self.quantity)
+
     @property
     def unlinked_quantity(self):
         self.update_linked_transactions()
@@ -127,7 +130,7 @@ class Buy(Transaction):
 
         self.symbol = symbol.upper()
         self.usd_spot = float(usd_spot)
-        self.usd_total = self.usd_spot * float(quantity)
+        
         
 
 
@@ -138,7 +141,7 @@ class Sell(Transaction):
 
         self.symbol = symbol.upper()
         self.usd_spot = float(usd_spot)
-        self.usd_total = self.usd_spot * float(quantity)
+        
         
 
 
@@ -148,7 +151,7 @@ class Send(Transaction):
 
         self.symbol = symbol.upper()
         self.usd_spot = float(usd_spot)
-        self.usd_total = self.usd_spot * float(quantity)
+        
 
 
 class Receive(Transaction):
@@ -157,5 +160,5 @@ class Receive(Transaction):
 
         self.symbol = symbol.upper()
         self.usd_spot = float(usd_spot)
-        self.usd_total = self.usd_spot * float(quantity)
+        
         
