@@ -10,26 +10,23 @@ import datetime
 def fetch_crypto_price(trans):
 
     symbol = f"{trans.symbol}-USD"
-    start_time_obj = trans.time_stamp
-    start_time_formatted = start_time_obj.isoformat()[:-9] + 'Z'
     
+    start_time_obj = trans.time_stamp    
+    start_time_formatted = start_time_obj.isoformat(timespec='milliseconds').split('.')[0] + '.' + start_time_obj.isoformat(timespec='milliseconds').split('.')[1][:3] + 'Z'
     end_time_obj = start_time_obj + datetime.timedelta(minutes=2)
-    end_time_formatted = end_time_obj.isoformat()[:-9] + 'Z'
-    
-
-    # print('starting_timestamp', timestamp)
-    # print('ending timestamp', end_timestamp)
-    
+    end_time_formatted = end_time_obj.isoformat(timespec='milliseconds').split('.')[0] + '.' + end_time_obj.isoformat(timespec='milliseconds').split('.')[1][:3] + 'Z'
+        
     url = f"https://api.exchange.coinbase.com/products/{symbol}/candles?granularity=60&start={start_time_formatted}&end={end_time_formatted}"
     headers = {"Accept": "application/json"}
     response =  requests.request("GET", url, headers=headers, timeout=1)
 
-    if response.status_code == 200:  # check to make sure the response from server is good
+    if response.status_code == 200 and len(response.json()) > 0:  # check to make sure the response from server is good
         # print(f'API Response Status Code 200 ')
         # print(response.text)
-        # print(response.json()[0][4])
+        # print(response.json())
+
         price = response.json()[0][4]
-        
+
         # timestampnum = response.json()[0][0]
         # response_time_obj = datetime.datetime.utcfromtimestamp(timestampnum)
         # input_time_obj = dateutil.parser.parse(timestamp)
@@ -42,13 +39,18 @@ def fetch_crypto_price(trans):
         trans.usd_spot = price
 
     else:
-        print("Did not receieve OK response from Coinbase API")
-        # print(symbol)
+        print()
+        print(f"Did not receieve a valid response from Coinbase API")
+        print(symbol)
+        print('Type: ', trans.trans_type)
+        print('Quantity: ', trans.quantity)
+        print('timestamp: ', trans.time_stamp)
         print('2017-09-24T11:59:17.404Z is a valid example timestamp')
         print('Start Time: ', start_time_formatted)
         print('End Time: ', end_time_formatted)
         print(url)
         print(response)
+        print('response.json(): ',response.json())
 
 
 def less_than_one_cent(quantity, usd_spot):

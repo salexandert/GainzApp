@@ -1478,37 +1478,21 @@ class Transactions:
         # Import from coinbase pro fills
         elif 'coinbase' in filename.lower() and 'pro' in filename.lower():
             
-
             start = time.time()
             print("Starting Coinbase pro Import")
 
-            
             csv_is_coinbase_pro = True
-
             pro_sells = []
             pro_buys = []
             pro_sends = []
             pro_receives = []
-
             threads = list()
-
             highest_index = 0
-
-            # print(trans_df.columns)
 
             trans_df.sort_values(by=['trade id'], inplace=True)
             trans_df.reset_index(inplace=True)
             
-            with pd.ExcelWriter('testing.xlsx') as writer:
-                trans_df.to_excel(writer, sheet_name="All Transactions")
-
             for index,row in trans_df.iterrows():
-
-                if index <= highest_index:
-                    continue
-
-                if index == 0:
-                    continue
                 
                 quantity = None
                 amount_in_usd = None
@@ -1521,20 +1505,27 @@ class Transactions:
                 pair_one_is_crypto = False
                 pair_two_is_crypto = False
 
-
                 trade_id = str(row['trade id'])
-                pre_trans_type = row['type']
-                
-                if pre_trans_type != 'match':
-                    continue
 
                 timestamp = dateutil.parser.parse(row['time'])
                 timestamp = timestamp.replace(tzinfo=None)
-
                 
+                symbol = row['amount/balance unit']
+                
+                # Received Crypto
+                if row['amount/balance unit'] != 'USD' and row['type'] == 'deposit':
+                    trans_obj = Receive(symbol=symbol, quantity=abs(row['amount']), time_stamp=timestamp, usd_spot=0.0, source=filename)
+                    pro_receives.append(trans_obj)
+                    continue
 
+                # Sent Crypto
+                elif row['amount/balance unit'] != 'USD' and row['type'] == 'withdrawal':
+                    trans_obj = Receive(symbol=symbol, quantity=abs(row['amount']), time_stamp=timestamp, usd_spot=0.0, source=filename)
+                    pro_sends.append(trans_obj)
+                    continue
+            
                 # Row is buy with USD
-                if row['amount/balance unit'] == 'USD' and row['type'] == 'match' and float(row['amount']) < 0:
+                elif row['amount/balance unit'] == 'USD' and row['type'] == 'match' and float(row['amount']) < 0:
                     amount_in_usd = row['amount']
 
 
@@ -1548,30 +1539,22 @@ class Transactions:
                     symbol = row['amount/balance unit']
                     quantity = row['amount']
                     pair_one_is_crypto = True
+                    pair_one_symbol = symbol
+                    pair_one_quantity = quantity
 
-                    print(f"The Symbol is {symbol} in outer Row is crypto sold")
                 
                 # Row is Crypto Bought
                 elif row['amount/balance unit'] != 'USD' and row['type'] == 'match' and row['amount'] > 0:
                     symbol = row['amount/balance unit']
                     quantity = row['amount']
                     pair_one_is_crypto = True
+                    pair_one_symbol = symbol
+                    pair_one_quantity = quantity
 
-                    print(f"The Symbol is {symbol} in outer Row is crypto Bought")
-                
-                elif row['amount/balance unit'] != 'USD' and row['type'] == 'deposit':
-                    pass
 
-                elif row['amount/balance unit'] != 'USD' and row['type'] == 'withdrawal':
-                    pass
-
-                
-                i = 0
+                i = 1
                 while (index + i <= df.index[-1]) and str(df.loc[index + i]['trade id']) == trade_id:
-                    
-                    highest_index = index + i
-                    # print(f'sub looping {highest_index}')
-                    
+                                        
                     # Row is buy with USD
                     if df.loc[index + i]['amount/balance unit'] == 'USD' and df.loc[index + i]['type'] == 'match' and df.loc[index + i]['amount'] < 0:
                         amount_in_usd =  df.loc[index + i]['amount']
@@ -1586,44 +1569,48 @@ class Transactions:
                     elif df.loc[index + i]['amount/balance unit'] != 'USD' and  df.loc[index + i]['type'] == 'match' and  df.loc[index + i]['amount'] < 0:
                         symbol = df.loc[index + i]['amount/balance unit']
                         quantity = df.loc[index + i]['amount']
+                        
                         pair_two_is_crypto = True
+                        pair_two_symbol = symbol
+                        pair_two_quantity = quantity
 
-                        print(f"The Symbol is {symbol} in inner crypto sold")
 
-                    
                     # Row is Crypto Bought
                     elif df.loc[index + i]['amount/balance unit'] != 'USD' and  df.loc[index + i]['type'] == 'match' and  df.loc[index + i]['amount'] > 0:
                         symbol = df.loc[index + i]['amount/balance unit']
                         quantity = df.loc[index + i]['amount']
+                        
                         pair_two_is_crypto = True
-
-                        print(f"The Symbol is {symbol} in inner crypto bought")
+                        pair_two_symbol = symbol
+                        pair_two_quantity = quantity
 
                     i += 1
-
-                    if quantity is not None and symbol is not None:
+                    if quantity is not None and symbol is not None and amount_in_usd is not None:
 
                         # This is a Conversion
                         if pair_one_is_crypto is True and pair_two_is_crypto is True:
-                            print(f"Found a conversion! {symbol}")
+                            if pair_one_quantity < 0:
+                                print(f"Sold {abs(pair_one_quantity)} {pair_one_symbol} for {abs(pair_two_quantity)} {pair_two_symbol} ")
+                            else:
+                                print(f"Sold {abs(pair_two_quantity)} {pair_two_symbol} for {abs(pair_one_quantity)} {pair_one_symbol} ")
                             
                         else:
                             # print(f"Found a buy or Sell")
                             time_stamp = dateutil.parser.parse(row['time'])
                             
                             if amount_in_usd > 0:
-                                print(f"Found a {symbol} Sell")
+                                # print(f"Found a {symbol} Sell")
                                 sell = Sell(symbol=symbol, quantity=abs(quantity), time_stamp=time_stamp, usd_spot=0.0, source=filename)
                                 pro_sells.append(sell)
                                 
                             else:
-                                print(f"Found a {symbol} Buy")
+                                # print(f"Found a {symbol} Buy")
                                 buy = Buy(symbol=symbol, quantity=abs(quantity), time_stamp=time_stamp, usd_spot=0.0, source=filename)
                                 pro_buys.append(buy)
                         
                         break
         
-        for trans in pro_sells + pro_buys:
+        for trans in pro_sells + pro_buys + pro_receives + pro_sends:
             t = threading.Thread(target=fetch_crypto_price, args=(trans,))
             threads.append(t)
         
