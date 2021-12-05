@@ -1642,6 +1642,8 @@ class Transactions:
             
             sells = pro_sells
             buys = pro_buys
+            receives = pro_receives
+            sends = pro_sends
 
             for t in buys + sells:
                 t.time_stamp = t.time_stamp.replace(tzinfo=None)

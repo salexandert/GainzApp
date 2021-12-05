@@ -616,7 +616,7 @@ def get_sells_trans_table_data_range(transactions, asset, date_range):
             table_data.append([
                 trans.source,
                 trans.symbol,
-                datetime.datetime.strftime(trans.time_stamp, "%Y-%m-%d %H:%M:%S"),
+                datetime.datetime.strftime(trans.time_stamp, "%Y-%m-%d %H:%M:%S.%f"),
                 trans.quantity,
                 unlinked_quantity,
                 "${:,.2f}".format(trans.usd_spot),
@@ -792,13 +792,16 @@ def get_trans_obj_from_table_data(transactions, symbol, trans_type, quantity, ti
 
             if isinstance(trans.time_stamp, datetime.date):
                 trans2_time_stamp = trans.time_stamp
+                # trans2_time_stamp = trans2_time_stamp.replace(microsecond=0)
             
             else:
                 trans2_time_stamp = trans.time_stamp.to_pydatetime()
                 time_stamp = time_stamp.replace(tzinfo=tzutc())
                 trans2_time_stamp = trans2_time_stamp.replace(tzinfo=tzutc())
+                # trans2_time_stamp = trans2_time_stamp.replace(microsecond=0)
 
 
+            print(time_stamp, trans2_time_stamp)
             if time_stamp == trans2_time_stamp:
 
                 # print(f"Trans with Symbol {sell_symbol} and quantity {sell_quantity} Found")
