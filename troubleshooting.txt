@@ -1,9 +1,0 @@
-2015-12-29 23:46:11
-
-
-2015-09-29 13:58:52   1.94872094
-
-on add and manage transactions shows 1.424 unlinked
-on add and manage links shows 2 links (1.73 and 0.524) equaling 2.254
-
-We should see a negative quantity unlinked of 0.305279

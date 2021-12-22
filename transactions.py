@@ -1609,21 +1609,21 @@ class Transactions:
                                 pro_buys.append(buy)
                         
                         break
-        
-        for trans in pro_sells + pro_buys + pro_receives + pro_sends:
-            t = threading.Thread(target=fetch_crypto_price, args=(trans,))
-            threads.append(t)
-        
-        k = 1
-        for t in threads:
-            time.sleep(.2)
-            print(f"Getting usd spot from Coinbase API at max rate for transaction {k} of {len(threads)}")
-            t.start()
-            k += 1
-        
-        i = 1
-        for t in threads:
-            t.join()
+        if csv_is_coinbase_pro is True:
+            for trans in pro_sells + pro_buys + pro_receives + pro_sends:
+                t = threading.Thread(target=fetch_crypto_price, args=(trans,))
+                threads.append(t)
+            
+            k = 1
+            for t in threads:
+                time.sleep(.2)
+                print(f"Getting usd spot from Coinbase API at max rate for transaction {k} of {len(threads)}")
+                t.start()
+                k += 1
+            
+            i = 1
+            for t in threads:
+                t.join()
 
 
         # Objects >

@@ -24,10 +24,10 @@ app.config['transactions'] = transactions
 Migrate(app, db)
 
 
-# import logging
-# logging.basicConfig(filename='gainz.log', level=logging.DEBUG)
-# log = logging.getLogger('werkzeug')
-# log.setLevel(logging.ERROR)
+import logging
+logging.basicConfig(filename='gainz.log', level=logging.DEBUG)
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
 
 
 
@@ -37,5 +37,5 @@ if __name__ == "__main__":
     print(f"Default credentials username: admin, password: admin\n")
     print("Close this window when finished.\n")
     
-    app.run(debug=True)
+    app.run(debug=False)
  

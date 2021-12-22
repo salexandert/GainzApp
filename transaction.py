@@ -66,7 +66,9 @@ class Transaction:
             
             if receive is not None:
                 link = Link(transactions=[receive, buy], quantity=link_quantity)
+            
             else:
+                # print(self.trans_type, other.trans_type)
                 link = Link(transactions=[sell, buy], quantity=link_quantity)
 
 
