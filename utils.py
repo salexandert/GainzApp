@@ -2,9 +2,12 @@
 import datetime
 from transaction import Transaction
 from dateutil.tz import tzutc
-import dateutil
 import requests
 import datetime
+import os, sys
+
+
+os.environ['REQUESTS_CA_BUNDLE'] = "certifi/cacert.pem"
 
 
 def fetch_crypto_price(trans):

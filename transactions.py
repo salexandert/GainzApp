@@ -1460,6 +1460,13 @@ class Transactions:
             receive_df = trans_df[trans_df['Transaction Type'] == 'Bitcoin Deposit'].copy()
             convert_df = None
             
+        elif 'kraken' in filename.lower():
+            trans_df['Timestamp'] = pd.to_datetime(trans_df['time']) 
+            trans_df['Timestamp'] = trans_df['time'].dt.tz_localize(None)
+            trans_df['Source'] = filename   
+            
+            sell_df = trans_df[trans_df['type'] == 'sell'].copy()
+            buy_df = trans_df[trans_df['type'] == 'buy'].copy()        
 
         #import from coinbase csv
         elif 'coinbasetransactions' in filename.lower():
@@ -1658,8 +1665,8 @@ class Transactions:
             send_df.sort_values(by='Timestamp', inplace=True)
             receive_df.sort_values(by='Timestamp', inplace=True)
             
-            print('Number of Sells', len(sells))
-            print('Number of Buys', len(buys))
+            # print('Number of Sells', len(sells))
+            # print('Number of Buys', len(buys))
 
             ## Create Objects
             # Sells

@@ -3,7 +3,7 @@ from . import blueprint
 from flask import Flask, render_template, session, redirect, url_for, session, request, current_app
 from flask_wtf import FlaskForm
 from flask_login import login_required, current_user
-from wtforms import (SelectField,TextField,
+from wtforms import (SelectField,StringField,
                      SubmitField, DecimalField, DateField)
 
 from wtforms.fields.html5 import DateField
@@ -24,7 +24,7 @@ class ManualTransaction(FlaskForm):
     '''
     timestamp = DateTimeLocalField('Timestamp', format='%Y-%m-%dT%H:%M')
     type  = SelectField(u'Type', choices=[('buy', 'Buy'), ('sell', 'Sell')])
-    symbol = TextField('Crypto Symbol')
+    symbol = StringField('Crypto Symbol')
     quantity = DecimalField('Quantity', rounding=None)
     usd_spot = DecimalField('USD Spot', rounding=None)
 
@@ -32,7 +32,7 @@ class ManualTransaction(FlaskForm):
 
 
 class CurrentHodl(FlaskForm):
-    symbol = TextField('Crypto Symbol')
+    symbol = StringField('Crypto Symbol')
     quantity = DecimalField('Quantity', rounding=None)
     
     submit = SubmitField('Submit')
@@ -40,7 +40,7 @@ class CurrentHodl(FlaskForm):
 
 class Search(FlaskForm):
     quantity = DecimalField('Quantity', rounding=None)
-    symbol = TextField('Crypto Symbol')
+    symbol = StringField('Crypto Symbol')
     profit = DecimalField('Profit', rounding=None)
     timestamp = DateField('Date Sold')
 

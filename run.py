@@ -1,16 +1,11 @@
 from flask_migrate import Migrate
 from configs.config import config_dict
 from app import create_app, db
-import os
-import sys
 from transactions import Transactions
-from flask import current_app
-import tkinter as tk
-import time
-import threading
+import sys, os
+
 
 get_config_mode = os.environ.get('GENTELELLA_CONFIG_MODE', 'Debug')
-
 
 try:
     config_mode = config_dict[get_config_mode.capitalize()]
@@ -28,7 +23,6 @@ import logging
 logging.basicConfig(filename='gainz.log', level=logging.DEBUG)
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
-
 
 
 if __name__ == "__main__":

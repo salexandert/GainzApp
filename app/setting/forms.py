@@ -1,19 +1,19 @@
 from flask_wtf import FlaskForm
-from wtforms import TextField, PasswordField
+from wtforms import StringField, PasswordField
 
 ## login and registration
 
 
 class add_user_Form(FlaskForm):
-    username = TextField('Username', id='username_create')
-    email = TextField('Email')
+    username = StringField('Username', id='username_create')
+    email = StringField('Email')
     password = PasswordField('Password', id='pwd_create')
 
 class delete_user_Form(FlaskForm):
-    username = TextField('Username', id='username_delete')
+    username = StringField('Username', id='username_delete')
 
 class setting_password_Form(FlaskForm):
-    username = TextField('Username', id='username_setting')
+    username = StringField('Username', id='username_setting')
     password = PasswordField('Password', id='pwd_setting')
 
 class change_password_Form(FlaskForm):
