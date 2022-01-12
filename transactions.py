@@ -1403,7 +1403,7 @@ class Transactions:
         receives = []
         assets = []
 
-        # Dataframes
+        
         if type(contents) is str:
             content_type, content_string = contents.split(',')
             decoded = base64.b64decode(content_string)
@@ -1453,7 +1453,7 @@ class Transactions:
 
         save_as_filename = os.path.join(basedir, "saves", f"saved_{strftime('Y%Y-M%m-D%d_H%H-M%M-S%S')}.xlsx")
 
-        # Import from cashapp csv
+        # Import from CashApp csv
         if 'cash_app' in filename.lower():
 
             # print("Date Found in columns")
@@ -2036,8 +2036,7 @@ if __name__ == "__main__":
     print(buys[0].unlinked_quantity)
     
 
-    import ipdb
-    ipdb.set_trace()
+
 
 
 
