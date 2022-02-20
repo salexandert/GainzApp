@@ -242,6 +242,8 @@ Timestamp,Transaction Type,Asset,Quantity Transacted,Spot Price Currency,Spot Pr
 2021-12-03T22:50:01Z,Receive,BTC,0.1,USD,53389.51,"","","",Received 0.1000 BTC from an external account
 2021-12-07T19:39:33Z,Sell,BTC,0.0393786,USD,50789.01,2000.00,1970.20,29.80,"Sold 0.0393786 BTC for $1,970.20 USD"
 2021-12-07T19:59:33Z,Send,BTC,0.0606214,USD,50912.77,"","","",Sent 0.0606214 BTC to 3G9BEbZssPBjFNzqBXAc5xzBztupP4z3XQ
+2022-01-19T18:34:13Z,Receive,BTC,0.062219,USD,41920.66,"","","",Received 0.062219 BTC from an external account
+2022-01-23T15:37:33Z,Sell,BTC,0.00142663,USD,35047.63,50.00,48.01,1.99,Sold 0.00142663 BTC for $48.01 USD
 2017-12-22T03:03:52Z,Buy,BCH,0.4,USD,2710.48,1084.19,1100.34,16.15,"Bought 0.4000 BCH for $1,100.34 USD"
 2018-01-22T03:33:38Z,Send,BCH,0.50001436,USD,1751.58,"","","",Sent 0.50001436 BCH to qq0sm0tzrr5a3vgn50f9hn9hy62f6watz5xnjfmn0v
 2018-11-14T04:48:56Z,Receive,BCH,11.9631154,USD,514.99,"","","",Received 11.9631154 BCH from an external account
@@ -318,3 +320,5 @@ Timestamp,Transaction Type,Asset,Quantity Transacted,Spot Price Currency,Spot Pr
 2021-12-03T17:04:55Z,Rewards Income,ATOM,1.0e-06,USD,32.92,0.00,0.00,0.00,Received 0.000001 ATOM from Coinbase Rewards
 2021-12-24T18:19:46Z,Rewards Income,ATOM,1.0e-06,USD,28.33,0.00,0.00,0.00,Received 0.000001 ATOM from Coinbase Rewards
 2021-12-31T15:19:22Z,Rewards Income,ATOM,1.0e-06,USD,31.52,0.00,0.00,0.00,Received 0.000001 ATOM from Coinbase Rewards
+2022-01-07T18:58:20Z,Rewards Income,ATOM,1.0e-06,USD,40.76,0.00,0.00,0.00,Received 0.000001 ATOM from Coinbase Rewards
+2022-01-22T08:04:41Z,Rewards Income,ATOM,2.0e-06,USD,29.71,0.00,0.00,0.00,Received 0.000002 ATOM from Coinbase Rewards

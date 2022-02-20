@@ -18,6 +18,7 @@ class Transaction:
         self.symbol = symbol
         self.usd_spot = usd_spot
         self.source = source
+        self.fee = 0.0
         
     def __repr__(self):
         return repr(f"{self.time_stamp} {self.quantity}")

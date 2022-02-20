@@ -789,12 +789,16 @@ class Transactions:
         
         # Load Sells
         for index, row in sell_df.iterrows():
-            sells.append(Sell(symbol=row['symbol'], quantity=row['quantity'], time_stamp=row['time_stamp'], usd_spot=row['usd_spot'], linked_transactions=row['linked_transactions'], source=row['source']))
-        
+            trans_obj = Sell(symbol=row['symbol'], quantity=row['quantity'], time_stamp=row['time_stamp'], usd_spot=row['usd_spot'], linked_transactions=row['linked_transactions'], source=row['source'])
+            trans_obj.fee = row['fee']
+            sells.append(trans_obj)
+
         # Load Buys
         for index, row in buy_df.iterrows():
-            buys.append(Buy(symbol=row['symbol'], quantity=row['quantity'], time_stamp=row['time_stamp'], usd_spot=row['usd_spot'], linked_transactions=row['linked_transactions'], source=row['source']))
-        
+            trans_obj = Buy(symbol=row['symbol'], quantity=row['quantity'], time_stamp=row['time_stamp'], usd_spot=row['usd_spot'], linked_transactions=row['linked_transactions'], source=row['source'])
+            trans_obj.fee = row['fee']
+            buys.append(trans_obj)
+
         # Load Sends
         for index, row in send_df.iterrows():
             # buys.append(Buy(symbol='BTC', quantity=row['Quantity Transacted'], time_stamp=row['Timestamp'], usd_spot=row['Spot Price at Transaction']))
@@ -960,14 +964,106 @@ class Transactions:
         a_sheet = workbook['All Transactions']
         s_sheet = workbook['Stats']
         t8949_sheet = workbook['8949']
+        sales_sheet = workbook['Sales']
+
+        
+        # Get Years
+        years = set()
+        for link in self.links:
+            years.add(link.sell.time_stamp.year)
+
+        # Sales
+        for year in years:
+            print(f'exporting sales for {year}')
+
+
+            sheetname = f'{year} Sales'
+            ws = workbook.copy_worksheet(sales_sheet)
+            ws.title = sheetname
+
+            row = 2
+            
+            for trans in self.transactions:
+                
+                description = None
+                acquired = None
+                sold_date = None
+                proceeds = None 
+                cost_basis = 0
+                source = None
+                gain_loss = 0
+
+
+                if trans.trans_type != "sell":
+                    continue
+
+                if trans.time_stamp.year != year:
+                    continue
+                
+
+                description = f"{trans.quantity} of {trans.symbol}"
+                
+                ws[f"A{row}"] = description
+
+                if len(trans.links) == 0:
+                    continue
+                elif len(trans.links) > 1:
+                    acquired = "Multiple Dates"
+                    all_short = True
+                    all_long = True
+                    
+                    for link in trans.links:
+
+
+                        gain_loss += link.profit_loss
+                        if link.hodl_duration.days < 365:
+                            all_long = False
+                        else:
+                            all_short = False
+                    
+                    if all_long is False and all_short is False:
+                        acquired += " Long and Short"
+
+                    elif all_long is True:
+                        acquired += " All Long"
+                    
+                    elif all_short is True:
+                        acquired += " All Short"
+
+                        
+                else:
+                    gain_loss = trans.links[0].profit_loss
+                    acquired = trans.links[0].buy.time_stamp
+
+                ws[f"B{row}"] = acquired
+
+                sold_date = trans.time_stamp
+
+                ws[f"C{row}"] = sold_date
+
+                proceeds = trans.usd_total - trans.fee
+
+                ws[f"D{row}"] = proceeds
+                ws[f"D{row}"].number_format = '"$"#,##0.00_-'
+
+                for link in trans.links:
+                    cost_basis += link.cost_basis + link.buy.fee
+
+                ws[f"E{row}"] = cost_basis
+                ws[f"E{row}"].number_format = '"$"#,##0.00_-'
+
+                gain_loss = proceeds - cost_basis
+
+                ws[f"F{row}"] = gain_loss
+                ws[f"F{row}"].number_format = '"$"#,##0.00_-'
+
+                source = trans.source
+                ws[f"G{row}"] = source
+
+                row += 1
 
 
         # 8949 Short
-        years = set()
-        for link in self.links:
-
-            years.add(link.sell.time_stamp.year)
-
         for year in years:
             
             sheetname = f'{year} 8949 Short'
@@ -995,6 +1091,7 @@ class Transactions:
                 ws[f"E{row}"].number_format = '"$"#,##0.00_-'
                 ws[f"H{row}"] = link.profit_loss
                 ws[f"H{row}"].number_format = '"$"#,##0.00_-'
+                ws[f"I{row}"] = link.sell.source
 
                 row += 1
 
@@ -1047,6 +1144,7 @@ class Transactions:
                 ws[f"E{row}"].number_format = '"$"#,##0.00_-'
                 ws[f"H{row}"] = link.profit_loss
                 ws[f"H{row}"].number_format = '"$"#,##0.00_-'
+                ws[f"I{row}"] = link.sell.source
 
                 row += 1
 
@@ -1372,6 +1470,7 @@ class Transactions:
         workbook.remove(l_sheet)
         workbook.remove(s_sheet)
         workbook.remove(t8949_sheet)
+        workbook.remove(sales_sheet)
             
             
         workbook.save(save_as_filename)
@@ -1475,6 +1574,7 @@ class Transactions:
             # Sells
             for index, row in sell_df.iterrows():
                 trans_obj = Sell(symbol=row['Asset'], quantity=row['Quantity Transacted'], time_stamp=row['Timestamp'], usd_spot=row['Spot Price at Transaction'], source=row['Source'])
+                trans_obj.fee = row['Fee'][2:]
                 duplicate_found = False
                 for trans in self.conversions:
                     if (
@@ -1492,8 +1592,10 @@ class Transactions:
 
             # Buys
             for index, row in buy_df.iterrows():
+
                 trans_obj = Buy(symbol=row['Asset'], quantity=row['Quantity Transacted'], time_stamp=row['Timestamp'], usd_spot=row['Spot Price at Transaction'], source=row['Source'])
                 duplicate_found = False
+                trans_obj.fee = row['Fee'][2:]
                 for trans in self.conversions:
                     if (
                         trans.input_trans_type == trans_obj.trans_type
@@ -1560,8 +1662,11 @@ class Transactions:
 
             # Sells
             for index, row in sell_df.iterrows():
-                trans_obj = Sell(symbol=row['Asset'], quantity=row['Quantity Transacted'], time_stamp=row['Timestamp'], usd_spot=row['Spot Price at Transaction'], source=row['Source'])
                 duplicate_found = False
+                
+                trans_obj = Sell(symbol=row['Asset'], quantity=row['Quantity Transacted'], time_stamp=row['Timestamp'], usd_spot=row['Spot Price at Transaction'], source=row['Source'])
+                trans_obj.fee = row['Fees']
+
                 for trans in self.conversions:
                     if (
                         trans.input_trans_type == trans_obj.trans_type
@@ -1578,8 +1683,11 @@ class Transactions:
 
             # Buys
             for index, row in buy_df.iterrows():
-                trans_obj = Buy(symbol=row['Asset'], quantity=row['Quantity Transacted'], time_stamp=row['Timestamp'], usd_spot=row['Spot Price at Transaction'], source=row['Source'])
                 duplicate_found = False
+                
+                trans_obj = Buy(symbol=row['Asset'], quantity=row['Quantity Transacted'], time_stamp=row['Timestamp'], usd_spot=row['Spot Price at Transaction'], source=row['Source'])
+                trans_obj.fee = row['Fees']
+                
                 for trans in self.conversions:
                     if (
                         trans.input_trans_type == trans_obj.trans_type
@@ -2025,6 +2133,8 @@ if __name__ == "__main__":
         bought_quantity += b.quantity
 
     for s in sells:
+
+        print('The Fee is ',s.fee)
         sold_quantity += s.quantity
 
 
