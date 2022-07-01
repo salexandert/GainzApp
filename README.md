@@ -20,7 +20,7 @@ Manually one at a time on the Manage Transactions Page.
 
 Please check out https://cryptogainz.store/ or email admin@cryptogainz.store for questions, comments, or suggestions.
 
-Did this help you out? All Donations cherished https://cryptogainz.store/pages/donate
+Did this help you out? All Donations cherished https://cryptogainz.store/pages/donate or with Bitcoin bc1qm0sykhxhhqey9yg2t93mqp4jzgdl88ewa82q3s
 
 Gainz, does not provide Legal, Financial, or Tax Advice. Please consult with your certified advisor(s) to validate results.
 
